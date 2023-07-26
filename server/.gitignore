@@ -1,0 +1,4 @@
+.env
+build
+res.http
+node_modules
