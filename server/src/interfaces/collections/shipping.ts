@@ -3,7 +3,7 @@ interface IShipping {
     name: string;
     address: string;
     phone: string;
-    note: string;
+    notes: string;
 }
 
 export default IShipping;
