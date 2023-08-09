@@ -1,7 +1,6 @@
 interface ITax {
-    id: number;
     name: string;
-    taxID: string;
+    taxCode: string;
     address: string;
     representative: string;
     phone: string;

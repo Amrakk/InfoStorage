@@ -1,5 +1,4 @@
 interface ISupplier {
-    id: string;
     name: string;
     contact: string;
     phone: string;

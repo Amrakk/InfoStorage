@@ -1,10 +1,9 @@
 interface IProduct {
-    id: string;
     name: string;
     category: string;
     quantity: number;
     price: number;
-    suppliers: string[];
+    suppliers: string[]; // supplier ids
 }
 
 export default IProduct;

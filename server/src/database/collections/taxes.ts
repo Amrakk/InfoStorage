@@ -1,13 +1,13 @@
 import database from "../db.js";
 import { ObjectId } from "mongodb";
-import IShipping from "../../interfaces/collections/shipping.js";
+import ITax from "../../interfaces/collections/tax.js";
 
 const db = database.getDB();
-const shippings = db.collection<IShipping>("shippings");
+const taxes = db.collection<ITax>("taxes");
 
-const insertShipping = async (shipping: IShipping) => {
+const insertTax = async (tax: ITax) => {
     try {
-        const result = await shippings.insertOne(shipping);
+        const result = await taxes.insertOne(tax);
         return result.acknowledged;
     } catch (err) {
         console.error(err);
@@ -15,9 +15,9 @@ const insertShipping = async (shipping: IShipping) => {
     }
 };
 
-const deleteShipping = async (id: string) => {
+const deleteTax = async (id: string) => {
     try {
-        const result = await shippings.deleteOne({ _id: new ObjectId(id) });
+        const result = await taxes.deleteOne({ _id: new ObjectId(id) });
         return result.acknowledged;
     } catch (err) {
         console.error(err);
@@ -25,11 +25,11 @@ const deleteShipping = async (id: string) => {
     }
 };
 
-const updateShipping = async (id: string, shipping: IShipping) => {
+const updateTax = async (id: string, tax: ITax) => {
     try {
-        const result = await shippings.updateOne(
+        const result = await taxes.updateOne(
             { _id: new ObjectId(id) },
-            { $set: shipping }
+            { $set: tax }
         );
         return result.acknowledged;
     } catch (err) {
@@ -38,17 +38,15 @@ const updateShipping = async (id: string, shipping: IShipping) => {
     }
 };
 
-const getShippings = async (
-    property: keyof IShipping | "_id",
-    value: string
-) => {
+const getTaxes = async (property: keyof ITax | "_id", value: string) => {
     let query = {};
 
     if (property === "_id") query = { _id: new ObjectId(value) };
+    else if (property === "participants") query = { participants: value };
     else query = { [property]: { $regex: value } };
 
     try {
-        const records = await shippings.find(query).toArray();
+        const records = await taxes.find(query).toArray();
         return records;
     } catch (error) {
         console.error(error);
@@ -56,9 +54,9 @@ const getShippings = async (
     }
 };
 
-export const shippingsCollection = {
-    getShippings,
-    insertShipping,
-    updateShipping,
-    deleteShipping,
+export const taxesCollection = {
+    getTaxes,
+    insertTax,
+    deleteTax,
+    updateTax,
 };
