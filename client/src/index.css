@@ -5,3 +5,17 @@
 #signin {
     font-family: 'Graphik', sans-serif;
 }
+
+#ifs {
+    font-family: 'Lalezar', Verdana, Geneva, Tahoma, sans-serif;
+}
+
+@layer components {
+    .container {
+        @apply px-2 md:px-5 xl:px-0 xl:w-[1200px] xl:mx-auto;
+    }
+
+    .icon {
+        @apply flex justify-center items-center flex-col;
+    }
+}

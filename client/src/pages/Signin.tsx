@@ -120,7 +120,7 @@ export default function Signin() {
     <>
       <div
         id="signin"
-        className=" flex justify-center mx-auto mt-52 md:max-w-md bg-white py-16 shadow-aesthetic rounded-md"
+        className=" flex justify-center mx-auto mt-52 max-w-md bg-white py-16 shadow-aesthetic rounded-md"
         style={notBlinking}
       >
         <form
