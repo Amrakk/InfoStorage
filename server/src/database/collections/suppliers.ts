@@ -59,6 +59,6 @@ const getSuppliers = async (
 export const suppliersCollection = {
     getSuppliers,
     insertSupplier,
-    deleteSupplier,
     updateSupplier,
+    deleteSupplier,
 };

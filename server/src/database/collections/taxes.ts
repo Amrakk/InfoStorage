@@ -57,6 +57,6 @@ const getTaxes = async (property: keyof ITax | "_id", value: string) => {
 export const taxesCollection = {
     getTaxes,
     insertTax,
-    deleteTax,
     updateTax,
+    deleteTax,
 };

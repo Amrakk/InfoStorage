@@ -11,7 +11,7 @@ let db: Db | null = null;
 const init = async () => {
     try {
         await client.connect();
-        db = client.db("IFS");
+        db = client.db("InfoStorage");
 
         console.log("Database connected");
     } catch (err) {

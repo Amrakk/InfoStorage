@@ -23,7 +23,8 @@
         "ioredis": "^5.3.2",
         "jsonwebtoken": "^9.0.1",
         "mongodb": "^5.7.0",
-        "uuid": "^9.0.0"
+        "uuid": "^9.0.0",
+        "zod": "^3.22.1"
     },
     "devDependencies": {
         "@types/bcrypt": "^5.0.0",

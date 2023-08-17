@@ -1,8 +1,9 @@
 interface IUser {
     name: string;
     email: string;
+    phone: string;
     password: string;
-    roles: string[];
+    role: string;
     isActivated: boolean;
 }
 

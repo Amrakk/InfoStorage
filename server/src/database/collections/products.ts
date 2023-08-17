@@ -57,8 +57,8 @@ const getProducts = async (property: keyof IProduct | "_id", value: string) => {
 export const productsCollection = {
     getProducts,
     insertProduct,
-    deleteProduct,
     updateProduct,
+    deleteProduct,
 };
 
 export default products;

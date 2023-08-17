@@ -1,6 +1,8 @@
-import { t } from "../global.js";
+import { router, publicProcedure } from "../trpc.js";
 import { authRouter } from "./authRouter.js";
 
-export const appRouter = t.router({
+export const appRouter = router({
+    troll: publicProcedure.query(() => "troll"),
+
     auth: authRouter,
 });
