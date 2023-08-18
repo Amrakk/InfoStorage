@@ -7,10 +7,11 @@ import {
     setAccessToken,
     setRefreshToken,
 } from "../../../middlewares/setToken.js";
+import IUser from "../../../interfaces/collections/user.js";
 import { valEmail, valPassword } from "../../../middlewares/validateInput.js";
 
 const db = database.getDB();
-const users = db.collection("users");
+const users = db.collection<IUser>("users");
 
 export const signin = publicProcedure
     .input(
@@ -33,13 +34,14 @@ export const signin = publicProcedure
             roles.find((role) => role.role === user.role) || {}
         ).permissions;
         if (!permissions) return null;
+
         const tokenData = {
-            id: user._id,
+            name: user.name,
             permissions: permissions,
         };
 
         setAccessToken(tokenData, opts.ctx.res);
-        setRefreshToken(tokenData.id, opts.ctx.res);
+        await setRefreshToken(user._id, opts.ctx.res);
 
         return { message: "Signin successfully" };
     });
