@@ -127,10 +127,10 @@ export default function Signin() {
           className="text-left md:w-80  text-[#415245]"
           onSubmit={handleSubmitForm}
         >
-          <h1 className="text-center font-medium text-4xl ">Đăng Nhập</h1>
+          <h1 className="text-center font-semibold  text-4xl ">Đăng Nhập</h1>
 
           {/* Email Input */}
-          <div className="relative mt-7">
+          <div className="relative mt-14">
             <label htmlFor="email" className="block font-medium">
               Email
             </label>

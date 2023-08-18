@@ -45,20 +45,28 @@ export default function Shipping() {
               }}
               className="flex gap-4 items-center"
             >
-              <div>nguyenhoangduy</div>
+              <div>nguyuenhoangduy</div>
               <FaUser size={24} />
             </div>
 
             <div
-              className={` absolute right-0 -bottom-24 bg-white border  rounded-md shadow-aesthetic py-3 px-4  flex-col gap-1 z-10 ${
+              className={` absolute right-0 top-10 bg-white border  rounded-md shadow-aesthetic py-2 px-5 flex-col gap-1 z-10 ${
                 showAccount ? "flex" : "hidden"
               }`}
             >
-              <div className="flex items-center w-28 px-2 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                <div>Profile </div>
+              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
+                <div>Profile</div>
                 <FiArrowUpRight />
               </div>
-              <div className="flex items-center w-28 px-2 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
+              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
+                <div>Tax</div>
+                <FiArrowUpRight />
+              </div>
+              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
+                <div>Host</div>
+                <FiArrowUpRight />
+              </div>
+              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
                 <div>Sign Out</div>
                 <FiArrowUpRight />
               </div>

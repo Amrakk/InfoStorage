@@ -1,9 +1,11 @@
+@import url(https://db.onlinewebfonts.com/c/7200c6dd8ac604abe09f5159e53a40c0?family=Mark+Pro);
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 #signin {
-    font-family: 'Graphik', sans-serif;
+    font-family: "Mark Pro", sans-serif;
 }
 
 #ifs {
