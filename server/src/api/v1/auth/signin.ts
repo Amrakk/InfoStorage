@@ -1,4 +1,4 @@
-import { set, z } from "zod";
+import { z } from "zod";
 import bycrpt from "bcrypt";
 import database from "../../../database/db.js";
 import { roles } from "../../../settings/global.js";
