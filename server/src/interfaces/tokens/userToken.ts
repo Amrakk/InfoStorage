@@ -1,5 +1,5 @@
 interface IUserToken {
-    id: string;
+    name: string;
     permissions: string[];
     iat: number;
     exp: number;
