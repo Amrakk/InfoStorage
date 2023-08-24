@@ -2,10 +2,10 @@ import cors from "cors";
 import express from "express";
 import cache from "./database/cache.js";
 import database from "./database/db.js";
+import { createContext } from "./trpc.js";
 import cookieParser from "cookie-parser";
 import { appRouter } from "./routers/appRouter.js";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { createContext } from "./context.js";
 
 const app = express();
 
