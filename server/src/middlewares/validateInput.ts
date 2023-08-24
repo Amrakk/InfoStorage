@@ -6,8 +6,6 @@ export function valEmail(email: string) {
 }
 
 export function valPassword(password: string) {
-    var passwordRegex = new RegExp(
-        "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])[a-zA-Z0-9]{8,}$"
-    );
+    var passwordRegex = new RegExp("^[a-zA-Z0-9]$");
     return passwordRegex.test(password);
 }

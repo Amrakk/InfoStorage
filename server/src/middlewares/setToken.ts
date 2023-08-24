@@ -2,44 +2,58 @@ import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { Response } from "express";
 import cache from "../database/cache.js";
-import { TRPCError } from "@trpc/server";
 
 interface IAccData {
     name: string;
-    permissions: string[];
+    role: string;
 }
 
-export function setAccessToken(user: IAccData, res: Response) {
-    const token = jwt.sign(
-        { name: user.name, permissions: user.permissions },
-        process.env.ACCESS_SECRET_KEY as string,
-        {
-            expiresIn: "15m",
-        }
-    );
+export function setAccToken(user: IAccData, res: Response) {
+    try {
+        if (!user.name || !user.role) throw new Error("Invalid user data");
 
-    res.cookie("access-token", token, {
-        secure: true,
-        sameSite: "none",
-    });
+        const token = jwt.sign(
+            { name: user.name, permissions: user.role },
+            process.env.ACCESS_SECRET_KEY as string,
+            {
+                expiresIn: "15m",
+            }
+        );
+
+        res.cookie("accToken", token, {
+            secure: true,
+            sameSite: "none",
+        });
+
+        return true;
+    } catch (err) {
+        return false;
+    }
 }
 
-export async function setRefreshToken(id: ObjectId, res: Response) {
-    const token = jwt.sign(
-        { id: id },
-        process.env.REFRESH_SECRET_KEY as string,
-        {
-            expiresIn: "7d",
-        }
-    );
+export async function setRefToken(id: ObjectId, res: Response) {
+    try {
+        if (!id) throw new Error("Invalid user id");
 
-    res.cookie("reftoken", token, {
-        secure: true,
-        httpOnly: true,
-        sameSite: "none",
-    });
+        const token = jwt.sign(
+            { id: id },
+            process.env.REFRESH_SECRET_KEY as string,
+            {
+                expiresIn: "7d",
+            }
+        );
 
-    const redis = cache.getCache();
+        res.cookie("refToken", token, {
+            secure: true,
+            httpOnly: true,
+            sameSite: "none",
+        });
 
-    return await redis.set(`reftoken-${id}`, token, "EX", 60 * 60 * 24 * 7);
+        const redis = cache.getCache();
+        await redis.set(`refToken-${id}`, token, "EX", 60 * 60 * 24 * 7);
+
+        return true;
+    } catch (err) {
+        return false;
+    }
 }
