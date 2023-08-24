@@ -13,7 +13,7 @@ export function setAccToken(user: IAccData, res: Response) {
         if (!user.name || !user.role) throw new Error("Invalid user data");
 
         const token = jwt.sign(
-            { name: user.name, permissions: user.role },
+            { name: user.name, role: user.role },
             process.env.ACCESS_SECRET_KEY as string,
             {
                 expiresIn: "15m",
