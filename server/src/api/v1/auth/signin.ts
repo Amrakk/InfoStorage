@@ -3,10 +3,12 @@ import bycrpt from "bcrypt";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { publicProcedure } from "../../../trpc.js";
-import { roles } from "../../../settings/global.js";
 import IUser from "../../../interfaces/collections/user.js";
-import { setAccToken, setRefToken } from "../../../middlewares/setToken.js";
 import { valEmail, valPassword } from "../../../middlewares/validateInput.js";
+import {
+    setAccToken,
+    setRefToken,
+} from "../../../middlewares/tokenHandlers.js";
 
 const signinSchema = z.object({
     email: z.string(),
@@ -25,8 +27,8 @@ const internalErr = new TRPCError({
 
 export const signin = publicProcedure
     .input(signinSchema)
-    .mutation(async (opts) => {
-        const { email, password } = opts.input;
+    .mutation(async ({ ctx, input }) => {
+        const { email, password } = input;
         if (!email || !password) throw generalErr;
         if (!valEmail(email) || !valPassword(password)) throw generalErr;
 
@@ -35,14 +37,19 @@ export const signin = publicProcedure
         if (user === "INTERNAL_SERVER_ERROR") throw internalErr;
         if (!bycrpt.compareSync(password, user.password)) throw generalErr;
 
-        const { name, role } = user;
         if (
-            !(await setRefToken(user._id, opts.ctx.res)) &&
-            !setAccToken({ name, role }, opts.ctx.res)
+            !setAccToken(user._id, ctx.res) &&
+            !(await setRefToken(user._id, ctx.res))
         )
             throw internalErr;
 
-        return { message: "Signin successfully" };
+        return {
+            message: "Signin successfully",
+            data: {
+                name: user.name,
+                role: user.role,
+            },
+        };
     });
 
 async function getUserByEmail(email: string) {

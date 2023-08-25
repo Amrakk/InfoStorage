@@ -2,18 +2,14 @@ import jwt from "jsonwebtoken";
 import { ObjectId } from "mongodb";
 import { Response } from "express";
 import cache from "../database/cache.js";
+import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 
-interface IAccData {
-    name: string;
-    role: string;
-}
-
-export function setAccToken(user: IAccData, res: Response) {
+export function setAccToken(id: ObjectId, res: Response) {
     try {
-        if (!user.name || !user.role) throw new Error("Invalid user data");
+        if (!id) throw new Error("Invalid user data");
 
         const token = jwt.sign(
-            { name: user.name, role: user.role },
+            { id },
             process.env.ACCESS_SECRET_KEY as string,
             {
                 expiresIn: "15m",
@@ -22,6 +18,7 @@ export function setAccToken(user: IAccData, res: Response) {
 
         res.cookie("accToken", token, {
             secure: true,
+            httpOnly: true,
             sameSite: "none",
         });
 
@@ -36,7 +33,7 @@ export async function setRefToken(id: ObjectId, res: Response) {
         if (!id) throw new Error("Invalid user id");
 
         const token = jwt.sign(
-            { id: id },
+            { id },
             process.env.REFRESH_SECRET_KEY as string,
             {
                 expiresIn: "7d",
@@ -51,6 +48,27 @@ export async function setRefToken(id: ObjectId, res: Response) {
 
         const redis = cache.getCache();
         await redis.set(`refToken-${id}`, token, "EX", 60 * 60 * 24 * 7);
+
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
+
+export function verifyToken(token: string, secret = "") {
+    try {
+        const decoded = jwt.verify(token, secret);
+        return decoded as ITokenPayload;
+    } catch (err: jwt.VerifyErrors | any) {
+        if (err.name !== "TokenExpiredError") return null;
+        return "expired";
+    }
+}
+
+export async function deleteRefToken(id: ObjectId) {
+    try {
+        const redis = cache.getCache();
+        await redis.del(`refToken-${id}`);
 
         return true;
     } catch (err) {

@@ -1,15 +1,14 @@
-import jwt from "jsonwebtoken";
 import { Response } from "express";
 import { ObjectId } from "mongodb";
 import { middleware } from "../trpc.js";
-import { TRPCError } from "@trpc/server";
 import cache from "../database/cache.js";
 import database from "../database/db.js";
-import { setAccToken } from "./setToken.js";
+import { TRPCError } from "@trpc/server";
 import IUser from "../interfaces/collections/user.js";
-import { IAccPayload, IRefPayload } from "../interfaces/tokens/cookieTokens.js";
+import { setAccToken, verifyToken } from "./tokenHandlers.js";
+import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 
-const generalErr = new TRPCError({
+const unauthErr = new TRPCError({
     code: "UNAUTHORIZED",
     message: "Invalid token",
 });
@@ -19,76 +18,72 @@ const internalErr = new TRPCError({
     message: "Internal server error",
 });
 
-export const verify = middleware(async ({ ctx, next }) => {
-    const { accToken, refToken } = ctx.req.cookies;
-    if (!accToken) throw generalErr;
+export const verify = (role?: string) =>
+    middleware(async ({ ctx, next }) => {
+        const { accToken, refToken } = ctx.req.cookies;
+        if (!accToken) throw unauthErr;
 
-    let userRole: string;
+        let userID: ObjectId;
 
-    const accPayload = verifyToken<IAccPayload>(
-        accToken,
-        process.env.ACCESS_SECRET_KEY as string
-    );
-    if (!accPayload) throw await clearCookie(ctx.res);
-    if (accPayload === "expired") {
-        if (!refToken) throw generalErr;
-
-        const refPayload = verifyToken<IRefPayload>(
-            refToken,
-            process.env.REFRESH_SECRET_KEY as string
+        const accPayload = verifyToken(
+            accToken,
+            process.env.ACCESS_SECRET_KEY as string
         );
-        if (
-            !refPayload ||
-            refPayload === "expired" ||
-            !(await verifyRefPayload(refPayload))
-        )
-            throw await clearCookie(ctx.res);
-        const user = await getUserByID(refPayload.id);
-        if (!user) throw generalErr;
+        if (!accPayload) throw clearCookie(ctx.res);
+        if (accPayload === "expired") {
+            if (!refToken) throw clearCookie(ctx.res);
+
+            const refPayload = verifyToken(
+                refToken,
+                process.env.REFRESH_SECRET_KEY as string
+            );
+            if (
+                !refPayload ||
+                refPayload === "expired" ||
+                !(await verifyRefPayload(refPayload))
+            )
+                throw clearCookie(ctx.res);
+
+            if (!setAccToken(refToken.id, ctx.res)) throw internalErr;
+
+            userID = refToken.id;
+        } else userID = accPayload.id;
+
+        const user = await getUserByID(userID);
+        if (!user) throw unauthErr;
         if (user === "INTERNAL_SERVER_ERROR") throw internalErr;
+        if (typeof role === "string" && user.role !== role) throw unauthErr;
 
-        const { name, role } = user;
-        if (!setAccToken({ name, role }, ctx.res)) throw internalErr;
-
-        userRole = role;
-    } else userRole = accPayload.role;
-
-    return next({
-        ctx: { ...ctx, userRole },
+        return next({
+            ctx: { ...ctx, userID, user },
+        });
     });
-});
 
-function verifyToken<T>(token: string, secret = "") {
-    try {
-        const decoded = jwt.verify(token, secret);
-        return decoded as T;
-    } catch (err: jwt.VerifyErrors | any) {
-        if (err.name !== "TokenExpiredError") return null;
-        return "expired";
-    }
-}
-
-async function verifyRefPayload(payload: IRefPayload) {
-    const redis = cache.getCache();
-    const token = await redis.get(`refToken-${payload.id}`);
-    if (!token) return false;
-
-    return true;
-}
-
-async function getUserByID(id: string) {
+async function getUserByID(id: ObjectId) {
     try {
         const db = database.getDB();
         const users = db.collection<IUser>("users");
 
-        return await users.findOne({ _id: new ObjectId(id) });
+        return await users.findOne({ _id: id });
     } catch (err) {
         return "INTERNAL_SERVER_ERROR";
     }
 }
 
-async function clearCookie(res: Response) {
+async function verifyRefPayload(payload: ITokenPayload) {
+    try {
+        const redis = cache.getCache();
+        const token = await redis.get(`refToken-${payload.id}`);
+        if (!token) return false;
+
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
+
+function clearCookie(res: Response) {
     res.clearCookie("accToken");
     res.clearCookie("refToken");
-    return generalErr;
+    return unauthErr;
 }
