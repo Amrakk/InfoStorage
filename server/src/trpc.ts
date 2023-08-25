@@ -24,6 +24,8 @@ export const publicProcedure = t.procedure;
 
 // Protected procedures
 export const verifiedProcedure = t.procedure.use(verify());
-export const adminProcedure = t.procedure.use(verify("admin"));
-export const managerProcedure = t.procedure.use(verify("manager"));
-export const employeeProcedure = t.procedure.use(verify("employee"));
+export const adminProcedure = t.procedure.use(verify(["admin"]));
+export const managerProcedure = t.procedure.use(verify(["admin", "manager"]));
+export const employeeProcedure = t.procedure.use(
+    verify(["admin", "manager", "employee"])
+);

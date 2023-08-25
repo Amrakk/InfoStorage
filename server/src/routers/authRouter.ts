@@ -1,6 +1,7 @@
 import { router } from "../trpc.js";
-import { signin } from "../api/v1/auth/signin.js";
+import { auth } from "../api/index.js";
 
 export const authRouter = router({
-    signin: signin,
+    signin: auth.signin,
+    signout: auth.signout,
 });

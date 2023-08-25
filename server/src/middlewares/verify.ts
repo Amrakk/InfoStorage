@@ -18,7 +18,7 @@ const internalErr = new TRPCError({
     message: "Internal server error",
 });
 
-export const verify = (role?: string) =>
+export const verify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
         const { accToken, refToken } = ctx.req.cookies;
         if (!accToken) throw unauthErr;
@@ -52,7 +52,8 @@ export const verify = (role?: string) =>
         const user = await getUserByID(userID);
         if (!user) throw unauthErr;
         if (user === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (typeof role === "string" && user.role !== role) throw unauthErr;
+        if (typeof roles === "object" && !roles.includes(user.role))
+            throw unauthErr;
 
         return next({
             ctx: { ...ctx, userID, user },
