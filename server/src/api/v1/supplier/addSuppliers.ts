@@ -5,7 +5,7 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { supplierRegex } from "../../../configs/regex.js";
 import { CollectionNames } from "../../../configs/default.js";
-import { saveImportLog } from "../../../middlewares/importLog.js";
+import { saveImportLog } from "../../../middlewares/saveImportLog.js";
 import ISupplier from "../../../interfaces/collections/supplier.js";
 import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import { getSupplierByName } from "../../../middlewares/collectionHandlers/supplierHandlers.js";

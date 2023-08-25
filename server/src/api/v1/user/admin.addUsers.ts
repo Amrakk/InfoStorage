@@ -6,7 +6,7 @@ import database from "../../../database/db.js";
 import { adminProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
 import IUser from "../../../interfaces/collections/user.js";
-import { saveImportLog } from "../../../middlewares/importLog.js";
+import { saveImportLog } from "../../../middlewares/saveImportLog.js";
 import { CollectionNames, UserRoles } from "../../../configs/default.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
 
