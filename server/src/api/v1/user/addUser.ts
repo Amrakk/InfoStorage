@@ -12,7 +12,7 @@ import {
     valRole,
 } from "../../../middlewares/validateInput.js";
 
-const signupSchema = z.object({
+const addUserSchema = z.object({
     name: z.string(),
     email: z.string(),
     phone: z.string(),
@@ -30,9 +30,9 @@ const internalErr = new TRPCError({
     message: "Internal server error",
 });
 
-export const signup = adminProcedure
-    .input(signupSchema)
-    .mutation(async ({ ctx, input }) => {
+export const addUser = adminProcedure
+    .input(addUserSchema)
+    .mutation(async ({ input }) => {
         const { name, email, phone, password, role } = input;
 
         if (!name || !email || !phone || !password || !role) throw generalErr;
@@ -68,7 +68,7 @@ export const signup = adminProcedure
         if (!result || result === "INTERNAL_SERVER_ERROR") throw internalErr;
 
         return {
-            message: "Signup successfully",
+            message: "Add user successfully",
         };
     });
 

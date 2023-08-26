@@ -1,5 +1,7 @@
 import { signin } from "./v1/auth/signin.js";
-import { signup } from "./v1/auth/signup.js";
 import { signout } from "./v1/auth/signout.js";
+export const auth = { signin, signout };
 
-export const auth = { signin, signout, signup };
+import { addUser } from "./v1/user/addUser.js";
+import { getUsers } from "./v1/user/getUsers.js";
+export const user = { addUser, getUsers };
