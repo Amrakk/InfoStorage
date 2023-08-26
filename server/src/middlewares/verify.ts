@@ -56,7 +56,7 @@ export const verify = (roles?: string[]) =>
             throw unauthErr;
 
         return next({
-            ctx: { ...ctx, userID, user },
+            ctx: { ...ctx, user },
         });
     });
 

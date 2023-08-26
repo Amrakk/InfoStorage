@@ -3,7 +3,7 @@ import { verifiedProcedure } from "../../../trpc.js";
 import { deleteRefToken } from "../../../middlewares/tokenHandlers.js";
 
 export const signout = verifiedProcedure.mutation(({ ctx }) => {
-    if (!deleteRefToken(ctx.userID))
+    if (!deleteRefToken(ctx.user._id))
         throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
         });

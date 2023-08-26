@@ -9,8 +9,10 @@ export async function createContext(opts: CreateExpressContextOptions) {
     return {
         req: opts.req,
         res: opts.res,
-        userID: new ObjectId(undefined),
-        user: new Object(undefined) as IUser,
+        user: {
+            _id: new ObjectId(undefined),
+            ...(new Object(undefined) as IUser),
+        },
     };
 }
 
