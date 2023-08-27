@@ -13,10 +13,10 @@ import {
 } from "../../../middlewares/validateInput.js";
 
 const addUserSchema = z.object({
-    name: z.string(),
-    email: z.string(),
-    phone: z.string(),
+    name: z.string().trim(),
+    email: z.string().trim(),
     password: z.string(),
+    phone: z.string(),
     role: z.string(),
 });
 
