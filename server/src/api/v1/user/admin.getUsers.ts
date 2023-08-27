@@ -1,7 +1,7 @@
-import { adminProcedure } from "../../../trpc.js";
-import database from "../../../database/db.js";
-import IUser from "../../../interfaces/collections/user.js";
 import { TRPCError } from "@trpc/server";
+import database from "../../../database/db.js";
+import { adminProcedure } from "../../../trpc.js";
+import IUser from "../../../interfaces/collections/user.js";
 
 export const getUsers = adminProcedure.query(async () => {
     const users = await getAllUsers();

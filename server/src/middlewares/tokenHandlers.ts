@@ -22,7 +22,6 @@ export function setAccToken(id: ObjectId, res: Response) {
             secure: !isDev,
             httpOnly: true,
             sameSite: "none",
-            expires: new Date(Date.now() + 1000 * 60 * 15),
         });
 
         return true;
@@ -47,7 +46,6 @@ export async function setRefToken(id: ObjectId, res: Response) {
             secure: !isDev,
             httpOnly: true,
             sameSite: "strict",
-            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         });
 
         const redis = cache.getCache();
