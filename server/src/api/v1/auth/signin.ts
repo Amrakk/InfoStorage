@@ -37,20 +37,20 @@ export const signin = publicProcedure
         if (user === "INTERNAL_SERVER_ERROR") throw internalErr;
         if (!bycrpt.compareSync(password, user.password)) throw generalErr;
 
-        if (
-            !setAccToken(user._id, ctx.res) &&
-            !(await setRefToken(user._id, ctx.res))
-        )
-            throw internalErr;
+        const isSet =
+            setAccToken(user._id, ctx.res) &&
+            (await setRefToken(user._id, ctx.res));
+        if (!isSet) throw internalErr;
 
         return {
             message: "Signin successfully",
-            data: {
+            user: {
                 name: user.name,
                 role: user.role,
             },
         };
     });
+z;
 
 async function getUserByEmail(email: string) {
     try {

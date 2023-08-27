@@ -1,7 +1,5 @@
-import { ObjectId } from "mongodb";
-
 interface ITokenPayload {
-    id: ObjectId;
+    id: string;
     iat: number;
     exp: number;
 }

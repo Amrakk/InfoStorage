@@ -21,14 +21,15 @@ const internalErr = new TRPCError({
 export const verify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
         const { accToken, refToken } = ctx.req.cookies;
-        if (!accToken) throw unauthErr;
 
-        let userID: ObjectId;
+        if (!accToken) throw unauthErr;
+        let userID: string;
 
         const accPayload = verifyToken(
             accToken,
             process.env.ACCESS_SECRET_KEY as string
         );
+
         if (!accPayload) throw clearCookie(ctx.res);
         if (accPayload === "expired") {
             if (!refToken) throw clearCookie(ctx.res);
@@ -46,7 +47,7 @@ export const verify = (roles?: string[]) =>
 
             if (!setAccToken(refToken.id, ctx.res)) throw internalErr;
 
-            userID = refToken.id;
+            userID = refPayload.id;
         } else userID = accPayload.id;
 
         const user = await getUserByID(userID);
@@ -60,12 +61,12 @@ export const verify = (roles?: string[]) =>
         });
     });
 
-async function getUserByID(id: ObjectId) {
+async function getUserByID(id: string) {
     try {
         const db = database.getDB();
         const users = db.collection<IUser>("users");
 
-        return await users.findOne({ _id: id });
+        return await users.findOne({ _id: new ObjectId(id) });
     } catch (err) {
         return "INTERNAL_SERVER_ERROR";
     }

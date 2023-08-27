@@ -4,6 +4,8 @@ import { Response } from "express";
 import cache from "../database/cache.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 
+const isDev = process.env.ENV === "development";
+
 export function setAccToken(id: ObjectId, res: Response) {
     try {
         if (!id) throw new Error("Invalid user data");
@@ -17,9 +19,10 @@ export function setAccToken(id: ObjectId, res: Response) {
         );
 
         res.cookie("accToken", token, {
-            secure: true,
+            secure: !isDev,
             httpOnly: true,
             sameSite: "none",
+            expires: new Date(Date.now() + 1000 * 60 * 15),
         });
 
         return true;
@@ -41,9 +44,10 @@ export async function setRefToken(id: ObjectId, res: Response) {
         );
 
         res.cookie("refToken", token, {
-            secure: true,
+            secure: !isDev,
             httpOnly: true,
-            sameSite: "none",
+            sameSite: "strict",
+            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         });
 
         const redis = cache.getCache();
