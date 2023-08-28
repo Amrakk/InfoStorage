@@ -1,79 +1,39 @@
-import React, { useState } from "react";
-import { FaUser, FaTruck } from "react-icons/fa";
-import { AiOutlineDashboard } from "react-icons/ai";
-import { BsFillPeopleFill } from "react-icons/bs";
-import { RiInboxFill } from "react-icons/ri";
-import { LuBuilding } from "react-icons/lu";
-import { FiArrowUpRight } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+
+import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
+import { AppRouter } from "../../../server/src/server";
+
+const client = createTRPCProxyClient<AppRouter>({
+  links: [httpBatchLink({ url: "http://localhost:3000/trpc" })],
+});
+
+const test = async () => {
+  const result = await client.troll.query();
+  console.log(result);
+};
+
 export default function Shipping() {
-  const [showAccount, setShowAccount] = useState(false);
+  useEffect(() => {
+    test();
+  }, []);
   return (
     <>
-      <header className=" border-b border-b-primary text-primary select-none">
-        <div className="container py-5 flex justify-between items-center">
-          <div className="flex gap-10">
-            <h1 id="ifs" className="text-3xl cursor-pointer font-semibold">
-              IFS
-            </h1>
-            <div className="flex gap-10">
-              <div className="icon cursor-pointer ">
-                <AiOutlineDashboard size={24} />
-                <div>Dashboard</div>
-              </div>
-              <div className="icon cursor-pointer">
-                <BsFillPeopleFill size={24} />
-                <div>Customer</div>
-              </div>
-              <div className="icon cursor-pointer">
-                <FaTruck size={24} />
-                <div>Shipping</div>
-              </div>
-              <div className="icon cursor-pointer">
-                <RiInboxFill size={24} />
-                <div>Product</div>
-              </div>
-              <div className="icon cursor-pointer">
-                <LuBuilding size={24} />
-                <div>Supplier</div>
-              </div>
-            </div>
-          </div>
-          <div className="relative cursor-pointer">
-            <div
-              onClick={() => {
-                setShowAccount(!showAccount);
-              }}
-              className="flex gap-4 items-center"
-            >
-              <div>nguyuenhoangduy</div>
-              <FaUser size={24} />
-            </div>
-
-            <div
-              className={` absolute right-0 top-10 bg-white border  rounded-md shadow-aesthetic py-2 px-5 flex-col gap-1 z-10 ${
-                showAccount ? "flex" : "hidden"
-              }`}
-            >
-              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                <div>Profile</div>
-                <FiArrowUpRight />
-              </div>
-              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                <div>Tax</div>
-                <FiArrowUpRight />
-              </div>
-              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                <div>Host</div>
-                <FiArrowUpRight />
-              </div>
-              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                <div>Sign Out</div>
-                <FiArrowUpRight />
-              </div>
-            </div>
+      <div className="container text-primary select-none">
+        <div className="flex justify-between mt-5">
+          <div className="text-3xl">Shipping</div>
+          <div className="flex gap-5">
+            <button className="w-40 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
+              Export File
+            </button>
+            <button className="w-40 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
+              Import File
+            </button>
+            <button className="w-40 py-3 bg-primary hover:bg- text-white rounded-md">
+              Create
+            </button>
           </div>
         </div>
-      </header>
+      </div>
     </>
   );
 }

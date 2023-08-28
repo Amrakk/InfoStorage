@@ -5,19 +5,41 @@
 @tailwind utilities;
 
 #signin {
-    font-family: "Mark Pro", sans-serif;
+  font-family: "Mark Pro", sans-serif;
 }
 
 #ifs {
-    font-family: 'Lalezar', Verdana, Geneva, Tahoma, sans-serif;
+  font-family: "Lalezar", Verdana, Geneva, Tahoma, sans-serif;
 }
 
 @layer components {
-    .container {
-        @apply px-2 md:px-5 xl:px-0 xl:w-[1200px] xl:mx-auto;
-    }
+  .container {
+    @apply px-2 md:px-5 xl:px-0 xl:w-[1200px] xl:mx-auto;
+  }
 
-    .icon {
-        @apply flex justify-center items-center flex-col;
-    }
+  /* .icon::after {
+    @apply w-0 h-[1.5px] bg-[#415245] mt-1 transition-[width] duration-300 content-[''];
+  } */
+  .icon {
+    @apply flex justify-center items-center flex-col w-20 gap-2 brightness-[1.7];
+  }
+
+  /* .icon-active {
+    @apply after:w-full after:;
+  } */
+}
+
+@keyframes fadeIn {
+  from {
+    top: 0;
+    opacity: 0;
+  }
+  to {
+    top: 40px;
+    opacity: 1;
+  }
+}
+
+#boxAccount {
+  animation: fadeIn 0.3s ease-in-out;
 }

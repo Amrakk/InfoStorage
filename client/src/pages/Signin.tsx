@@ -37,23 +37,6 @@ export default function Signin() {
   const [emailWarning, setEmailWarning] = useState("");
   const [passwordWarning, setPasswordWarning] = useState("");
 
-  // function handleSubmitForm(data: FieldValues) {
-  //   console.log(data);
-
-  //   if (data.password === "") {
-  //     const password = document.getElementById("password") as HTMLInputElement;
-  //     password.classList.remove("focus:border-[#6AAFC7]", "focus:border");
-  //     password.classList.add("border-red-500");
-  //     setPasswordWarning("Required");
-  //   }
-  //   if (data.email === "") {
-  //     const email = document.getElementById("email") as HTMLInputElement;
-  //     email.classList.remove("focus:border-[#6AAFC7]", "focus:border");
-  //     email.classList.add("border-red-500");
-  //     setEmailWarning("Required");
-  //   }
-  // }
-
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const email = document.getElementById("email") as HTMLInputElement;

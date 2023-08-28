@@ -9,7 +9,7 @@ export default {
       },
 
       colors: {
-        primary: "#415245",
+        primary: "rgb(65, 82, 69)",
       },
     },
   },
