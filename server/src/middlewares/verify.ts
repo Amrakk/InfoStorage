@@ -27,7 +27,7 @@ export const verify = (roles?: string[]) =>
 
         const accPayload = verifyToken(
             accToken,
-            process.env.ACCESS_SECRET_KEY as string
+            process.env.ACCESS_SECRET_KEY!
         );
 
         if (!accPayload) throw clearCookie(ctx.res);
@@ -36,7 +36,7 @@ export const verify = (roles?: string[]) =>
 
             const refPayload = verifyToken(
                 refToken,
-                process.env.REFRESH_SECRET_KEY as string
+                process.env.REFRESH_SECRET_KEY!
             );
             if (
                 !refPayload ||

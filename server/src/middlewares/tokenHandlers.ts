@@ -10,13 +10,9 @@ export function setAccToken(id: ObjectId, res: Response) {
     try {
         if (!id) throw new Error("Invalid user data");
 
-        const token = jwt.sign(
-            { id },
-            process.env.ACCESS_SECRET_KEY as string,
-            {
-                expiresIn: "15m",
-            }
-        );
+        const token = jwt.sign({ id }, process.env.ACCESS_SECRET_KEY!, {
+            expiresIn: "15m",
+        });
 
         res.cookie("accToken", token, {
             secure: !isDev,
@@ -34,13 +30,9 @@ export async function setRefToken(id: ObjectId, res: Response) {
     try {
         if (!id) throw new Error("Invalid user id");
 
-        const token = jwt.sign(
-            { id },
-            process.env.REFRESH_SECRET_KEY as string,
-            {
-                expiresIn: "7d",
-            }
-        );
+        const token = jwt.sign({ id }, process.env.REFRESH_SECRET_KEY!, {
+            expiresIn: "7d",
+        });
 
         res.cookie("refToken", token, {
             secure: !isDev,

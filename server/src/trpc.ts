@@ -18,7 +18,18 @@ export async function createContext(opts: CreateExpressContextOptions) {
 
 export type Context = inferAsyncReturnType<typeof createContext>;
 
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+    errorFormatter({ shape, error }) {
+        if (error.code === "INTERNAL_SERVER_ERROR") console.error(error);
+        return {
+            ...shape,
+            data: {
+                ...shape.data,
+                stack: undefined,
+            },
+        };
+    },
+});
 
 export const router = t.router;
 export const middleware = t.middleware;

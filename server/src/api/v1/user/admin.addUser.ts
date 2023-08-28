@@ -59,8 +59,8 @@ export const addUser = adminProcedure
         const user = {
             name,
             email,
-            phone,
             password: hashedPassword,
+            phone,
             role,
         };
 

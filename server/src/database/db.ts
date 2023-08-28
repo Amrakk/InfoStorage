@@ -2,8 +2,8 @@ import { MongoClient, Db } from "mongodb";
 
 const url =
     process.env.ENV === "development"
-        ? (process.env.DEV_DB_URL as string)
-        : (process.env.PROD_DB_URL as string);
+        ? process.env.DEV_DB_URL!
+        : process.env.PROD_DB_URL!;
 
 const client = new MongoClient(url);
 let db: Db | null = null;
