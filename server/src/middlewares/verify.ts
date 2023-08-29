@@ -2,9 +2,8 @@ import { Response } from "express";
 import { ObjectId } from "mongodb";
 import { middleware } from "../trpc.js";
 import cache from "../database/cache.js";
-import database from "../database/db.js";
 import { TRPCError } from "@trpc/server";
-import IUser from "../interfaces/collections/user.js";
+import { getUserByID } from "./userHandlers.js";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 
@@ -60,17 +59,6 @@ export const verify = (roles?: string[]) =>
             ctx: { ...ctx, user },
         });
     });
-
-async function getUserByID(id: string) {
-    try {
-        const db = database.getDB();
-        const users = db.collection<IUser>("users");
-
-        return await users.findOne({ _id: new ObjectId(id) });
-    } catch (err) {
-        return "INTERNAL_SERVER_ERROR";
-    }
-}
 
 async function verifyRefPayload(payload: ITokenPayload) {
     try {

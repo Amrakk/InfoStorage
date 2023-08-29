@@ -1,6 +1,6 @@
 import { router } from "../trpc.js";
-import { shipping } from "../api/index.js";
+import { getShippings } from "../api/v1/shipping/getShipping.js";
 
 export const shippingRouter = router({
-    getShippings: shipping.getShippings,
+    getShippings,
 });

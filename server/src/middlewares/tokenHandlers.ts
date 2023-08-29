@@ -17,7 +17,7 @@ export function setAccToken(id: ObjectId, res: Response) {
         res.cookie("accToken", token, {
             secure: !isDev,
             httpOnly: true,
-            sameSite: "none",
+            sameSite: isDev ? "lax" : "none",
         });
 
         return true;
@@ -37,7 +37,7 @@ export async function setRefToken(id: ObjectId, res: Response) {
         res.cookie("refToken", token, {
             secure: !isDev,
             httpOnly: true,
-            sameSite: "strict",
+            sameSite: isDev ? "lax" : "none",
         });
 
         const redis = cache.getCache();
