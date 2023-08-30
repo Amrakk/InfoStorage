@@ -5,7 +5,7 @@ interface ICustomer {
     address: string;
     curator: string;
     placer: string;
-    notes: string;
+    note: string;
 }
 
 export default ICustomer;
