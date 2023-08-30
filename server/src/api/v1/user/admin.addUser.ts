@@ -23,26 +23,19 @@ const internalErr = new TRPCError({
 export const addUser = adminProcedure
     .input(addUserSchema)
     .mutation(async ({ input }) => {
-        const { name, email, phone, password, role } = input;
+        const { ...user } = input;
 
-        const isEmailExist = await getUserByEmail(email);
+        const isEmailExist = await getUserByEmail(user.email);
+        if (isEmailExist === "INTERNAL_SERVER_ERROR") throw internalErr;
         if (isEmailExist)
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Email already exists",
             });
-        if (isEmailExist === "INTERNAL_SERVER_ERROR") throw internalErr;
 
         const salt = bcrypt.genSaltSync(10);
-        const hashedPassword = bcrypt.hashSync(password, salt);
-
-        const user = {
-            name,
-            email,
-            password: hashedPassword,
-            phone,
-            role,
-        };
+        const hashedPassword = bcrypt.hashSync(user.password, salt);
+        user.password = hashedPassword;
 
         const result = await insertUser(user);
         if (!result || result === "INTERNAL_SERVER_ERROR") throw internalErr;

@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
 import { TRPCError } from "@trpc/server";
@@ -25,28 +25,22 @@ const internalErr = new TRPCError({
 export const updateUser = adminProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { _id, name, email, password, phone, role } = input;
+        const { ...user } = input;
 
-        const user = await getUserByEmail(email);
-        if (user === "INTERNAL_SERVER_ERROR") return internalErr;
-        if (user && user._id != new ObjectId(_id))
+        const data = await getUserByEmail(user.email);
+        if (data === "INTERNAL_SERVER_ERROR") return internalErr;
+        if (data && data._id != new ObjectId(user._id))
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Email already exists",
             });
 
         const salt = bcrypt.genSaltSync(10);
-        const hashedPassword = bcrypt.hashSync(password, salt);
+        const hashedPassword = bcrypt.hashSync(user.password, salt);
 
-        const newInfo: IUser = {
-            name,
-            email,
-            password: hashedPassword,
-            phone,
-            role,
-        };
+        user.password = hashedPassword;
 
-        const result = await updateUserInfo(_id, newInfo);
+        const result = await updateUserInfo(user._id, user);
         if (!result) throw internalErr;
 
         return {
