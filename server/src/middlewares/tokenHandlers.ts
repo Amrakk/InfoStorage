@@ -8,8 +8,9 @@ const isDev = process.env.ENV === "development";
 
 export function setAccToken(id: ObjectId, res: Response) {
     try {
+        console.log(id);
         if (!id) throw new Error("Invalid user data");
-
+        console.log(id);
         const token = jwt.sign({ id }, process.env.ACCESS_SECRET_KEY!, {
             expiresIn: "15m",
         });

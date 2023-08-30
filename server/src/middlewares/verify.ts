@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { Response } from "express";
 import { middleware } from "../trpc.js";
 import cache from "../database/cache.js";
@@ -31,7 +32,6 @@ export const verify = (roles?: string[]) =>
         if (!accPayload) throw clearCookie(ctx.res);
         if (accPayload === "expired") {
             if (!refToken) throw clearCookie(ctx.res);
-
             const refPayload = verifyToken(
                 refToken,
                 process.env.REFRESH_SECRET_KEY!
@@ -39,11 +39,12 @@ export const verify = (roles?: string[]) =>
             if (
                 !refPayload ||
                 refPayload === "expired" ||
-                !(await verifyRefPayload(refPayload))
+                !(await verifyRefPayload(refPayload, refToken))
             )
                 throw clearCookie(ctx.res);
 
-            if (!setAccToken(refToken.id, ctx.res)) throw internalErr;
+            if (!setAccToken(new ObjectId(refPayload.id), ctx.res))
+                throw internalErr;
 
             userID = refPayload.id;
         } else userID = accPayload.id;
@@ -59,11 +60,11 @@ export const verify = (roles?: string[]) =>
         });
     });
 
-async function verifyRefPayload(payload: ITokenPayload) {
+async function verifyRefPayload(payload: ITokenPayload, refToken: string) {
     try {
         const redis = cache.getCache();
         const token = await redis.get(`refToken-${payload.id}`);
-        if (!token) return false;
+        if (!token || token !== refToken) return false;
 
         return true;
     } catch (err) {

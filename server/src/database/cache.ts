@@ -6,6 +6,10 @@ const redis = new Redis(url, { lazyConnect: true });
 const init = async () => {
     try {
         await redis.connect();
+        setInterval(() => {
+            redis.ping();
+        }, 1000 * 60 * 5);
+
         console.log("Cache connected");
     } catch (err) {
         console.log(err);
@@ -22,8 +26,13 @@ const close = async () => {
 };
 
 const getCache = () => {
-    if (redis.status === "connect") throw new Error("Cache not initialized");
-    return redis;
+    try {
+        if (redis.status !== "ready") throw new Error("Cache not initialized");
+        return redis;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
 };
 
 export default { init, close, getCache };
