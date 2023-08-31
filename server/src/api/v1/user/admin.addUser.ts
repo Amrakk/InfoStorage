@@ -7,7 +7,7 @@ import { userRegex } from "../../../configs/regex.js";
 import IUser from "../../../interfaces/collections/user.js";
 import { getUserByEmail } from "../../../middlewares/userHandlers.js";
 
-const addUserSchema = z.object({
+const inputSchema = z.object({
     name: z.string().regex(userRegex.name),
     email: z.string().regex(userRegex.email),
     password: z.string().regex(userRegex.password),
@@ -21,7 +21,7 @@ const internalErr = new TRPCError({
 });
 
 export const addUser = adminProcedure
-    .input(addUserSchema)
+    .input(inputSchema)
     .mutation(async ({ input }) => {
         const { ...user } = input;
 

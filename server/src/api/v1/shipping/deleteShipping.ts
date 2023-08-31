@@ -4,12 +4,8 @@ import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 
-const inputSchema = z.object({
-    id: z.string(),
-});
-
 export const deleteShipping = employeeProcedure
-    .input(inputSchema)
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
         const { id } = input;
 
