@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { trpc, type TRPCError, type TShipping } from "../trpc";
-import { AiOutlineSearch } from "react-icons/ai";
+import { AiOutlineSearch, AiFillEdit } from "react-icons/ai";
 import { IoMdSettings } from "react-icons/io";
 import { FaFilter } from "react-icons/fa";
 import { BsFillSkipEndFill, BsFillSkipStartFill } from "react-icons/bs";
 import { GrFormPrevious, GrFormNext } from "react-icons/gr";
 import { useLocation, useNavigate } from "react-router-dom";
-
+import { BsFillTrash3Fill } from "react-icons/bs";
+import DeletePopup from "../components/DeletePopup";
+import { useDeletePopupStore } from "../stores/DeletePopup";
 export default function Shipping() {
   const navigate = useNavigate();
   const [shippings, setShippings] = useState<TShipping>([]);
-
+  const [iconAppear, setIconAppear] = useState(false);
+  const [binPing, setBinPing] = useState(false);
+  const [editPing, setEditPing] = useState(false);
+  const { isDeletePopupOpen, setIsDeletePopupOpen } = useDeletePopupStore();
   useEffect(() => {
     trpc.shipping.getShippings
       .query()
@@ -63,7 +68,7 @@ export default function Shipping() {
         {/* {shippings.map((shipping) => {
           return <div>{shipping.name}</div>;
         })} */}
-        <div className="mt-8 h-[430px] overflow-auto">
+        <div className="mt-8 h-[500px] overflow-auto">
           <table className="w-full table-auto relative border-separate">
             <thead className="">
               <tr className="text-left ">
@@ -96,10 +101,10 @@ export default function Shipping() {
                       className="border-b-2 border-[#D1DBD3]  hover:bg-gray-200  hover:duration-200 hover:ease-in-out cursor-pointer"
                       draggable
                       onDragStart={(e) => {
-                        // console.log(e);
+                        setIconAppear(true);
                       }}
-                      onDragEnter={(e) => {
-                        console.log(e);
+                      onDragEnd={(e) => {
+                        setIconAppear(false);
                       }}
                     >
                       <td className="text-center">{index + 1}</td>
@@ -126,10 +131,63 @@ export default function Shipping() {
             <BsFillSkipEndFill size={24} />
           </div>
         </div>
-        <span className="fixed flex w-72  aspect-square -left-32 -bottom-28">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-          <span className="relative inline-flex w-72  aspect-square rounded-full bg-red-500 "></span>
+        <span
+          className={`fixed flex w-72  aspect-square transition-all  ${
+            iconAppear ? "-left-32 -bottom-28" : "-left-72 -bottom-64"
+          }`}
+        >
+          <span
+            className={`${
+              binPing ? "animate-ping" : ""
+            } absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75`}
+          ></span>
+          <span
+            className="relative inline-flex  w-72  aspect-square rounded-full bg-red-500 "
+            onDragEnter={(e) => {
+              setBinPing(true);
+            }}
+            onDragLeave={() => {
+              setBinPing(false);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDrop={() => {
+              setIsDeletePopupOpen("Bạn có chắc chắn muốn xóa không?");
+            }}
+          >
+            <BsFillTrash3Fill
+              size={50}
+              className="absolute  text-white right-[72px] top-[72px] pointer-events-none"
+            />
+          </span>
         </span>
+        <span
+          className={`fixed flex w-72  aspect-square transition-all  ${
+            iconAppear ? "-right-32 -bottom-28" : "-right-72 -bottom-64"
+          }`}
+        >
+          <span
+            className={`${
+              editPing ? "animate-ping" : ""
+            } absolute inline-flex h-full w-full rounded-full bg-[#6AAFC7] opacity-75`}
+          ></span>
+          <span
+            className="relative inline-flex  w-72  aspect-square rounded-full bg-[#6AAFC7] "
+            onDragEnter={(e) => {
+              setEditPing(true);
+            }}
+            onDragLeave={() => {
+              setEditPing(false);
+            }}
+          >
+            <AiFillEdit
+              size={55}
+              className="absolute  text-white left-[72px] top-[72px] pointer-events-none"
+            />
+          </span>
+        </span>
+        {isDeletePopupOpen && <DeletePopup message={isDeletePopupOpen} />}
       </div>
     </>
   );
