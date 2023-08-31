@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { useForm, type FieldValues } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { TRPCError, trpc } from "../trpc";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const notBlinking = {
   caretColor: "transparent",
@@ -9,8 +10,6 @@ const notBlinking = {
 const isBlinking = {
   caretColor: "#415245",
 };
-
-let renderCount = 0;
 
 function Warning({ message }: { message: string | undefined }) {
   return (
@@ -21,21 +20,21 @@ function Warning({ message }: { message: string | undefined }) {
 }
 
 export default function Signin() {
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-  renderCount++;
-
   const [emailWarning, setEmailWarning] = useState("");
   const [passwordWarning, setPasswordWarning] = useState("");
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+
+  const navigate = useNavigate();
+  async function handleLogin() {
+    try {
+      const user = await trpc.auth.signin.mutate({ email, password });
+      localStorage.setItem("username", user.user.name);
+      navigate("/dashboard");
+    } catch (err) {
+      alert((err as TRPCError).message);
+    }
+  }
 
   function handleSubmitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -53,11 +52,13 @@ export default function Signin() {
       email.classList.add("border-red-500");
       setEmailWarning("Required");
     }
+    handleLogin();
   }
 
   function handleEmail(e: React.ChangeEvent<HTMLInputElement>) {
     const emailInput = e.target as HTMLInputElement;
     const emailValue = e.target.value;
+    setEmail(emailValue);
     const emailValid = emailValue.match(
       /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     );
@@ -79,25 +80,41 @@ export default function Signin() {
 
   function handlePassword(e: React.ChangeEvent<HTMLInputElement>) {
     const passwordValue = e.target.value;
+    setPassword(passwordValue);
     const passwordInput = e.target as HTMLInputElement;
 
-    if (passwordValue !== "" && passwordValue.length < 8) {
-      passwordInput.classList.add("border-red-500");
-      passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
-      setPasswordWarning("The password is too short");
-    } else if (passwordValue === "") {
+    // if (passwordValue !== "" && passwordValue.length < 8) {
+    //   passwordInput.classList.add("border-red-500");
+    //   passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
+    //   setPasswordWarning("The password is too short");
+    // } else
+    if (passwordValue === "") {
       passwordInput.classList.add("border-red-500");
       passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
       setPasswordWarning("Required");
-    } else if (passwordValue.length >= 8) {
-      passwordInput.classList.remove("border-red-500");
-      passwordInput.classList.add("focus:border-[#6AAFC7]", "focus:border");
-      setPasswordWarning("");
     }
+    // else if (passwordValue.length >= 8) {
+    //   passwordInput.classList.remove("border-red-500");
+    //   passwordInput.classList.add("focus:border-[#6AAFC7]", "focus:border");
+    //   setPasswordWarning("");
+    // }
   }
 
-  // console.log("renderCount: ", renderCount);
-  // console.log(errors);
+  function handleOnBlur(string: string) {
+    const emailAndPassword = document.getElementById(
+      string
+    ) as HTMLInputElement;
+
+    if (emailAndPassword.value === "") {
+      emailAndPassword.classList.add("border-red-500");
+      emailAndPassword.classList.remove(
+        "focus:border-[#6AAFC7]",
+        "focus:border"
+      );
+      if (string === "email") setEmailWarning("Required");
+      else if (string === "password") setPasswordWarning("Required");
+    }
+  }
 
   return (
     <>
@@ -119,32 +136,18 @@ export default function Signin() {
             </label>
             <input
               style={isBlinking}
-              // type="email"
               id="email"
+              name="email"
               placeholder="Nhập email"
-              // {...register("email", { required: true })}
-              className="border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md "
-              onChange={handleEmail}
+              className="border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md"
+              onChange={(e) => {
+                handleEmail(e);
+              }}
               onBlur={() => {
-                const email = document.getElementById(
-                  "email"
-                ) as HTMLInputElement;
-
-                if (email.value === "") {
-                  email.classList.add("border-red-500");
-                  email.classList.remove(
-                    "focus:border-[#6AAFC7]",
-                    "focus:border"
-                  );
-                  setEmailWarning("Required");
-                }
+                handleOnBlur("email");
               }}
             />
-            {/* <div className="absolute text-red-500 mt-1 right-1">
-              <p>{errors.email?.message}</p>
-            </div> */}
 
-            {/* <Warning message={errors.email?.message} /> */}
             {emailWarning && <Warning message={emailWarning} />}
           </div>
 
@@ -157,27 +160,15 @@ export default function Signin() {
               style={isBlinking}
               type="password"
               id="password"
+              name="password"
               placeholder="Nhập mật khẩu"
               // {...register("password", { required: true })}
               className="border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md"
               onChange={handlePassword}
               onBlur={() => {
-                const password = document.getElementById(
-                  "password"
-                ) as HTMLInputElement;
-
-                if (password.value === "") {
-                  password.classList.add("border-red-500");
-                  password.classList.remove(
-                    "focus:border-[#6AAFC7]",
-                    "focus:border"
-                  );
-                  setPasswordWarning("Required");
-                }
+                handleOnBlur("password");
               }}
             />
-
-            {/* <Warning message={errors.password?.message} /> */}
             {passwordWarning && <Warning message={passwordWarning} />}
           </div>
 

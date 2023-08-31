@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { TRPCError, trpc } from "../trpc";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaUser, FaTruck } from "react-icons/fa";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { BsFillPeopleFill } from "react-icons/bs";
@@ -8,9 +9,11 @@ import { LuBuilding } from "react-icons/lu";
 import { FiArrowUpRight } from "react-icons/fi";
 export default function Header() {
   const [showAccount, setShowAccount] = useState(false);
+  const [username, setUsername] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
+
   const barRef = useRef<HTMLDivElement>(null);
-  console.log(location.pathname);
 
   useEffect(() => {
     const arrIcon = [
@@ -20,10 +23,25 @@ export default function Header() {
       "/product",
       "/supplier",
     ];
-    const index = arrIcon.findIndex((item) => item === location.pathname);
+    let index = arrIcon.findIndex((item) => item === location.pathname);
+    index = index === -1 ? 0 : index;
     const left = index * 80 + index * 40;
     barRef.current!.style.setProperty("left", `${left}px`);
   }, [location.pathname]);
+
+  useEffect(() => {
+    const username = localStorage.getItem("username");
+    setUsername(username || "");
+  }, []);
+
+  async function handleSignOut() {
+    try {
+      await trpc.auth.signout.mutate();
+      navigate("/signin");
+    } catch (err) {
+      alert((err as TRPCError).message);
+    }
+  }
 
   return (
     <header className=" border-b border-b-gray-300 text-primary select-none">
@@ -102,7 +120,7 @@ export default function Header() {
             }}
             className="flex gap-4 items-center"
           >
-            <div>nguyuenhoangduy</div>
+            <div>{username}</div>
             <FaUser size={24} />
           </div>
 
@@ -119,11 +137,10 @@ export default function Header() {
                 <div>Tax</div>
                 <FiArrowUpRight />
               </div>
-              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                <div>Host</div>
-                <FiArrowUpRight />
-              </div>
-              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
+              <div
+                className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out"
+                onClick={handleSignOut}
+              >
                 <div>Sign Out</div>
                 <FiArrowUpRight />
               </div>
