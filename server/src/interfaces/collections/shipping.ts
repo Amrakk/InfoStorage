@@ -1,8 +1,8 @@
 interface IShipping {
-    name: string;
-    address: string;
-    phone: string;
-    notes: string;
+  name: string;
+  address: string;
+  phone: string;
+  note: string;
 }
 
 export default IShipping;
