@@ -7,18 +7,21 @@ import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 const isDev = process.env.ENV === "development";
 
 export function setAccToken(id: ObjectId, res: Response) {
-  try {
-    if (!id) throw new Error("Invalid user data");
 
-    const token = jwt.sign({ id }, process.env.ACCESS_SECRET_KEY as string, {
-      expiresIn: "15m",
-    });
+    try {
+        console.log(id);
+        if (!id) throw new Error("Invalid user data");
+        console.log(id);
+        const token = jwt.sign({ id }, process.env.ACCESS_SECRET_KEY!, {
+            expiresIn: "15m",
+        });
 
-    res.cookie("accToken", token, {
-      secure: !isDev,
-      httpOnly: true,
-      sameSite: "lax",
-    });
+        res.cookie("accToken", token, {
+            secure: !isDev,
+            httpOnly: true,
+            sameSite: isDev ? "lax" : "none",
+        });
+
 
     return true;
   } catch (err) {
@@ -29,16 +32,16 @@ export function setAccToken(id: ObjectId, res: Response) {
 export async function setRefToken(id: ObjectId, res: Response) {
   try {
     if (!id) throw new Error("Invalid user id");
+        const token = jwt.sign({ id }, process.env.REFRESH_SECRET_KEY!, {
+            expiresIn: "7d",
+        });
 
-    const token = jwt.sign({ id }, process.env.REFRESH_SECRET_KEY as string, {
-      expiresIn: "7d",
-    });
+        res.cookie("refToken", token, {
+            secure: !isDev,
+            httpOnly: true,
+            sameSite: isDev ? "lax" : "none",
+        });
 
-    res.cookie("refToken", token, {
-      secure: !isDev,
-      httpOnly: true,
-      sameSite: "lax",
-    });
 
     const redis = cache.getCache();
     await redis.set(`refToken-${id}`, token, "EX", 60 * 60 * 24 * 7);
