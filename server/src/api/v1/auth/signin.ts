@@ -5,8 +5,8 @@ import { publicProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
 import { getUserByEmail } from "../../../middlewares/userHandlers.js";
 import {
-    setAccToken,
-    setRefToken,
+  setAccToken,
+  setRefToken,
 } from "../../../middlewares/tokenHandlers.js";
 
 const signinSchema = z.object({
@@ -17,11 +17,12 @@ const signinSchema = z.object({
 const generalErr = new TRPCError({
     code: "BAD_REQUEST",
     message: "Invalid credentials",
+
 });
 
 const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal server error",
+  code: "INTERNAL_SERVER_ERROR",
+  message: "Internal server error",
 });
 
 export const signin = publicProcedure

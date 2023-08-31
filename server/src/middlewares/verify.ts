@@ -8,16 +8,17 @@ import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 
 const unauthErr = new TRPCError({
-    code: "UNAUTHORIZED",
-    message: "Invalid token",
+  code: "UNAUTHORIZED",
+  message: "Invalid token",
 });
 
 const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal server error",
+  code: "INTERNAL_SERVER_ERROR",
+  message: "Internal server error",
 });
 
 export const verify = (roles?: string[]) =>
+
     middleware(async ({ ctx, next }) => {
         const { accToken, refToken } = ctx.req.cookies;
 
@@ -59,6 +60,8 @@ export const verify = (roles?: string[]) =>
             ctx: { ...ctx, user },
         });
     });
+  });
+
 
 async function verifyRefPayload(payload: ITokenPayload, refToken: string) {
     try {
@@ -70,10 +73,11 @@ async function verifyRefPayload(payload: ITokenPayload, refToken: string) {
     } catch (err) {
         return false;
     }
+
 }
 
 function clearCookie(res: Response) {
-    res.clearCookie("accToken");
-    res.clearCookie("refToken");
-    return unauthErr;
+  res.clearCookie("accToken");
+  res.clearCookie("refToken");
+  return unauthErr;
 }

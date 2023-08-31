@@ -5,19 +5,59 @@
 @tailwind utilities;
 
 #signin {
-    font-family: "Mark Pro", sans-serif;
+  font-family: "Mark Pro", sans-serif;
 }
 
 #ifs {
-    font-family: 'Lalezar', Verdana, Geneva, Tahoma, sans-serif;
+  font-family: "Lalezar", Verdana, Geneva, Tahoma, sans-serif;
 }
 
 @layer components {
-    .container {
-        @apply px-2 md:px-5 xl:px-0 xl:w-[1200px] xl:mx-auto;
-    }
+  .container {
+    @apply px-2 md:px-5 xl:px-0 xl:w-[1500px] xl:mx-auto;
+  }
 
-    .icon {
-        @apply flex justify-center items-center flex-col;
-    }
+  .icon {
+    @apply flex justify-center items-center flex-col w-20 gap-2 brightness-[1.7];
+  }
+
+  .inputField {
+    @apply border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    top: 0;
+    opacity: 0;
+  }
+  to {
+    top: 40px;
+    opacity: 1;
+  }
+}
+
+#boxAccount {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background-color: #8888887c;
+  border-radius: 10px;
+  transition: all 1.5s linear;
+}
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #888888c0;
 }

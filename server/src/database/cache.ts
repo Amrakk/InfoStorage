@@ -4,6 +4,7 @@ const url = process.env.REDIS_URL!;
 const redis = new Redis(url, { lazyConnect: true });
 
 const init = async () => {
+
     try {
         await redis.connect();
         setInterval(() => {
@@ -14,18 +15,20 @@ const init = async () => {
     } catch (err) {
         console.log(err);
     }
+
 };
 
 const close = async () => {
-    try {
-        await redis.quit();
-        console.log("Cache disconnected");
-    } catch (err) {
-        console.log(err);
-    }
+  try {
+    await redis.quit();
+    console.log("Cache disconnected");
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 const getCache = () => {
+
     try {
         if (redis.status !== "ready") throw new Error("Cache not initialized");
         return redis;
@@ -33,6 +36,7 @@ const getCache = () => {
         console.log(err);
         throw err;
     }
+
 };
 
 export default { init, close, getCache };
