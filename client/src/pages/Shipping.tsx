@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { trpc, type TRPCError, type TShipping } from "../trpc";
 import { AiOutlineSearch, AiFillEdit } from "react-icons/ai";
 import { IoMdSettings } from "react-icons/io";
-import { FaFilter } from "react-icons/fa";
+import { FaFilter, FaTrash } from "react-icons/fa";
 import { BsFillSkipEndFill, BsFillSkipStartFill } from "react-icons/bs";
 import { GrFormPrevious, GrFormNext } from "react-icons/gr";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -71,7 +71,7 @@ export default function Shipping() {
         <div className="mt-8 h-[500px] overflow-auto">
           <table className="w-full table-auto relative border-separate">
             <thead className="">
-              <tr className="text-left ">
+              <tr className="text-left select-none">
                 <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white ">
                   STT
                 </th>
@@ -102,6 +102,7 @@ export default function Shipping() {
                       draggable
                       onDragStart={(e) => {
                         setIconAppear(true);
+                        e.dataTransfer.setData("shippingName", shipping.name);
                       }}
                       onDragEnd={(e) => {
                         setIconAppear(false);
@@ -152,11 +153,14 @@ export default function Shipping() {
             onDragOver={(e) => {
               e.preventDefault();
             }}
-            onDrop={() => {
-              setIsDeletePopupOpen("Bạn có chắc chắn muốn xóa không?");
+            onDrop={(e) => {
+              e.preventDefault();
+              setBinPing(false);
+              const shippingName = e.dataTransfer.getData("shippingName");
+              setIsDeletePopupOpen(shippingName);
             }}
           >
-            <BsFillTrash3Fill
+            <FaTrash
               size={50}
               className="absolute  text-white right-[72px] top-[72px] pointer-events-none"
             />
@@ -179,6 +183,13 @@ export default function Shipping() {
             }}
             onDragLeave={() => {
               setEditPing(false);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDrop={() => {
+              setBinPing(false);
+              setIsDeletePopupOpen("Shipping");
             }}
           >
             <AiFillEdit
