@@ -1,28 +1,18 @@
 import { z } from "zod";
-import bycrpt from "bcrypt";
+import bcrypt from "bcrypt";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { adminProcedure } from "../../../trpc.js";
+import { userRegex } from "../../../configs/regex.js";
 import IUser from "../../../interfaces/collections/user.js";
-import {
-    valEmail,
-    valName,
-    valPassword,
-    valPhone,
-    valRole,
-} from "../../../middlewares/validateInput.js";
+import { getUserByEmail } from "../../../middlewares/userHandlers.js";
 
-const addUserSchema = z.object({
-    name: z.string().trim(),
-    email: z.string().trim(),
-    password: z.string(),
-    phone: z.string(),
-    role: z.string(),
-});
-
-const generalErr = new TRPCError({
-    code: "BAD_REQUEST",
-    message: "Invalid user information",
+const inputSchema = z.object({
+    name: z.string().regex(userRegex.name),
+    email: z.string().regex(userRegex.email),
+    password: z.string().regex(userRegex.password),
+    phone: z.string().regex(userRegex.phone),
+    role: z.string().regex(userRegex.role),
 });
 
 const internalErr = new TRPCError({
@@ -31,38 +21,21 @@ const internalErr = new TRPCError({
 });
 
 export const addUser = adminProcedure
-    .input(addUserSchema)
+    .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { name, email, phone, password, role } = input;
+        const { ...user } = input;
 
-        if (!name || !email || !phone || !password || !role) throw generalErr;
-        if (
-            !valName(name) ||
-            !valRole(role) ||
-            !valEmail(email) ||
-            !valPhone(phone) ||
-            !valPassword(password)
-        )
-            throw generalErr;
-
-        const isEmailExist = await getUserByEmail(email);
+        const isEmailExist = await getUserByEmail(user.email);
+        if (isEmailExist === "INTERNAL_SERVER_ERROR") throw internalErr;
         if (isEmailExist)
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Email already exists",
             });
-        if (isEmailExist === "INTERNAL_SERVER_ERROR") throw internalErr;
 
-        const salt = bycrpt.genSaltSync(10);
-        const hashedPassword = bycrpt.hashSync(password, salt);
-
-        const user = {
-            name,
-            email,
-            phone,
-            password: hashedPassword,
-            role,
-        };
+        const salt = bcrypt.genSaltSync(10);
+        const hashedPassword = bcrypt.hashSync(user.password, salt);
+        user.password = hashedPassword;
 
         const result = await insertUser(user);
         if (!result || result === "INTERNAL_SERVER_ERROR") throw internalErr;
@@ -71,17 +44,6 @@ export const addUser = adminProcedure
             message: "Add user successfully",
         };
     });
-
-async function getUserByEmail(email: string) {
-    try {
-        const db = database.getDB();
-        const users = db.collection<IUser>("users");
-
-        return await users.findOne({ email });
-    } catch (err) {
-        return "INTERNAL_SERVER_ERROR";
-    }
-}
 
 async function insertUser(user: IUser) {
     try {

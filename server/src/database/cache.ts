@@ -1,21 +1,21 @@
 import { Redis } from "ioredis";
 
-const url = process.env.REDIS_URL as string;
+const url = process.env.REDIS_URL!;
 const redis = new Redis(url, { lazyConnect: true });
 
 const init = async () => {
-  try {
-    await redis.connect();
-    console.log("Cache connected");
-    setInterval(() => {
-      redis.ping((e) => {
-        if (e) console.log(e);
-        else console.log("Cache pinged");
-      });
-    }, 60000);
-  } catch (err) {
-    console.log(err);
-  }
+
+    try {
+        await redis.connect();
+        setInterval(() => {
+            redis.ping();
+        }, 1000 * 60 * 5);
+
+        console.log("Cache connected");
+    } catch (err) {
+        console.log(err);
+    }
+
 };
 
 const close = async () => {
@@ -28,8 +28,15 @@ const close = async () => {
 };
 
 const getCache = () => {
-  if (redis.status === "connect") throw new Error("Cache not initialized");
-  return redis;
+
+    try {
+        if (redis.status !== "ready") throw new Error("Cache not initialized");
+        return redis;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+
 };
 
 export default { init, close, getCache };
