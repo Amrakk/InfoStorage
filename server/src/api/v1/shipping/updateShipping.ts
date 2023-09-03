@@ -1,18 +1,18 @@
 import { z } from "zod";
+import { ObjectId } from "mongodb";
+import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { shippingRegex } from "../../../configs/regex.js";
 import IShipping from "../../../interfaces/collections/shipping.js";
-import { getShippingByName } from "../../../middlewares/shippingHandlers.js";
-import { ObjectId } from "mongodb";
-import { TRPCError } from "@trpc/server";
+import { getShippingByName } from "../../../middlewares/collectionHandlers/shippingHandlers.js";
 
 const inputSchema = z.object({
     _id: z.string(),
     name: z.string().regex(shippingRegex.name),
     address: z.string().regex(shippingRegex.address),
-    phone: z.string().regex(shippingRegex.phone),
-    note: z.string().regex(shippingRegex.note),
+    phone: z.string().regex(shippingRegex.phone).nullable(),
+    note: z.string().regex(shippingRegex.note).nullable(),
 });
 
 const internalErr = new TRPCError({
@@ -25,9 +25,9 @@ export const updateShipping = employeeProcedure
     .mutation(async ({ input }) => {
         const { ...shipping } = input;
 
-        const data = await getShippingByName(shipping.name);
-        if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (data && data._id != new ObjectId(shipping._id))
+        const isNameExist = await getShippingByName(shipping.name);
+        if (isNameExist === "INTERNAL_SERVER_ERROR") throw internalErr;
+        if (isNameExist?._id !== new ObjectId(shipping._id))
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Shipping already exists",
@@ -36,21 +36,21 @@ export const updateShipping = employeeProcedure
         const result = await updateShippingInfo(shipping._id, shipping);
         if (!result) throw internalErr;
 
-        return { message: "Update shipping successfully!" };
+        return { message: "Update successfully!" };
     });
 
-async function updateShippingInfo(_id: string, data: IShipping) {
+async function updateShippingInfo(id: string, shipping: IShipping) {
     try {
         const db = database.getDB();
         const shippings = db.collection<IShipping>("shippings");
 
         const result = await shippings.updateOne(
-            { _id: new ObjectId(_id) },
-            { $set: data }
+            { _id: new ObjectId(id) },
+            { $set: shipping }
         );
 
         return result.acknowledged;
     } catch (err) {
-        return "INTERNAL_SERVER_ERROR";
+        return false;
     }
 }

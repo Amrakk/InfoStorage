@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
-import database from "../database/db.js";
-import IUser from "../interfaces/collections/user.js";
+import database from "../../database/db.js";
+import IUser from "../../interfaces/collections/user.js";
 
 export async function getUserByEmail(email: string) {
     try {
@@ -12,6 +12,7 @@ export async function getUserByEmail(email: string) {
         return "INTERNAL_SERVER_ERROR";
     }
 }
+
 export async function getUserByID(id: string) {
     try {
         const db = database.getDB();

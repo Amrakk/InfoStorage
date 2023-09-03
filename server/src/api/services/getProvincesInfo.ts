@@ -24,7 +24,6 @@ export const getDistricts = employeeProcedure
         const { provinceCode } = input;
 
         const data = await getProvincesInfo("district", provinceCode);
-
         if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
 
         return data;
@@ -71,7 +70,21 @@ async function getProvincesInfo(
         if (!Array.isArray(data)) {
             if ("districts" in data) retval = data.districts;
             if ("wards" in data) retval = data.wards;
-        } else retval = data;
+        } else {
+            retval = data.sort((a, b) => {
+                if (
+                    a.name.includes("Thành phố") &&
+                    !b.name.includes("Thành phố")
+                )
+                    return -1;
+                else if (
+                    !a.name.includes("Thành phố") &&
+                    b.name.includes("Thành phố")
+                )
+                    return 1;
+                else return a.code - b.code;
+            });
+        }
 
         return retval.map((unit) => ({ name: unit.name, code: unit.code }));
     } catch (err) {

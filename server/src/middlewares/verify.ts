@@ -3,7 +3,7 @@ import { Response } from "express";
 import { middleware } from "../trpc.js";
 import cache from "../database/cache.js";
 import { TRPCError } from "@trpc/server";
-import { getUserByID } from "./userHandlers.js";
+import { getUserByID } from "./collectionHandlers/userHandlers.js";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 

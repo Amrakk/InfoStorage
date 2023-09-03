@@ -4,13 +4,13 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { shippingRegex } from "../../../configs/regex.js";
 import IShipping from "../../../interfaces/collections/shipping.js";
-import { getShippingByName } from "../../../middlewares/shippingHandlers.js";
+import { getShippingByName } from "../../../middlewares/collectionHandlers/shippingHandlers.js";
 
 const inputSchema = z.object({
     name: z.string().regex(shippingRegex.name),
     address: z.string().regex(shippingRegex.address),
-    phone: z.string().regex(shippingRegex.phone),
-    note: z.string().regex(shippingRegex.note),
+    phone: z.string().regex(shippingRegex.phone).nullable(),
+    note: z.string().regex(shippingRegex.note).nullable(),
 });
 
 const internalErr = new TRPCError({
@@ -23,18 +23,18 @@ export const addShipping = employeeProcedure
     .mutation(async ({ input }) => {
         const { ...shipping } = input;
 
-        const isShippingExist = await getShippingByName(shipping.name);
-        if (isShippingExist === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (isShippingExist)
+        const isNameExist = await getShippingByName(shipping.name);
+        if (isNameExist === "INTERNAL_SERVER_ERROR") throw internalErr;
+        if (isNameExist)
             throw new TRPCError({
                 code: "BAD_REQUEST",
                 message: "Shipping already exist",
             });
 
         const result = await insertShipping(shipping);
-        if (!result || result === "INTERNAL_SERVER_ERROR") throw internalErr;
+        if (!result) throw internalErr;
 
-        return { message: "Add shipping successfully" };
+        return { message: "Add successfully" };
     });
 
 async function insertShipping(shipping: IShipping) {
@@ -42,8 +42,9 @@ async function insertShipping(shipping: IShipping) {
         const db = database.getDB();
         const shippings = db.collection<IShipping>("shippings");
 
-        return await shippings.insertOne(shipping);
+        const result = await shippings.insertOne(shipping);
+        return result.acknowledged;
     } catch (err) {
-        return "INTERNAL_SERVER_ERROR";
+        return false;
     }
 }

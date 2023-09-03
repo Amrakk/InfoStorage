@@ -1,6 +1,6 @@
 interface IUnit {
     name: string;
-    code: string;
+    code: number;
 }
 
 export default IUnit;

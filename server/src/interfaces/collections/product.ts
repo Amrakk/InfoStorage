@@ -3,7 +3,7 @@ interface IProduct {
     category: string;
     quantity: number;
     price: number;
-    suppliers: string[]; // supplier ids
+    suppliers: string[];
 }
 
 export default IProduct;

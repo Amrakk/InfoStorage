@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
-import { getUserByEmail } from "../../../middlewares/userHandlers.js";
+import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
 import {
     setAccToken,
     setRefToken,

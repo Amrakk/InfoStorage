@@ -3,14 +3,14 @@ import { ObjectId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
-import IShipping from "../../../interfaces/collections/shipping.js";
+import ICustomer from "../../../interfaces/collections/customer.js";
 
-export const deleteShipping = employeeProcedure
+export const deleteCustomer = employeeProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
         const { id } = input;
 
-        if (!delShipping(id))
+        if (!delCustomer(id))
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
                 message: "Internal server error",
@@ -19,12 +19,12 @@ export const deleteShipping = employeeProcedure
         return { message: "Delete sucessfully" };
     });
 
-async function delShipping(id: string) {
+async function delCustomer(id: string) {
     try {
         const db = database.getDB();
-        const shippings = db.collection<IShipping>("shippings");
+        const customers = db.collection<ICustomer>("customers");
 
-        const result = await shippings.deleteOne({ _id: new ObjectId(id) });
+        const result = await customers.deleteOne({ _id: new ObjectId(id) });
         return result.acknowledged;
     } catch (err) {
         return false;
