@@ -7,7 +7,7 @@ export default function DeletePopup({ message }: { message: string }) {
   return (
     <>
       <div className="justify-center mt-24 fixed inset-0 z-50" id="boxAccount">
-        <div className="relative w-1/4  mx-auto">
+        <div className="relative w-1/3  mx-auto">
           {/*content*/}
           <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
             {/*header*/}

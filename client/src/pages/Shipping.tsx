@@ -8,7 +8,9 @@ import { GrFormPrevious, GrFormNext } from "react-icons/gr";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BsFillTrash3Fill } from "react-icons/bs";
 import DeletePopup from "../components/DeletePopup";
+import AddPopup from "../components/AddPopup";
 import { useDeletePopupStore } from "../stores/DeletePopup";
+import { useAddPopupStore } from "../stores/AddPopup";
 export default function Shipping() {
   const navigate = useNavigate();
   const [shippings, setShippings] = useState<TShipping>([]);
@@ -16,6 +18,7 @@ export default function Shipping() {
   const [binPing, setBinPing] = useState(false);
   const [editPing, setEditPing] = useState(false);
   const { isDeletePopupOpen, setIsDeletePopupOpen } = useDeletePopupStore();
+  const { isAddPopupOpen, setIsAddPopupOpen } = useAddPopupStore();
   useEffect(() => {
     trpc.shipping.getShippings
       .query()
@@ -41,14 +44,17 @@ export default function Shipping() {
             <button className="w-40 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
               Import File
             </button>
-            <button className="w-40 py-3 bg-primary hover:bg-[#5e7563] transition-colors  text-white rounded-md">
+            <button
+              className="w-40 py-3 bg-primary hover:bg-[#5e7563] transition-colors  text-white rounded-md"
+              onClick={() => setIsAddPopupOpen("Shipping")}
+            >
               Create
             </button>
           </div>
         </div>
         <div className="flex mt-8 gap-5 h-10">
           <div className="group flex-1 ">
-            <div className="h-full  group-focus-within:border-[#6AAFC7] group-focus:border flex border border-primary items-center px-1 gap-2 rounded-md">
+            <div className="h-full  group-focus-within:border-[#6AAFC7] transition-colors group-focus:border flex border border-primary items-center px-1 gap-2 rounded-md">
               <AiOutlineSearch size={24} />
               <input
                 type="text"
@@ -199,6 +205,7 @@ export default function Shipping() {
           </span>
         </span>
         {isDeletePopupOpen && <DeletePopup message={isDeletePopupOpen} />}
+        {isAddPopupOpen && <AddPopup message={isAddPopupOpen} />}
       </div>
     </>
   );
