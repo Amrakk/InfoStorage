@@ -1,5 +1,3 @@
-import { roles } from "../../configs/global.js";
-
 interface IUser {
     name: string;
     email: string;

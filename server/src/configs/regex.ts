@@ -1,8 +1,5 @@
 export const phoneRegex = new RegExp("^[+0-9]+$");
 export const subjectRegex = new RegExp(`^[^<>&"'\\\/]*$`);
-export const searchTypeRegex = new RegExp(
-    "^(customer|product|shipping|supplier|tax|user)$"
-);
 export const humanNameRegex = new RegExp(
     "^[a-zA-ZÀ-ỹà-ỹẠ-Ỵạ-ỵĂăĨĩĐđẾếềỀềỂểỄễỆệƠơỚớờỜờỞởỠỡỢợÔôỔổốỐốỒồỒồỔổỖỗỘộỚớờỜờỞởỠỡỢợÁáẮắẤấẤầầẨẩẪẫẬậÉéẾếẸẹỀềẺẻỄễỆệÍíỈỉỊịÓóỐốỐốỔổỒồỔổỖỗỘộỚớỜờỞởỠỡỢợÚúỨứỪừỬửỮữỰựÝýỲỳỴỵỶỷỸỹ ]+$"
 );
@@ -14,7 +11,6 @@ export const userRegex = {
     name: humanNameRegex,
     password: new RegExp("^[a-zA-Z0-9]+$"),
     phone: phoneRegex,
-    role: new RegExp("^(admin|manager|employee)$"),
 };
 
 export const shippingRegex = {
@@ -51,5 +47,4 @@ export const supplierRegex = {
 
 export const productRegex = {
     name: subjectRegex,
-    category: new RegExp("^(syrup|jam|powder|canned|topping|others)$"),
 };

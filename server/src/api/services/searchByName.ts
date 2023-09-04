@@ -5,7 +5,7 @@ import database from "../../database/db.js";
 import { roles } from "../../configs/global.js";
 import { verifiedProcedure } from "../../trpc.js";
 import * as Collections from "../../interfaces/collections/collections.js";
-import { subjectRegex, searchTypeRegex } from "../../configs/regex.js";
+import { subjectRegex } from "../../configs/regex.js";
 
 const inputSchema = z.object({
     text: z.string().regex(subjectRegex),
@@ -64,13 +64,14 @@ async function getThingsByName(text: string, type: string) {
         const things = await collection
             .find({
                 $text: {
-                    $search: `\"${text}\"`,
+                    $search: `(*UCP)${text}`,
                     $caseSensitive: false,
                     $diacriticSensitive: false,
                 },
             })
+            .sort({ score: { $meta: "textScore" } })
             .toArray();
-        console.log(things);
+
         return things;
     } catch (err) {
         return "INTERNAL_SERVER_ERROR";
