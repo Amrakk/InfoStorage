@@ -3,9 +3,9 @@ import { Response } from "express";
 import { middleware } from "../trpc.js";
 import cache from "../database/cache.js";
 import { TRPCError } from "@trpc/server";
-import { getUserByID } from "./collectionHandlers/userHandlers.js";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
+import { getUserByID } from "./collectionHandlers/userHandlers.js";
 
 const unauthErr = new TRPCError({
     code: "UNAUTHORIZED",
@@ -53,7 +53,10 @@ export const verify = (roles?: string[]) =>
         if (!user) throw unauthErr;
         if (user === "INTERNAL_SERVER_ERROR") throw internalErr;
         if (typeof roles === "object" && !roles.includes(user.role))
-            throw unauthErr;
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "You don't have permission to access this resource",
+            });
 
         return next({
             ctx: { ...ctx, user },
@@ -64,7 +67,7 @@ async function verifyRefPayload(payload: ITokenPayload, refToken: string) {
     try {
         const redis = cache.getCache();
         const token = await redis.get(`refToken-${payload.id}`);
-        if (!token || token !== refToken) return false;
+        if (token !== refToken) return false;
 
         return true;
     } catch (err) {

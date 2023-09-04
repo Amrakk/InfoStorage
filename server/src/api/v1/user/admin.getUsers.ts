@@ -9,7 +9,7 @@ export const getUsers = adminProcedure.query(async () => {
     if (users === "INTERNAL_SERVER_ERROR")
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
 
-    return users;
+    return users.map(({ password, ...user }) => user);
 });
 
 function getAllUsers() {

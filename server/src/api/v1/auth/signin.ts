@@ -10,7 +10,7 @@ import {
 } from "../../../middlewares/tokenHandlers.js";
 
 const inputSchema = z.object({
-    email: z.string().regex(userRegex.email),
+    email: z.string().email(),
     password: z.string().regex(userRegex.password),
 });
 
@@ -32,7 +32,7 @@ export const signin = publicProcedure
         const user = await getUserByEmail(email);
         if (!user) throw generalErr;
         if (user === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (!bcrypt.compareSync(password, user.password)) throw generalErr;
+        if (!(await bcrypt.compare(password, user.password))) throw generalErr;
 
         const isSet =
             setAccToken(user._id, ctx.res) &&

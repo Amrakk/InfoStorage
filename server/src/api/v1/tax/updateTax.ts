@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ObjectId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
-import { managerProcedure } from "../../../trpc.js";
+import { employeeProcedure } from "../../../trpc.js";
 import { taxRegex } from "../../../configs/regex.js";
 import ITax from "../../../interfaces/collections/tax.js";
 import {
@@ -18,7 +18,7 @@ const inputSchema = z.object({
     address: z.string().regex(taxRegex.address),
     representative: z.string().regex(taxRegex.representative),
     phone: z.string().regex(taxRegex.phone),
-    email: z.string().regex(taxRegex.email).nullable(),
+    email: z.string().email().nullable(),
     participants: z.array(z.string()),
 });
 
@@ -27,7 +27,7 @@ const internalErr = new TRPCError({
     message: "Internal server error",
 });
 
-export const updateTax = managerProcedure
+export const updateTax = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
         const { ...tax } = input;

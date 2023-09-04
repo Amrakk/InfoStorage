@@ -1,6 +1,6 @@
 interface IProduct {
     name: string;
-    category: string;
+    category: "syrup" | "jam" | "powder" | "canned" | "topping" | "others";
     quantity: number;
     price: number;
     suppliers: string[];

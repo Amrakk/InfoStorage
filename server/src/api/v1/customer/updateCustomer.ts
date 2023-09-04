@@ -16,7 +16,7 @@ const inputSchema = z.object({
     address: z.string().regex(customerRegex.address),
     phone: z.string().regex(customerRegex.phone),
     placer: z.string().regex(customerRegex.placer),
-    email: z.string().regex(customerRegex.email).nullable(),
+    email: z.string().email().nullable(),
     curator: z.string().regex(customerRegex.curator),
     note: z.string().regex(customerRegex.note).nullable(),
 });

@@ -9,10 +9,10 @@ import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHand
 
 const inputSchema = z.object({
     name: z.string().regex(userRegex.name),
-    email: z.string().regex(userRegex.email),
+    email: z.string().email(),
     password: z.string().regex(userRegex.password),
     phone: z.string().regex(userRegex.phone),
-    role: z.string().regex(userRegex.role),
+    role: z.enum(["admin", "manager", "employee"]),
 });
 
 const internalErr = new TRPCError({
@@ -33,8 +33,8 @@ export const addUser = adminProcedure
                 message: "Email already exists",
             });
 
-        const salt = bcrypt.genSaltSync(10);
-        const hashedPassword = bcrypt.hashSync(user.password, salt);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(user.password, salt);
         user.password = hashedPassword;
 
         const result = await insertUser(user);

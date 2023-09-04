@@ -1,7 +1,7 @@
 export const phoneRegex = new RegExp("^[+0-9]+$");
 export const subjectRegex = new RegExp(`^[^<>&"'\\\/]*$`);
-export const emailRegex = new RegExp(
-    "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$"
+export const searchTypeRegex = new RegExp(
+    "^(customer|product|shipping|supplier|tax|user)$"
 );
 export const humanNameRegex = new RegExp(
     "^[a-zA-ZÀ-ỹà-ỹẠ-Ỵạ-ỵĂăĨĩĐđẾếềỀềỂểỄễỆệƠơỚớờỜờỞởỠỡỢợÔôỔổốỐốỒồỒồỔổỖỗỘộỚớờỜờỞởỠỡỢợÁáẮắẤấẤầầẨẩẪẫẬậÉéẾếẸẹỀềẺẻỄễỆệÍíỈỉỊịÓóỐốỐốỔổỒồỔổỖỗỘộỚớỜờỞởỠỡỢợÚúỨứỪừỬửỮữỰựÝýỲỳỴỵỶỷỸỹ ]+$"
@@ -12,7 +12,6 @@ export const addressRegex = new RegExp(
 
 export const userRegex = {
     name: humanNameRegex,
-    email: emailRegex,
     password: new RegExp("^[a-zA-Z0-9]+$"),
     phone: phoneRegex,
     role: new RegExp("^(admin|manager|employee)$"),
@@ -27,7 +26,6 @@ export const shippingRegex = {
 
 export const customerRegex = {
     name: subjectRegex,
-    email: emailRegex,
     phone: phoneRegex,
     address: addressRegex,
     curator: humanNameRegex,
@@ -41,7 +39,6 @@ export const taxRegex = {
     address: addressRegex,
     representative: humanNameRegex,
     phone: phoneRegex,
-    email: emailRegex,
 };
 
 export const supplierRegex = {
