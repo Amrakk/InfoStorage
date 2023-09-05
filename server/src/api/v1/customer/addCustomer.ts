@@ -8,10 +8,14 @@ import {
     getCustomerByName,
     getCustomerByEmail,
 } from "../../../middlewares/collectionHandlers/customerHandlers.js";
+import { getProvinceInfo } from "../../../middlewares/addressHandler.js";
 
 const inputSchema = z.object({
     name: z.string().regex(customerRegex.name),
     address: z.string().regex(customerRegex.address),
+    provinceCode: z.number().int().positive(),
+    districtCode: z.number().int().positive(),
+    wardCode: z.number().int().positive(),
     phone: z.string().regex(customerRegex.phone),
     placer: z.string().regex(customerRegex.placer),
     email: z.string().email().nullable(),
@@ -27,7 +31,7 @@ const internalErr = new TRPCError({
 export const addCustomer = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { ...customer } = input;
+        const { provinceCode, districtCode, wardCode, ...customer } = input;
 
         const isNameExist = await getCustomerByName(customer.name);
         const isEmailExist = await getCustomerByEmail(customer.email);
@@ -41,6 +45,18 @@ export const addCustomer = employeeProcedure
                 code: "CONFLICT",
                 message: "Customer already exist",
             });
+
+        const province = await getProvinceInfo(provinceCode, "province");
+        const district = await getProvinceInfo(districtCode, "district");
+        const ward = await getProvinceInfo(wardCode, "ward");
+        if (
+            province === "INTERNAL_SERVER_ERROR" ||
+            district === "INTERNAL_SERVER_ERROR" ||
+            ward === "INTERNAL_SERVER_ERROR"
+        )
+            throw internalErr;
+
+        customer.address = `${customer.address}, ${ward}, ${district}, ${province}`;
 
         const result = await insertCustomer(customer);
         if (!result) throw internalErr;

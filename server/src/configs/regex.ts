@@ -1,15 +1,11 @@
-export const phoneRegex = new RegExp("^[+0-9]+$");
-export const subjectRegex = new RegExp(`^[^<>&"'\\\/]*$`);
-export const humanNameRegex = new RegExp(
-    "^[a-zA-ZÀ-ỹà-ỹẠ-Ỵạ-ỵĂăĨĩĐđẾếềỀềỂểỄễỆệƠơỚớờỜờỞởỠỡỢợÔôỔổốỐốỒồỒồỔổỖỗỘộỚớờỜờỞởỠỡỢợÁáẮắẤấẤầầẨẩẪẫẬậÉéẾếẸẹỀềẺẻỄễỆệÍíỈỉỊịÓóỐốỐốỔổỒồỔổỖỗỘộỚớỜờỞởỠỡỢợÚúỨứỪừỬửỮữỰựÝýỲỳỴỵỶỷỸỹ ]+$"
-);
-export const addressRegex = new RegExp(
-    "^[a-zA-Z0-9À-ỹà-ỹẠ-Ỵạ-ỵĂăĨĩĐđẾếềỀềỂểỄễỆệƠơỚớờỜờỞởỠỡỢợÔôỔổốỐốỒồỒồỔổỖỗỘộỚớờỜờỞởỠỡỢợÁáẮắẤấẤầầẨẩẪẫẬậÉéẾếẸẹỀềẺẻỄễỆệÍíỈỉỊịÓóỐốỐốỔổỒồỔổỖỗỘộỚớỜờỞởỠỡỢợÚúỨứỪừỬửỮữỰựÝýỲỳỴỵỶỷỸỹ \\/,.;-]+$"
-);
+export const phoneRegex = new RegExp("^[+0-9]+$", "gm");
+export const humanNameRegex = new RegExp(`^[\\p{L}s]+$`, "gmu");
+export const subjectRegex = new RegExp(`^[^\\p{C}<>&]*$`, "gm");
+export const addressRegex = new RegExp(`^[\\p{C}0-9 \\/,.;+-]+$`, "gmu");
 
 export const userRegex = {
     name: humanNameRegex,
-    password: new RegExp("^[a-zA-Z0-9]+$"),
+    password: new RegExp("^[a-zA-Z0-9]+$", "gm"),
     phone: phoneRegex,
 };
 
@@ -31,7 +27,7 @@ export const customerRegex = {
 
 export const taxRegex = {
     name: subjectRegex,
-    taxCode: new RegExp("^[0-9-]+$"),
+    taxCode: new RegExp("^[0-9+-]+$", "gm"),
     address: addressRegex,
     representative: humanNameRegex,
     phone: phoneRegex,
