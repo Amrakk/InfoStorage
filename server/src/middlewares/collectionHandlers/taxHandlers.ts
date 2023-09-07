@@ -23,8 +23,8 @@ export async function getTaxByTaxCode(taxCode: string) {
     }
 }
 
-export async function getTaxByEmail(email: string | null) {
-    if (!email) return null;
+export async function getTaxByEmail(email: string) {
+    if (email === "") return null;
     try {
         const db = database.getDB();
         const taxes = db.collection<ITax>("taxes");

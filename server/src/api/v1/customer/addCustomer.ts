@@ -18,9 +18,9 @@ const inputSchema = z.object({
     wardCode: z.number().int().positive(),
     phone: z.string().regex(customerRegex.phone),
     placer: z.string().regex(customerRegex.placer),
-    email: z.string().email().nullable(),
+    email: z.string().email(),
     curator: z.string().regex(customerRegex.curator),
-    note: z.string().regex(customerRegex.note).nullable(),
+    note: z.string().regex(customerRegex.note),
 });
 
 const internalErr = new TRPCError({

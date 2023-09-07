@@ -15,8 +15,8 @@ const inputSchema = z.object({
     provinceCode: z.number().int().positive(),
     districtCode: z.number().int().positive(),
     wardCode: z.number().int().positive(),
-    phone: z.string().regex(shippingRegex.phone).nullable(),
-    note: z.string().regex(shippingRegex.note).nullable(),
+    phone: z.string().regex(shippingRegex.phone),
+    note: z.string().regex(shippingRegex.note),
 });
 
 const internalErr = new TRPCError({

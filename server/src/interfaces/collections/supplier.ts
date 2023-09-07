@@ -3,7 +3,7 @@ interface ISupplier {
     address: string;
     contact: string;
     phone: string;
-    note: string | null;
+    note: string;
 }
 
 export default ISupplier;

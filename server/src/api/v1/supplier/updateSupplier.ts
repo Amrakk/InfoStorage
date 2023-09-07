@@ -17,7 +17,7 @@ const inputSchema = z.object({
     wardCode: z.number().int().positive(),
     contact: z.string().regex(supplierRegex.contact),
     phone: z.string().regex(supplierRegex.phone),
-    note: z.string().regex(supplierRegex.note).nullable(),
+    note: z.string().regex(supplierRegex.note),
 });
 
 const internalErr = new TRPCError({

@@ -20,7 +20,7 @@ const inputSchema = z.object({
     wardCode: z.number().int().positive(),
     representative: z.string().regex(taxRegex.representative),
     phone: z.string().regex(taxRegex.phone),
-    email: z.string().email().nullable(),
+    email: z.string().email(),
     participants: z.array(z.string()),
 });
 

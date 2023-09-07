@@ -10,12 +10,12 @@ import { subjectRegex } from "../../configs/regex.js";
 const inputSchema = z.object({
     text: z.string().regex(subjectRegex),
     type: z.enum([
-        "customers",
-        "products",
-        "shippings",
-        "supplies",
         "taxes",
         "users",
+        "products",
+        "customers",
+        "shippings",
+        "suppliers",
     ]),
 });
 
