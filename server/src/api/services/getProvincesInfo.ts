@@ -4,7 +4,7 @@ import { employeeProcedure } from "../../trpc.js";
 import {
     getProvincesInfo,
     searchProvinceInfo,
-} from "../../middlewares/addressHandler.js";
+} from "../../middlewares/addressHandlers.js";
 
 const internalErr = new TRPCError({
     code: "INTERNAL_SERVER_ERROR",

@@ -10,7 +10,7 @@ import {
     getTaxByEmail,
     getTaxByTaxCode,
 } from "../../../middlewares/collectionHandlers/taxHandlers.js";
-import { getProvinceInfo } from "../../../middlewares/addressHandler.js";
+import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
 
 const inputSchema = z.object({
     _id: z.string(),

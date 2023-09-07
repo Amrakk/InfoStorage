@@ -8,7 +8,7 @@ import {
     getCustomerByName,
     getCustomerByEmail,
 } from "../../../middlewares/collectionHandlers/customerHandlers.js";
-import { getProvinceInfo } from "../../../middlewares/addressHandler.js";
+import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
 
 const inputSchema = z.object({
     name: z.string().regex(customerRegex.name),
