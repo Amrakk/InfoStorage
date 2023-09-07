@@ -5,7 +5,7 @@ import database from "../../../database/db.js";
 import { adminProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
 import IUser from "../../../interfaces/collections/user.js";
-import { getUserByEmail } from "../../../middlewares/userHandlers.js";
+import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
 
 const inputSchema = z.object({
     name: z.string().regex(userRegex.name),
@@ -38,11 +38,9 @@ export const addUser = adminProcedure
         user.password = hashedPassword;
 
         const result = await insertUser(user);
-        if (!result || result === "INTERNAL_SERVER_ERROR") throw internalErr;
+        if (!result) throw internalErr;
 
-        return {
-            message: "Add user successfully",
-        };
+        return { message: "Add user successfully" };
     });
 
 async function insertUser(user: IUser) {
@@ -50,8 +48,9 @@ async function insertUser(user: IUser) {
         const db = database.getDB();
         const users = db.collection<IUser>("users");
 
-        return await users.insertOne(user);
+        const result = await users.insertOne(user);
+        return result.acknowledged;
     } catch (err) {
-        return "INTERNAL_SERVER_ERROR";
+        return false;
     }
 }

@@ -1,9 +1,9 @@
 interface ISupplier {
     name: string;
+    address: string;
     contact: string;
     phone: string;
-    address: string;
-    note: string;
+    note: string | null;
 }
 
 export default ISupplier;

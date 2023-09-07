@@ -1,11 +1,11 @@
 interface ICustomer {
     name: string;
-    email: string;
-    phone: string;
     address: string;
-    curator: string;
+    phone: string;
     placer: string;
-    note: string;
+    email: string | null;
+    curator: string;
+    note: string | null;
 }
 
 export default ICustomer;

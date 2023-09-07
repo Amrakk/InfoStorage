@@ -47,7 +47,6 @@ async function updatePassword(id: ObjectId, newPass: string) {
 
         return result.acknowledged;
     } catch (err) {
-        console.log(err);
         return false;
     }
 }

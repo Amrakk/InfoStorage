@@ -1,5 +1,5 @@
-import database from "../database/db.js";
-import IShipping from "../interfaces/collections/shipping.js";
+import database from "../../database/db.js";
+import IShipping from "../../interfaces/collections/shipping.js";
 
 export async function getShippingByName(name: string) {
     try {
