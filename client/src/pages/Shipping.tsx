@@ -22,6 +22,10 @@ export default function Shipping() {
           navigate("/signin");
         }
       });
+
+    trpc.service.searchByName.query({type: "shippings", text: "thuan"}).then((res) => {
+      console.log(res);
+    })
   }, []);
 
   return (
