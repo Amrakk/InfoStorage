@@ -9,8 +9,6 @@ import { shippingRouter } from "./collectionRouters/shippingRouter.js";
 import { router, publicProcedure } from "../trpc.js";
 
 export const appRouter = router({
-    troll: publicProcedure.query(() => "troll"),
-
     tax: taxRouter,
     auth: authRouter,
     user: userRouter,
