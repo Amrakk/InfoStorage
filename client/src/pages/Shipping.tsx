@@ -22,6 +22,9 @@ export default function Shipping() {
           navigate("/signin");
         }
       });
+      trpc.service.searchByName.query({ type: "products", text: "chunky"}).then((res) => {
+        console.log(res);
+      })
   }, []);
 
   return (
