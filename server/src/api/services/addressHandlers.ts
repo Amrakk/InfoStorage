@@ -2,8 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { employeeProcedure } from "../../trpc.js";
 import {
-    getProvincesInfo,
-    searchProvinceInfo,
+    getUnitsInfo,
+    searchUnitCode,
 } from "../../middlewares/addressHandlers.js";
 
 const internalErr = new TRPCError({
@@ -12,7 +12,7 @@ const internalErr = new TRPCError({
 });
 
 export const getProvinces = employeeProcedure.query(async () => {
-    const data = await getProvincesInfo("province");
+    const data = await getUnitsInfo("province");
 
     if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
 
@@ -20,22 +20,22 @@ export const getProvinces = employeeProcedure.query(async () => {
 });
 
 export const getDistricts = employeeProcedure
-    .input(z.object({ provinceCode: z.number() }))
+    .input(z.object({ provCode: z.number() }))
     .query(async ({ input }) => {
-        const { provinceCode } = input;
+        const { provCode } = input;
 
-        const data = await getProvincesInfo("district", provinceCode);
+        const data = await getUnitsInfo("district", provCode);
         if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
 
         return data;
     });
 
 export const getWards = employeeProcedure
-    .input(z.object({ districtCode: z.number() }))
+    .input(z.object({ distCode: z.number() }))
     .query(async ({ input }) => {
-        const { districtCode } = input;
+        const { distCode } = input;
 
-        const data = await getProvincesInfo("ward", districtCode);
+        const data = await getUnitsInfo("ward", distCode);
         if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
 
         return data;
@@ -51,7 +51,7 @@ export const getUnitCode = employeeProcedure
     .query(async ({ input }) => {
         const { name, type } = input;
 
-        const data = await searchProvinceInfo(name, type);
+        const data = await searchUnitCode(name, type);
         if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
 
         return data;

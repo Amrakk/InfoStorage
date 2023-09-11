@@ -22,9 +22,10 @@ export default function Shipping() {
           navigate("/signin");
         }
       });
-      trpc.service.searchByName.query({ type: "products", text: "chunky"}).then((res) => {
-        console.log(res);
-      })
+
+    trpc.service.searchByName.query({type: "shippings", text: "thuan"}).then((res) => {
+      console.log(res);
+    })
   }, []);
 
   return (
