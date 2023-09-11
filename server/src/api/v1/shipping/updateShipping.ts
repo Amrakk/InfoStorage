@@ -5,7 +5,7 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { shippingRegex } from "../../../configs/regex.js";
 import IShipping from "../../../interfaces/collections/shipping.js";
-import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/addressHandlers.js";
 import { getShippingByName } from "../../../middlewares/collectionHandlers/shippingHandlers.js";
 
 const inputSchema = z.object({
@@ -37,9 +37,9 @@ export const updateShipping = employeeProcedure
                 message: "Shipping already exists",
             });
 
-        const province = await getProvinceInfo(provinceCode, "province");
-        const district = await getProvinceInfo(districtCode, "district");
-        const ward = await getProvinceInfo(wardCode, "ward");
+        const province = await getUnitName(provinceCode, "province");
+        const district = await getUnitName(districtCode, "district");
+        const ward = await getUnitName(wardCode, "ward");
         if (
             province === "INTERNAL_SERVER_ERROR" ||
             district === "INTERNAL_SERVER_ERROR" ||

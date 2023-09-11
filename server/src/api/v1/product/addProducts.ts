@@ -10,14 +10,7 @@ import { getProductByName } from "../../../middlewares/collectionHandlers/produc
 const inputSchema = z.array(
     z.object({
         name: z.string().regex(productRegex.name),
-        category: z.enum([
-            "syrup",
-            "jam",
-            "powder",
-            "canned",
-            "topping",
-            "others",
-        ]),
+        category: z.enum(productCategories),
         quantity: z.number().int().positive(),
         price: z.number().int().positive(),
         suppliers: z.array(z.string()),

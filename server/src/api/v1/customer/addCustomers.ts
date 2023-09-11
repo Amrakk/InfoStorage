@@ -8,15 +8,15 @@ import {
     getCustomerByName,
     getCustomerByEmail,
 } from "../../../middlewares/collectionHandlers/customerHandlers.js";
-import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/addressHandlers.js";
 
 const inputSchema = z.array(
     z.object({
         name: z.string().regex(customerRegex.name),
         address: z.string().regex(customerRegex.address),
-        provinceCode: z.number().int().positive().nullish(),
-        districtCode: z.number().int().positive().nullish(),
-        wardCode: z.number().int().positive().nullish(),
+        provCode: z.number().int().positive().optional(),
+        distCode: z.number().int().positive().optional(),
+        wardCode: z.number().int().positive().optional(),
         phone: z.string().regex(customerRegex.phone),
         placer: z.string().regex(customerRegex.placer),
         email: z.string().email(),
@@ -42,16 +42,16 @@ export const addCustomers = employeeProcedure
                 message: "No customer to add",
             });
         else if (customers.length === 1) {
-            const { provinceCode, districtCode, wardCode } = customers[0];
-            if (!provinceCode || !districtCode || !wardCode)
+            const { provCode, distCode, wardCode, ...data } = customers[0];
+            if (!provCode || !distCode || !wardCode)
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Missing address info",
                 });
 
-            const province = await getProvinceInfo(provinceCode, "province");
-            const district = await getProvinceInfo(districtCode, "district");
-            const ward = await getProvinceInfo(wardCode, "ward");
+            const province = await getUnitName(provCode, "province");
+            const district = await getUnitName(distCode, "district");
+            const ward = await getUnitName(wardCode, "ward");
             if (
                 province === "INTERNAL_SERVER_ERROR" ||
                 district === "INTERNAL_SERVER_ERROR" ||
@@ -59,18 +59,19 @@ export const addCustomers = employeeProcedure
             )
                 throw internalErr;
 
-            customers[0].address = `${customers[0].address}, ${ward}, ${district}, ${province}`;
+            data.address = `${data.address}, ${ward}, ${district}, ${province}`;
 
-            const result = await insertCustomer(customers[0]);
+            const result = await insertCustomer(data);
             if (result instanceof TRPCError) throw result;
             if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
         } else {
             for (const customer of customers) {
-                const result = await insertCustomer(customer);
+                const { provCode, distCode, wardCode, ...data } = customer;
+                const result = await insertCustomer(data);
                 if (result instanceof TRPCError)
-                    failedEntries.push({ ...customer, error: result.message });
+                    failedEntries.push({ ...data, error: result.message });
                 if (result === "INTERNAL_SERVER_ERROR")
-                    failedEntries.push({ ...customer, error: result });
+                    failedEntries.push({ ...data, error: result });
             }
         }
 

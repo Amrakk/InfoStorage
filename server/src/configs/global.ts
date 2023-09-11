@@ -26,4 +26,4 @@ export const productCategories = [
     "canned",
     "topping",
     "others",
-];
+] as const;

@@ -4,16 +4,16 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { supplierRegex } from "../../../configs/regex.js";
 import ISupplier from "../../../interfaces/collections/supplier.js";
-import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/addressHandlers.js";
 import { getSupplierByName } from "../../../middlewares/collectionHandlers/supplierHandlers.js";
 
 const inputSchema = z.array(
     z.object({
         name: z.string().regex(supplierRegex.name),
         address: z.string().regex(supplierRegex.address),
-        provinceCode: z.number().int().positive().nullish(),
-        districtCode: z.number().int().positive().nullish(),
-        wardCode: z.number().int().positive().nullish(),
+        provCode: z.number().int().positive().optional(),
+        distCode: z.number().int().positive().optional(),
+        wardCode: z.number().int().positive().optional(),
         contact: z.string().regex(supplierRegex.contact),
         phone: z.string().regex(supplierRegex.phone),
         note: z.string().regex(supplierRegex.note),
@@ -37,16 +37,16 @@ export const addSuppliers = employeeProcedure
                 message: "No supplier to add",
             });
         else if (suppliers.length === 1) {
-            const { provinceCode, districtCode, wardCode } = suppliers[0];
-            if (!provinceCode || !districtCode || !wardCode)
+            const { provCode, distCode, wardCode, ...data } = suppliers[0];
+            if (!provCode || !distCode || !wardCode)
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Missing address info",
                 });
 
-            const province = await getProvinceInfo(provinceCode, "province");
-            const district = await getProvinceInfo(districtCode, "district");
-            const ward = await getProvinceInfo(wardCode, "ward");
+            const province = await getUnitName(provCode, "province");
+            const district = await getUnitName(distCode, "district");
+            const ward = await getUnitName(wardCode, "ward");
             if (
                 province === "INTERNAL_SERVER_ERROR" ||
                 district === "INTERNAL_SERVER_ERROR" ||
@@ -54,18 +54,19 @@ export const addSuppliers = employeeProcedure
             )
                 throw internalErr;
 
-            suppliers[0].address = `${suppliers[0].address}, ${ward}, ${district}, ${province}`;
+            data.address = `${data.address}, ${ward}, ${district}, ${province}`;
 
-            const result = await insertSupplier(suppliers[0]);
+            const result = await insertSupplier(data);
             if (result instanceof TRPCError) throw result;
             if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
         } else {
             for (const supplier of suppliers) {
-                const result = await insertSupplier(supplier);
+                const { provCode, distCode, wardCode, ...data } = supplier;
+                const result = await insertSupplier(data);
                 if (result instanceof TRPCError)
-                    failedEntries.push({ ...supplier, error: result.message });
+                    failedEntries.push({ ...data, error: result.message });
                 if (result === "INTERNAL_SERVER_ERROR")
-                    failedEntries.push({ ...supplier, error: result });
+                    failedEntries.push({ ...data, error: result });
             }
         }
 
@@ -74,7 +75,6 @@ export const addSuppliers = employeeProcedure
                 message: "Partial success: Review and fix failed entries.",
                 failedEntries,
             };
-
         return { message: "Add suppliers successfully!" };
     });
 

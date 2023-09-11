@@ -2,24 +2,24 @@ import IUnit from "../interfaces/provincesApiRes.js";
 
 const apiUrl = process.env.PROVINCES_API_URL!;
 
-export async function getProvincesInfo(
-    type: "province"
+export async function getUnitsInfo(
+    unit: "province"
 ): Promise<IUnit[] | "INTERNAL_SERVER_ERROR">;
-export async function getProvincesInfo(
-    type: "district" | "ward",
+export async function getUnitsInfo(
+    unit: "district" | "ward",
     code: number
 ): Promise<IUnit[] | "INTERNAL_SERVER_ERROR">;
-export async function getProvincesInfo(
-    type: unknown,
+export async function getUnitsInfo(
+    unit: unknown,
     code?: unknown
 ): Promise<IUnit[] | "INTERNAL_SERVER_ERROR"> {
     try {
         type TRes = { districts: IUnit[] } | { wards: IUnit[] } | IUnit[];
 
         let query = "";
-        if (type === "province") query = "/p";
-        else if (type === "district") query = `/p/${code}?depth=2`;
-        else if (type === "ward") query = `/d/${code}?depth=2`;
+        if (unit === "province") query = "/p";
+        else if (unit === "district") query = `/p/${code}?depth=2`;
+        else if (unit === "ward") query = `/d/${code}?depth=2`;
         else throw new Error("Invalid type");
 
         const data = await fetch(apiUrl + query).then<TRes>(async (res) => {
@@ -54,16 +54,16 @@ export async function getProvincesInfo(
     }
 }
 
-export async function getProvinceInfo(
+export async function getUnitName(
     code: number,
-    type: "province" | "district" | "ward"
+    unit: "province" | "district" | "ward"
 ) {
     try {
         let query = "";
-        if (type === "province") query = `/p/${code}`;
-        else if (type === "district") query = `/d/${code}`;
-        else if (type === "ward") query = `/w/${code}`;
-        else throw new Error("Invalid type");
+        if (unit === "province") query = `/p/${code}`;
+        else if (unit === "district") query = `/d/${code}`;
+        else if (unit === "ward") query = `/w/${code}`;
+        else throw new Error("Invalid unit");
 
         const data = await fetch(apiUrl + query).then<IUnit>(async (res) => {
             if (!res.ok) throw new Error("Provinces API error");
@@ -76,16 +76,16 @@ export async function getProvinceInfo(
     }
 }
 
-export async function searchProvinceInfo(
+export async function searchUnitCode(
     name: string,
-    type: "province" | "district" | "ward"
+    unit: "province" | "district" | "ward"
 ) {
     try {
         let query = "";
-        if (type === "province") query = `/p/search?q=${name}`;
-        else if (type === "district") query = `/d/search?q=${name}`;
-        else if (type === "ward") query = `/w/search?q=${name}`;
-        else throw new Error("Invalid type");
+        if (unit === "province") query = `/p/search?q=${name}`;
+        else if (unit === "district") query = `/d/search?q=${name}`;
+        else if (unit === "ward") query = `/w/search?q=${name}`;
+        else throw new Error("Invalid unit");
 
         const data = await fetch(apiUrl + query).then<IUnit[]>(async (res) => {
             if (!res.ok) throw new Error("Provinces API error");
