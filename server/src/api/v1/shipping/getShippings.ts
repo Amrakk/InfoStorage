@@ -15,13 +15,29 @@ const filterSchema = z.object({
     filter: addressFilterShema.optional(),
 });
 
-type TFilter = z.infer<typeof filterSchema>;
+type TFilter = {
+    address: {
+        $regex: string;
+    };
+};
 
 export const getShippings = employeeProcedure
     .input(filterSchema.optional())
     .query(async ({ input }) => {
         const { provCode, distCode, wardCode } = input?.filter ?? {};
-        const shippings = await getShippingsFromDB();
+
+        let addressRegex = "";
+        if (wardCode) addressRegex += await getUnitName(wardCode, "ward");
+        if (distCode)
+            addressRegex += ", " + (await getUnitName(distCode, "district"));
+        if (provCode)
+            addressRegex += ", " + (await getUnitName(provCode, "province"));
+
+        const filter = { address: { $regex: addressRegex } };
+
+        const shippings = await getShippingsFromDB(
+            addressRegex ? filter : undefined
+        );
 
         if (shippings === "INTERNAL_SERVER_ERROR")
             throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -34,6 +50,7 @@ async function getShippingsFromDB(filter?: TFilter) {
         const db = database.getDB();
         const shippings = db.collection<IShipping>("shippings");
 
+        if (filter) return await shippings.find(filter).toArray();
         return await shippings.find().toArray();
     } catch (err) {
         return "INTERNAL_SERVER_ERROR";
