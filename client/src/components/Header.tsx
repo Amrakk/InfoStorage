@@ -127,7 +127,7 @@ export default function Header() {
           {showAccount && (
             <div
               id="boxAccount"
-              className="absolute right-0 top-10 bg-white border  rounded-md shadow-aesthetic py-4 px-5 flex-col gap-1 z-10"
+              className="absolute right-0 top-10 bg-white border  rounded-md shadow-aesthetic py-4 px-5 flex-col gap-1 z-10 "
             >
               <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
                 <div>Profile</div>

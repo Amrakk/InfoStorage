@@ -20,6 +20,10 @@ export default {
         primary: "rgb(65, 82, 69)",
       },
     },
+    safelist: [
+      "animate-[fade-in_1s_ease-in-out]",
+      "animate-[fade-in-down_1s_ease-in-out]",
+    ],
   },
   plugins: [],
 };

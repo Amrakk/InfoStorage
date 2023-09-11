@@ -61,3 +61,38 @@
 ::-webkit-scrollbar-thumb:hover {
   background-color: #888888c0;
 }
+
+input[type="text"]:focus ~ .input-text,
+textarea:focus ~ .input-text,
+select:focus ~ .input-text {
+  @apply text-[#6AAFC7] bg-white transform -translate-y-6 -translate-x-2  text-opacity-100 scale-75;
+}
+
+input[type="text"] ~ .input-text-not-empty,
+textarea ~ .input-text-not-empty,
+select ~ .input-text-not-empty {
+  @apply text-primary  bg-white transform -translate-y-6 -translate-x-2 scale-75 text-opacity-100;
+}
+
+input[type="text"]:focus ~ .input-text-not-empty,
+textarea:focus ~ .input-text-not-empty,
+select:focus ~ .input-text-not-empty {
+  @apply text-[#6AAFC7];
+}
+
+select option[value="option1"] {
+  display: none;
+}
+
+select:required:invalid {
+  color: #415245;
+  opacity: 0.5;
+}
+
+option[value=""][disabled] {
+  display: none;
+}
+
+option {
+  color: #415245;
+}

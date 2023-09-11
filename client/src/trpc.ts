@@ -6,6 +6,8 @@ type RouterInput = inferRouterInputs<AppRouter>;
 type RouterOutput = inferRouterOutputs<AppRouter>;
 
 export type TShipping = RouterOutput["shipping"]["getShippings"];
+export type TProvince = RouterOutput["service"]["getProvinces"];
+export type TDistrict = RouterOutput["service"]["getDistricts"];
 
 export const trpc = createTRPCProxyClient<AppRouter>({
   links: [
