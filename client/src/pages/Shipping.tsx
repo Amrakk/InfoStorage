@@ -23,9 +23,7 @@ export default function Shipping() {
         }
       });
 
-    trpc.service.searchByName.query({type: "shippings", text: "thuan"}).then((res) => {
-      console.log(res);
-    })
+    trpc.shipping.addShippings.mutate([{name: "test", address: "test", phone: "test", note: "test"}])
   }, []);
 
   return (
