@@ -5,11 +5,11 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { customerRegex } from "../../../configs/regex.js";
 import ICustomer from "../../../interfaces/collections/customer.js";
+import { getUnitName } from "../../../middlewares/addressHandlers.js";
 import {
     getCustomerByName,
     getCustomerByEmail,
 } from "../../../middlewares/collectionHandlers/customerHandlers.js";
-import { getUnitName } from "../../../middlewares/addressHandlers.js";
 
 const inputSchema = z.object({
     id: z.string(),

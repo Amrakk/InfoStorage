@@ -2,21 +2,15 @@ import { z } from "zod";
 import { Collection } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../database/db.js";
-import { roles } from "../../configs/global.js";
 import { verifiedProcedure } from "../../trpc.js";
-import * as Collections from "../../interfaces/collections/collections.js";
 import { subjectRegex } from "../../configs/regex.js";
+import { rolePermissions } from "../../configs/default.js";
+import { CollectionNames } from "../../configs/default.js";
+import * as Collections from "../../interfaces/collections/collections.js";
 
 const inputSchema = z.object({
     text: z.string().regex(subjectRegex),
-    type: z.enum([
-        "taxes",
-        "users",
-        "products",
-        "customers",
-        "shippings",
-        "suppliers",
-    ]),
+    type: z.nativeEnum(CollectionNames),
 });
 
 export const searchByName = verifiedProcedure
@@ -25,7 +19,7 @@ export const searchByName = verifiedProcedure
         const { user } = ctx;
         const { text, type } = input;
 
-        if (!roles[user.role].includes(type))
+        if (!rolePermissions[user.role].includes(type))
             throw new TRPCError({
                 code: "FORBIDDEN",
                 message: "You don't have permission to access this resource",
@@ -41,24 +35,25 @@ export const searchByName = verifiedProcedure
         return things;
     });
 
-async function getThingsByName(text: string, type: string) {
-    try {
-        const db = database.getDB();
-        let collection: Collection<any>;
+function getCollections(type: CollectionNames) {
+    const db = database.getDB();
 
-        if (type === "taxes")
-            collection = db.collection<Collections.ITax>("taxes");
-        else if (type === "users")
-            collection = db.collection<Collections.IUser>("users");
-        else if (type === "products")
-            collection = db.collection<Collections.IProduct>("products");
-        else if (type === "customers")
-            collection = db.collection<Collections.ICustomer>("customers");
-        else if (type === "shippings")
-            collection = db.collection<Collections.IShipping>("shippings");
-        else if (type === "suppliers")
-            collection = db.collection<Collections.ISupplier>("suppliers");
-        else throw new Error("INVALID_TYPE");
+    if (type === "taxes") return db.collection<Collections.ITax>("taxes");
+    else if (type === "users") return db.collection<Collections.IUser>("users");
+    else if (type === "products")
+        return db.collection<Collections.IProduct>("products");
+    else if (type === "customers")
+        return db.collection<Collections.ICustomer>("customers");
+    else if (type === "shippings")
+        return db.collection<Collections.IShipping>("shippings");
+    else if (type === "suppliers")
+        return db.collection<Collections.ISupplier>("suppliers");
+    throw new Error("INVALID_TYPE");
+}
+
+async function getThingsByName(text: string, type: CollectionNames) {
+    try {
+        const collection = getCollections(type);
 
         await collection.createIndex({ name: "text" });
         const things = await collection

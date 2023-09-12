@@ -1,6 +1,8 @@
+import { ProductCategories } from "../../configs/default.js";
+
 interface IProduct {
     name: string;
-    category: "syrup" | "jam" | "powder" | "canned" | "topping" | "others";
+    category: ProductCategories;
     quantity: number;
     price: number;
     suppliers: string[];

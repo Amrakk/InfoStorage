@@ -3,14 +3,14 @@ import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { productRegex } from "../../../configs/regex.js";
-import { productCategories } from "../../../configs/global.js";
+import { ProductCategories } from "../../../configs/default.js";
 import IProduct from "../../../interfaces/collections/product.js";
 import { getProductByName } from "../../../middlewares/collectionHandlers/productHandlers.js";
 
 const inputSchema = z.array(
     z.object({
         name: z.string().regex(productRegex.name),
-        category: z.enum(productCategories),
+        category: z.nativeEnum(ProductCategories),
         quantity: z.number().int().positive(),
         price: z.number().int().positive(),
         suppliers: z.array(z.string()),
