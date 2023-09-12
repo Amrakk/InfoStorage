@@ -3,49 +3,39 @@ import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import IShipping from "../../../interfaces/collections/shipping.js";
-import { getUnitName } from "../../../middlewares/addressHandlers.js";
+import {
+    addressFilter,
+    TAddressFilter,
+    addressFilterShema,
+} from "../../../middlewares/filterHandlers/address.js";
 
-const addressFilterShema = z.object({
-    provCode: z.number(),
-    distCode: z.number().optional(),
-    wardCode: z.number().optional(),
+const internalErr = new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Internal server error",
 });
 
 const filterSchema = z.object({
     filter: addressFilterShema.optional(),
 });
 
-type TFilter = {
-    address: {
-        $regex: string;
-    };
-};
-
 export const getShippings = employeeProcedure
     .input(filterSchema.optional())
     .query(async ({ input }) => {
         const { provCode, distCode, wardCode } = input?.filter ?? {};
 
-        let addressRegex = "";
-        if (wardCode) addressRegex += await getUnitName(wardCode, "ward");
-        if (distCode)
-            addressRegex += ", " + (await getUnitName(distCode, "district"));
+        let filter = undefined;
         if (provCode)
-            addressRegex += ", " + (await getUnitName(provCode, "province"));
+            filter = await addressFilter({ provCode, distCode, wardCode });
 
-        const filter = { address: { $regex: addressRegex } };
+        if (typeof filter === "string") throw internalErr;
 
-        const shippings = await getShippingsFromDB(
-            addressRegex ? filter : undefined
-        );
-
-        if (shippings === "INTERNAL_SERVER_ERROR")
-            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const shippings = await getShippingsFromDB(filter);
+        if (shippings === "INTERNAL_SERVER_ERROR") throw internalErr;
 
         return shippings;
     });
 
-async function getShippingsFromDB(filter?: TFilter) {
+async function getShippingsFromDB(filter?: TAddressFilter) {
     try {
         const db = database.getDB();
         const shippings = db.collection<IShipping>("shippings");

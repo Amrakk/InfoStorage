@@ -7,32 +7,32 @@ import type { inferAsyncReturnType } from "@trpc/server";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 
 export async function createContext(opts: CreateExpressContextOptions) {
-  return {
-    req: opts.req,
-    res: opts.res,
-    user: {
-      _id: new ObjectId(undefined),
-      ...(new Object(undefined) as IUser),
-    },
-  };
+    return {
+        req: opts.req,
+        res: opts.res,
+        user: {
+            _id: new ObjectId(undefined),
+            ...(new Object(undefined) as IUser),
+        },
+    };
 }
 
 export type Context = inferAsyncReturnType<typeof createContext>;
 
 const t = initTRPC.context<Context>().create({
-  errorFormatter({ shape, error }) {
-    if (error.code === "INTERNAL_SERVER_ERROR") console.error(error);
-    if (error.code === "BAD_REQUEST" && error.cause instanceof ZodError) {
-      shape.message = "Invalid input";
-    }
-    shape.data.stack = undefined;
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-      },
-    };
-  },
+    errorFormatter({ shape, error }) {
+        if (error.code === "INTERNAL_SERVER_ERROR") console.error(error);
+        if (error.code === "BAD_REQUEST" && error.cause instanceof ZodError) {
+            shape.message = "Invalid input";
+        }
+        shape.data.stack = undefined;
+        return {
+            ...shape,
+            data: {
+                ...shape.data,
+            },
+        };
+    },
 });
 
 export const router = t.router;
@@ -44,5 +44,5 @@ export const verifiedProcedure = t.procedure.use(verify());
 export const adminProcedure = t.procedure.use(verify(["admin"]));
 export const managerProcedure = t.procedure.use(verify(["admin", "manager"]));
 export const employeeProcedure = t.procedure.use(
-  verify(["admin", "manager", "employee"])
+    verify(["admin", "manager", "employee"])
 );
