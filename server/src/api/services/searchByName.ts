@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Collection } from "mongodb";
+import { WithId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../database/db.js";
 import { verifiedProcedure } from "../../trpc.js";
@@ -7,6 +7,15 @@ import { subjectRegex } from "../../configs/regex.js";
 import { rolePermissions } from "../../configs/default.js";
 import { CollectionNames } from "../../configs/default.js";
 import * as Collections from "../../interfaces/collections/collections.js";
+import { toLowerNonAccentVietnamese } from "../../middlewares/textHandler.js";
+
+type TCollections =
+    | WithId<Collections.ITax>
+    | WithId<Collections.IUser>
+    | WithId<Collections.IProduct>
+    | WithId<Collections.ICustomer>
+    | WithId<Collections.IShipping>
+    | WithId<Collections.ISupplier>;
 
 const inputSchema = z.object({
     text: z.string().regex(subjectRegex),
@@ -25,50 +34,60 @@ export const searchByName = verifiedProcedure
                 message: "You don't have permission to access this resource",
             });
 
-        const things = await getThingsByName(text, type);
-        if (things === "INTERNAL_SERVER_ERROR")
+        const data = await getDataByName(text, type);
+        if (data === "INTERNAL_SERVER_ERROR")
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
                 message: "Internal server error",
             });
 
-        return things;
+        return data;
     });
 
-function getCollections(type: CollectionNames) {
-    const db = database.getDB();
-
-    if (type === "taxes") return db.collection<Collections.ITax>("taxes");
-    else if (type === "users") return db.collection<Collections.IUser>("users");
-    else if (type === "products")
-        return db.collection<Collections.IProduct>("products");
-    else if (type === "customers")
-        return db.collection<Collections.ICustomer>("customers");
-    else if (type === "shippings")
-        return db.collection<Collections.IShipping>("shippings");
-    else if (type === "suppliers")
-        return db.collection<Collections.ISupplier>("suppliers");
-    throw new Error("INVALID_TYPE");
-}
-
-async function getThingsByName(text: string, type: CollectionNames) {
+async function getDataByName(text: string, type: CollectionNames) {
     try {
-        const collection = getCollections(type);
+        const data = await getCollectionData(type);
+        const plainText = toLowerNonAccentVietnamese(text);
 
-        await collection.createIndex({ name: "text" });
-        const things = await collection
-            .find({
-                $text: {
-                    $search: `(*UCP)${text}`,
-                    $caseSensitive: false,
-                    $diacriticSensitive: false,
-                },
-            })
-            .sort({ score: { $meta: "textScore" } })
-            .toArray();
+        const result = data.filter((item) => {
+            const regex = new RegExp(`^.*${plainText}.*$`, "gmiu");
+            return regex.test(toLowerNonAccentVietnamese(item.name));
+        });
 
-        return things;
+        return result;
     } catch (err) {
         return "INTERNAL_SERVER_ERROR";
     }
+}
+
+async function getCollectionData(
+    type: CollectionNames
+): Promise<TCollections[]> {
+    const db = database.getDB();
+
+    if (type === "taxes")
+        return await db.collection<Collections.ITax>("taxes").find().toArray();
+    if (type === "users")
+        return await db.collection<Collections.IUser>("users").find().toArray();
+    if (type === "products")
+        return await db
+            .collection<Collections.IProduct>("products")
+            .find()
+            .toArray();
+    if (type === "customers")
+        return await db
+            .collection<Collections.ICustomer>("customers")
+            .find()
+            .toArray();
+    if (type === "shippings")
+        return await db
+            .collection<Collections.IShipping>("shippings")
+            .find()
+            .toArray();
+    if (type === "suppliers")
+        return await db
+            .collection<Collections.ISupplier>("suppliers")
+            .find()
+            .toArray();
+    throw new Error("INVALID_TYPE");
 }

@@ -82,9 +82,9 @@ export async function searchUnitCode(
 ) {
     try {
         let query = "";
-        if (unit === "province") query = `/p/search?q=${name}`;
-        else if (unit === "district") query = `/d/search?q=${name}`;
-        else if (unit === "ward") query = `/w/search?q=${name}`;
+        if (unit === "province") query = `/p/search/?q=${name}`;
+        else if (unit === "district") query = `/d/search/?q=${name}`;
+        else if (unit === "ward") query = `/w/search/?q=${name}`;
         else throw new Error("Invalid unit");
 
         const data = await fetch(apiUrl + query).then<IUnit[]>(async (res) => {
