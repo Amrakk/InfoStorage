@@ -13,12 +13,12 @@ import {
 } from "../../../middlewares/collectionHandlers/taxHandlers.js";
 
 const inputSchema = z.object({
-    _id: z.string(),
+    id: z.string(),
     name: z.string().regex(taxRegex.name),
     taxCode: z.string().regex(taxRegex.taxCode),
     address: z.string().regex(taxRegex.address),
-    provinceCode: z.number().int().positive(),
-    districtCode: z.number().int().positive(),
+    provCode: z.number().int().positive(),
+    distCode: z.number().int().positive(),
     wardCode: z.number().int().positive(),
     representative: z.string().regex(taxRegex.representative),
     phone: z.string().regex(taxRegex.phone),
@@ -34,7 +34,7 @@ const internalErr = new TRPCError({
 export const updateTax = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { provinceCode, districtCode, wardCode, ...tax } = input;
+        const { provCode, distCode, wardCode, id, ...tax } = input;
 
         const isNameExist = await getTaxByName(tax.name);
         const isEmailExist = await getTaxByEmail(tax.email);
@@ -47,16 +47,16 @@ export const updateTax = employeeProcedure
         )
             throw internalErr;
         if (
-            isNameExist?._id !== new ObjectId(tax._id) ||
-            isEmailExist?._id !== new ObjectId(tax._id) ||
-            isTaxCodeExist?._id !== new ObjectId(tax._id)
+            (isNameExist && isNameExist._id.toString() !== id) ||
+            (isEmailExist && isEmailExist._id.toString() !== id) ||
+            (isTaxCodeExist && isTaxCodeExist._id.toString() !== id)
         )
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Tax already exists",
             });
-        const province = await getUnitName(provinceCode, "province");
-        const district = await getUnitName(districtCode, "district");
+        const province = await getUnitName(provCode, "province");
+        const district = await getUnitName(distCode, "district");
         const ward = await getUnitName(wardCode, "ward");
         if (
             province === "INTERNAL_SERVER_ERROR" ||
@@ -67,7 +67,7 @@ export const updateTax = employeeProcedure
 
         tax.address = `${tax.address}, ${ward}, ${district}, ${province}`;
 
-        const result = await updateTaxInfo(tax._id, tax);
+        const result = await updateTaxInfo(id, tax);
         if (!result) throw internalErr;
 
         return { message: "Update successfully" };

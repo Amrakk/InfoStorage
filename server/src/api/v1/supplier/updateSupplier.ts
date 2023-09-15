@@ -12,8 +12,8 @@ const inputSchema = z.object({
     id: z.string(),
     name: z.string().regex(supplierRegex.name),
     address: z.string().regex(supplierRegex.address),
-    provinceCode: z.number().int().positive(),
-    districtCode: z.number().int().positive(),
+    provCode: z.number().int().positive(),
+    distCode: z.number().int().positive(),
     wardCode: z.number().int().positive(),
     contact: z.string().regex(supplierRegex.contact),
     phone: z.string().regex(supplierRegex.phone),
@@ -28,18 +28,18 @@ const internalErr = new TRPCError({
 export const updateSupplier = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { provinceCode, districtCode, wardCode, ...supplier } = input;
+        const { provCode, distCode, wardCode, id, ...supplier } = input;
 
         const isNameExist = await getSupplierByName(supplier.name);
         if (isNameExist === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (isNameExist?._id !== new ObjectId(supplier.id))
+        if (isNameExist && isNameExist._id.toString() !== id)
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Supplier already exists",
             });
 
-        const province = await getUnitName(provinceCode, "province");
-        const district = await getUnitName(districtCode, "district");
+        const province = await getUnitName(provCode, "province");
+        const district = await getUnitName(distCode, "district");
         const ward = await getUnitName(wardCode, "ward");
         if (
             province === "INTERNAL_SERVER_ERROR" ||
@@ -50,7 +50,7 @@ export const updateSupplier = employeeProcedure
 
         supplier.address = `${supplier.address}, ${ward}, ${district}, ${province}`;
 
-        const result = await updateSupplierInfo(supplier.id, supplier);
+        const result = await updateSupplierInfo(id, supplier);
         if (!result) throw internalErr;
 
         return { message: "Update successfully" };

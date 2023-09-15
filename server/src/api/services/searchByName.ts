@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { WithId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../database/db.js";
 import { verifiedProcedure } from "../../trpc.js";
@@ -8,14 +7,6 @@ import { rolePermissions } from "../../configs/default.js";
 import { CollectionNames } from "../../configs/default.js";
 import * as Collections from "../../interfaces/collections/collections.js";
 import { toLowerNonAccentVietnamese } from "../../middlewares/textHandler.js";
-
-type TCollections =
-    | WithId<Collections.ITax>
-    | WithId<Collections.IUser>
-    | WithId<Collections.IProduct>
-    | WithId<Collections.ICustomer>
-    | WithId<Collections.IShipping>
-    | WithId<Collections.ISupplier>;
 
 const inputSchema = z.object({
     text: z.string().regex(subjectRegex),
@@ -62,7 +53,7 @@ async function getDataByName(text: string, type: CollectionNames) {
 
 async function getCollectionData(
     type: CollectionNames
-): Promise<TCollections[]> {
+): Promise<Collections.TCollections[]> {
     const db = database.getDB();
 
     if (type === "taxes")

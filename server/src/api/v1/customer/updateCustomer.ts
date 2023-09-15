@@ -15,8 +15,8 @@ const inputSchema = z.object({
     id: z.string(),
     name: z.string().regex(customerRegex.name),
     address: z.string().regex(customerRegex.address),
-    provinceCode: z.number().int().positive(),
-    districtCode: z.number().int().positive(),
+    provCode: z.number().int().positive(),
+    distCode: z.number().int().positive(),
     wardCode: z.number().int().positive(),
     phone: z.string().regex(customerRegex.phone),
     placer: z.string().regex(customerRegex.placer),
@@ -33,7 +33,7 @@ const internalErr = new TRPCError({
 export const updateCustomer = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { provinceCode, districtCode, wardCode, ...customer } = input;
+        const { provCode, distCode, wardCode, id, ...customer } = input;
 
         const isNameExist = await getCustomerByName(customer.name);
         const isEmailExist = await getCustomerByEmail(customer.email);
@@ -43,16 +43,16 @@ export const updateCustomer = employeeProcedure
         )
             throw internalErr;
         if (
-            isNameExist?._id !== new ObjectId(customer.id) ||
-            isEmailExist?._id !== new ObjectId(customer.id)
+            (isNameExist && isNameExist._id.toString() !== id) ||
+            (isEmailExist && isEmailExist._id.toString() !== id)
         )
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Customer already exists",
             });
 
-        const province = await getUnitName(provinceCode, "province");
-        const district = await getUnitName(districtCode, "district");
+        const province = await getUnitName(provCode, "province");
+        const district = await getUnitName(distCode, "district");
         const ward = await getUnitName(wardCode, "ward");
         if (
             province === "INTERNAL_SERVER_ERROR" ||
@@ -63,7 +63,7 @@ export const updateCustomer = employeeProcedure
 
         customer.address = `${customer.address}, ${ward}, ${district}, ${province}`;
 
-        const result = await updateCustomerInfo(customer.id, customer);
+        const result = await updateCustomerInfo(id, customer);
         if (!result) throw internalErr;
 
         return { message: "Update successfully" };
