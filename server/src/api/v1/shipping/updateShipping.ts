@@ -5,14 +5,18 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { shippingRegex } from "../../../configs/regex.js";
 import IShipping from "../../../interfaces/collections/shipping.js";
+import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
 import { getShippingByName } from "../../../middlewares/collectionHandlers/shippingHandlers.js";
 
 const inputSchema = z.object({
     _id: z.string(),
     name: z.string().regex(shippingRegex.name),
     address: z.string().regex(shippingRegex.address),
-    phone: z.string().regex(shippingRegex.phone).nullable(),
-    note: z.string().regex(shippingRegex.note).nullable(),
+    provinceCode: z.number().int().positive(),
+    districtCode: z.number().int().positive(),
+    wardCode: z.number().int().positive(),
+    phone: z.string().regex(shippingRegex.phone),
+    note: z.string().regex(shippingRegex.note),
 });
 
 const internalErr = new TRPCError({
@@ -23,7 +27,7 @@ const internalErr = new TRPCError({
 export const updateShipping = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { ...shipping } = input;
+        const { provinceCode, districtCode, wardCode, ...shipping } = input;
 
         const isNameExist = await getShippingByName(shipping.name);
         if (isNameExist === "INTERNAL_SERVER_ERROR") throw internalErr;
@@ -32,6 +36,18 @@ export const updateShipping = employeeProcedure
                 code: "CONFLICT",
                 message: "Shipping already exists",
             });
+
+        const province = await getProvinceInfo(provinceCode, "province");
+        const district = await getProvinceInfo(districtCode, "district");
+        const ward = await getProvinceInfo(wardCode, "ward");
+        if (
+            province === "INTERNAL_SERVER_ERROR" ||
+            district === "INTERNAL_SERVER_ERROR" ||
+            ward === "INTERNAL_SERVER_ERROR"
+        )
+            throw internalErr;
+
+        shipping.address = `${shipping.address}, ${ward}, ${district}, ${province}`;
 
         const result = await updateShippingInfo(shipping._id, shipping);
         if (!result) throw internalErr;

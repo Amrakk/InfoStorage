@@ -6,11 +6,9 @@ import { FaFilter, FaTrash } from "react-icons/fa";
 import { BsFillSkipEndFill, BsFillSkipStartFill } from "react-icons/bs";
 import { GrFormPrevious, GrFormNext } from "react-icons/gr";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BsFillTrash3Fill } from "react-icons/bs";
-import DeletePopup from "../components/DeletePopup";
-import AddPopup from "../components/AddPopup";
+import { DeletePopup, AddPopup, UpdatePopup } from "../components";
 import { useDeletePopupStore } from "../stores/DeletePopup";
-import { useAddPopupStore } from "../stores/AddPopup";
+
 export default function Shipping() {
   const navigate = useNavigate();
   const [shippings, setShippings] = useState<TShipping>([]);
@@ -18,8 +16,19 @@ export default function Shipping() {
   const [binPing, setBinPing] = useState(false);
   const [editPing, setEditPing] = useState(false);
   const { isDeletePopupOpen, setIsDeletePopupOpen } = useDeletePopupStore();
-  const { isAddPopupOpen, setIsAddPopupOpen } = useAddPopupStore();
-  useEffect(() => {
+  const [isAddPopupOpen, setIsAddPopupOpen] = useState<boolean>(false);
+  const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState<boolean>(false);
+  const [_id, set_Id] = useState("");
+
+  const [inputValue, setInputValue] = useState<{
+    [key: string]: string | null | undefined;
+  }>({}); // ["name", "address", "phone", "note"
+
+  const inputStyle = {
+    caretColor: "transparent",
+  };
+
+  function getShippings() {
     trpc.shipping.getShippings
       .query()
       .then((res) => {
@@ -30,7 +39,39 @@ export default function Shipping() {
           navigate("/signin");
         }
       });
+  }
+
+  useEffect(() => {
+    getShippings();
   }, []);
+
+  function handleAddPopUp() {
+    setIsAddPopupOpen(true);
+  }
+
+  function handleUpdatePopUp(
+    shippingId: string,
+    shippingName: string,
+    shippingAddress: string,
+    shippingPhone: string,
+    shippingNote: string
+  ) {
+    setInputValue({
+      _id: shippingId,
+      name: shippingName,
+      address: shippingAddress,
+      phone: shippingPhone,
+      note: shippingNote,
+    });
+    setIsUpdatePopupOpen(true);
+  }
+
+  function hideAddPopUp() {
+    setIsAddPopupOpen(false);
+  }
+  function hideUpdatePopUp() {
+    setIsUpdatePopupOpen(false);
+  }
 
   return (
     <>
@@ -46,7 +87,7 @@ export default function Shipping() {
             </button>
             <button
               className="w-40 py-3 bg-primary hover:bg-[#5e7563] transition-colors  text-white rounded-md"
-              onClick={() => setIsAddPopupOpen("Shipping")}
+              onClick={handleAddPopUp}
             >
               Create
             </button>
@@ -55,7 +96,10 @@ export default function Shipping() {
         <div className="flex mt-8 gap-5 h-10">
           <div className="group flex-1 ">
             <div className="h-full  group-focus-within:border-[#6AAFC7] transition-colors group-focus:border flex border border-primary items-center px-1 gap-2 rounded-md">
-              <AiOutlineSearch size={24} />
+              <AiOutlineSearch
+                size={24}
+                className="group-focus-within:text-[#6AAFC7] transition-colors"
+              />
               <input
                 type="text"
                 className="w-full outline-none text-primary "
@@ -75,19 +119,22 @@ export default function Shipping() {
           return <div>{shipping.name}</div>;
         })} */}
         <div className="mt-8 h-[500px] overflow-auto">
-          <table className="w-full table-auto relative border-separate">
+          <table
+            className="w-[100%] table-fixed relative border-separate text-left "
+            style={inputStyle}
+          >
             <thead className="">
-              <tr className="text-left select-none">
-                <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white ">
+              <tr className="select-none">
+                <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white w-[5%]">
                   STT
                 </th>
-                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white ">
+                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[20%]">
                   Tên Đơn Vị
                 </th>
-                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white ">
+                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[28%]">
                   Địa Chỉ
                 </th>
-                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white ">
+                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[12%]">
                   Số Điện Thoại
                 </th>
                 <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white ">
@@ -96,10 +143,10 @@ export default function Shipping() {
               </tr>
             </thead>
 
-            <tbody className="h-full ">
+            <tbody className="h-full">
               {shippings
-                .concat(shippings)
-                .concat(shippings)
+                // .concat(shippings)
+                // .concat(shippings)
                 .map((shipping, index) => {
                   return (
                     <tr
@@ -108,7 +155,15 @@ export default function Shipping() {
                       draggable
                       onDragStart={(e) => {
                         setIconAppear(true);
+                        e.dataTransfer.setData("shippingId", shipping._id);
                         e.dataTransfer.setData("shippingName", shipping.name);
+                        e.dataTransfer.setData(
+                          "shippingAddress",
+                          shipping.address
+                        );
+                        e.dataTransfer.setData("shippingPhone", shipping.phone);
+                        e.dataTransfer.setData("shippingNote", shipping.note);
+                        set_Id(shipping._id);
                       }}
                       onDragEnd={(e) => {
                         setIconAppear(false);
@@ -139,17 +194,17 @@ export default function Shipping() {
           </div>
         </div>
         <span
-          className={`fixed flex w-72  aspect-square transition-all  ${
+          className={`fixed flex w-72  aspect-square transition-all duration-300  ${
             iconAppear ? "-left-32 -bottom-28" : "-left-72 -bottom-64"
           }`}
         >
           <span
             className={`${
               binPing ? "animate-ping" : ""
-            } absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75`}
+            } absolute inline-flex h-full w-full rounded-full bg-accent1 opacity-75`}
           ></span>
           <span
-            className="relative inline-flex  w-72  aspect-square rounded-full bg-red-500 "
+            className="relative inline-flex  w-72  aspect-square rounded-full bg-accent1 "
             onDragEnter={(e) => {
               setBinPing(true);
             }}
@@ -168,22 +223,22 @@ export default function Shipping() {
           >
             <FaTrash
               size={50}
-              className="absolute  text-white right-[72px] top-[72px] pointer-events-none"
+              className="absolute text-white right-[72px] top-[72px] pointer-events-none"
             />
           </span>
         </span>
         <span
-          className={`fixed flex w-72  aspect-square transition-all  ${
+          className={`fixed flex w-72  aspect-square transition-all  duration-300  ${
             iconAppear ? "-right-32 -bottom-28" : "-right-72 -bottom-64"
           }`}
         >
           <span
             className={`${
               editPing ? "animate-ping" : ""
-            } absolute inline-flex h-full w-full rounded-full bg-[#6AAFC7] opacity-75`}
+            } absolute inline-flex h-full w-full rounded-full bg-second opacity-75`}
           ></span>
           <span
-            className="relative inline-flex  w-72  aspect-square rounded-full bg-[#6AAFC7] "
+            className="relative inline-flex  w-72  aspect-square rounded-full bg-second "
             onDragEnter={(e) => {
               setEditPing(true);
             }}
@@ -193,9 +248,22 @@ export default function Shipping() {
             onDragOver={(e) => {
               e.preventDefault();
             }}
-            onDrop={() => {
-              setBinPing(false);
-              setIsDeletePopupOpen("Shipping");
+            onDrop={(e) => {
+              e.preventDefault();
+              setEditPing(false);
+              const shippingId = e.dataTransfer.getData("shippingId");
+              const shippingName = e.dataTransfer.getData("shippingName");
+              const shippingAddress = e.dataTransfer.getData("shippingAddress");
+              const shippingPhone = e.dataTransfer.getData("shippingPhone");
+              const shippingNote = e.dataTransfer.getData("shippingNote");
+
+              handleUpdatePopUp(
+                shippingId,
+                shippingName,
+                shippingAddress,
+                shippingPhone,
+                shippingNote
+              );
             }}
           >
             <AiFillEdit
@@ -204,8 +272,25 @@ export default function Shipping() {
             />
           </span>
         </span>
-        {isDeletePopupOpen && <DeletePopup message={isDeletePopupOpen} />}
-        {isAddPopupOpen && <AddPopup message={isAddPopupOpen} />}
+        {/* {isDeletePopupOpen && <DeletePopup   />} */}
+        {isDeletePopupOpen && (
+          <DeletePopup
+            message={isDeletePopupOpen}
+            _id={_id}
+            getShippings={getShippings}
+          />
+        )}
+        <AddPopup
+          getShippings={getShippings}
+          isShown={isAddPopupOpen}
+          onCancel={hideAddPopUp}
+        />
+        <UpdatePopup
+          getShippings={getShippings}
+          isShown={isUpdatePopupOpen}
+          onCancel={hideUpdatePopUp}
+          inputValue={inputValue}
+        />
       </div>
     </>
   );

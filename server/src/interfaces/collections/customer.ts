@@ -3,9 +3,9 @@ interface ICustomer {
     address: string;
     phone: string;
     placer: string;
-    email: string | null;
+    email: string;
     curator: string;
-    note: string | null;
+    note: string;
 }
 
 export default ICustomer;

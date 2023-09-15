@@ -3,12 +3,13 @@ import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { productRegex } from "../../../configs/regex.js";
+import { productCategories } from "../../../configs/global.js";
 import IProduct from "../../../interfaces/collections/product.js";
 import { getProductByName } from "../../../middlewares/collectionHandlers/productHandlers.js";
 
 const inputSchema = z.object({
     name: z.string().regex(productRegex.name),
-    category: z.string().regex(productRegex.category),
+    category: z.enum(["syrup", "jam", "powder", "canned", "topping", "others"]),
     quantity: z.number().int().positive(),
     price: z.number().int().positive(),
     suppliers: z.array(z.string()),

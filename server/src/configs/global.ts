@@ -1,20 +1,20 @@
 export const roles = {
     admin: [
-        "users",
         "host",
-        "customers",
+        "users",
+        "taxes",
         "products",
+        "customers",
         "shippings",
         "suppliers",
-        "taxes",
     ],
     manager: [
         "host",
-        "customers",
+        "taxes",
         "products",
+        "customers",
         "shippings",
         "suppliers",
-        "taxes",
     ],
     employee: ["customers", "products", "shippings", "suppliers", "taxes"],
 };

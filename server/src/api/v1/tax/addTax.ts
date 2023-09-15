@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
-import { managerProcedure } from "../../../trpc.js";
+import { employeeProcedure } from "../../../trpc.js";
 import { taxRegex } from "../../../configs/regex.js";
 import Itax from "../../../interfaces/collections/tax.js";
 import {
@@ -9,14 +9,18 @@ import {
     getTaxByEmail,
     getTaxByTaxCode,
 } from "../../../middlewares/collectionHandlers/taxHandlers.js";
+import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
 
 const inputSchema = z.object({
     name: z.string().regex(taxRegex.name),
     taxCode: z.string().regex(taxRegex.taxCode),
     address: z.string().regex(taxRegex.address),
+    provinceCode: z.number().int().positive(),
+    districtCode: z.number().int().positive(),
+    wardCode: z.number().int().positive(),
     representative: z.string().regex(taxRegex.representative),
     phone: z.string().regex(taxRegex.phone),
-    email: z.string().regex(taxRegex.email).nullable(),
+    email: z.string().email(),
     participants: z.array(z.string()),
 });
 
@@ -25,10 +29,10 @@ const internalErr = new TRPCError({
     message: "Internal Server Error",
 });
 
-export const addTax = managerProcedure
+export const addTax = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { ...tax } = input;
+        const { provinceCode, districtCode, wardCode, ...tax } = input;
 
         const isNameExist = await getTaxByName(tax.name);
         const isEmailExist = await getTaxByEmail(tax.email);
@@ -45,6 +49,18 @@ export const addTax = managerProcedure
                 code: "CONFLICT",
                 message: "Tax already exist",
             });
+
+        const province = await getProvinceInfo(provinceCode, "province");
+        const district = await getProvinceInfo(districtCode, "district");
+        const ward = await getProvinceInfo(wardCode, "ward");
+        if (
+            province === "INTERNAL_SERVER_ERROR" ||
+            district === "INTERNAL_SERVER_ERROR" ||
+            ward === "INTERNAL_SERVER_ERROR"
+        )
+            throw internalErr;
+
+        tax.address = `${tax.address}, ${ward}, ${district}, ${province}`;
 
         const result = await insertTax(tax);
         if (!result) throw internalErr;

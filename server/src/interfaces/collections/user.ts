@@ -3,7 +3,7 @@ interface IUser {
     email: string;
     password: string;
     phone: string;
-    role: string;
+    role: "admin" | "manager" | "employee";
 }
 
 export default IUser;

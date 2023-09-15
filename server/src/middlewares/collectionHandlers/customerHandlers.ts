@@ -12,8 +12,8 @@ export async function getCustomerByName(name: string) {
     }
 }
 
-export async function getCustomerByEmail(email: string | null) {
-    if (email === null) return null;
+export async function getCustomerByEmail(email: string) {
+    if (email === "") return null;
     try {
         const db = database.getDB();
         const customers = db.collection<ICustomer>("customers");

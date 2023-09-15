@@ -22,7 +22,7 @@
   }
 
   .inputField {
-    @apply border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md;
+    @apply border border-primary w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-second bg-white rounded-md;
   }
 }
 
@@ -35,6 +35,36 @@
     top: 40px;
     opacity: 1;
   }
+}
+
+@keyframes fadeInPopup {
+  from {
+    margin-top: 0;
+    opacity: 0;
+  }
+  to {
+    margin-top: 96px;
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOutPopup {
+  from {
+    margin-top: 96px;
+    opacity: 1;
+  }
+  to {
+    margin-top: 0;
+    opacity: 0;
+  }
+}
+
+.animationPopup {
+  animation: fadeInPopup 0.3s ease-in-out;
+}
+
+.animationPopout {
+  animation: fadeOutPopup 0.3s ease-in-out forwards;
 }
 
 #boxAccount {
@@ -80,7 +110,16 @@ select:focus ~ .input-text-not-empty {
   @apply text-[#6AAFC7];
 }
 
-select option[value="option1"] {
+input[type="text"]:focus ~ .input-text-error,
+textarea:focus ~ .input-text-error,
+select:focus ~ .input-text-error,
+input[type="text"] ~ .input-text-error,
+textarea ~ .input-text-error,
+select ~ .input-text-error {
+  @apply text-accent1 bg-white transform -translate-y-6 -translate-x-2  text-opacity-100 scale-75;
+}
+
+select option[value=""] {
   display: none;
 }
 
@@ -93,6 +132,13 @@ option[value=""][disabled] {
   display: none;
 }
 
-option {
+select option {
   color: #415245;
+}
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px white inset;
+}
+
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 30px white inset;
 }

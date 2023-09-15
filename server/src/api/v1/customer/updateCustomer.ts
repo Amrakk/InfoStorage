@@ -9,16 +9,20 @@ import {
     getCustomerByName,
     getCustomerByEmail,
 } from "../../../middlewares/collectionHandlers/customerHandlers.js";
+import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
 
 const inputSchema = z.object({
     id: z.string(),
     name: z.string().regex(customerRegex.name),
     address: z.string().regex(customerRegex.address),
+    provinceCode: z.number().int().positive(),
+    districtCode: z.number().int().positive(),
+    wardCode: z.number().int().positive(),
     phone: z.string().regex(customerRegex.phone),
     placer: z.string().regex(customerRegex.placer),
-    email: z.string().regex(customerRegex.email).nullable(),
+    email: z.string().email(),
     curator: z.string().regex(customerRegex.curator),
-    note: z.string().regex(customerRegex.note).nullable(),
+    note: z.string().regex(customerRegex.note),
 });
 
 const internalErr = new TRPCError({
@@ -29,7 +33,7 @@ const internalErr = new TRPCError({
 export const updateCustomer = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { ...customer } = input;
+        const { provinceCode, districtCode, wardCode, ...customer } = input;
 
         const isNameExist = await getCustomerByName(customer.name);
         const isEmailExist = await getCustomerByEmail(customer.email);
@@ -46,6 +50,18 @@ export const updateCustomer = employeeProcedure
                 code: "CONFLICT",
                 message: "Customer already exists",
             });
+
+        const province = await getProvinceInfo(provinceCode, "province");
+        const district = await getProvinceInfo(districtCode, "district");
+        const ward = await getProvinceInfo(wardCode, "ward");
+        if (
+            province === "INTERNAL_SERVER_ERROR" ||
+            district === "INTERNAL_SERVER_ERROR" ||
+            ward === "INTERNAL_SERVER_ERROR"
+        )
+            throw internalErr;
+
+        customer.address = `${customer.address}, ${ward}, ${district}, ${province}`;
 
         const result = await updateCustomerInfo(customer.id, customer);
         if (!result) throw internalErr;

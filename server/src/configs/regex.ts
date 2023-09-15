@@ -1,21 +1,12 @@
-export const phoneRegex = new RegExp("^[+0-9]*$");
-export const subjectRegex = new RegExp(`^[^<>&"'\\\/]*$`);
-export const emailRegex = new RegExp(
-  "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$"
-);
-export const humanNameRegex = new RegExp(
-  "^[a-zA-ZÀ-ỹà-ỹẠ-Ỵạ-ỵĂăĨĩĐđẾếềỀềỂểỄễỆệƠơỚớờỜờỞởỠỡỢợÔôỔổốỐốỒồỒồỔổỖỗỘộỚớờỜờỞởỠỡỢợÁáẮắẤấẤầầẨẩẪẫẬậÉéẾếẸẹỀềẺẻỄễỆệÍíỈỉỊịÓóỐốỐốỔổỒồỔổỖỗỘộỚớỜờỞởỠỡỢợÚúỨứỪừỬửỮữỰựÝýỲỳỴỵỶỷỸỹ ]+$"
-);
-export const addressRegex = new RegExp(
-  "^[a-zA-Z0-9À-ỹà-ỹẠ-Ỵạ-ỵĂăĨĩĐđẾếềỀềỂểỄễỆệƠơỚớờỜờỞởỠỡỢợÔôỔổốỐốỒồỒồỔổỖỗỘộỚớờỜờỞởỠỡỢợÁáẮắẤấẤầầẨẩẪẫẬậÉéẾếẸẹỀềẺẻỄễỆệÍíỈỉỊịÓóỐốỐốỔổỒồỔổỖỗỘộỚớỜờỞởỠỡỢợÚúỨứỪừỬửỮữỰựÝýỲỳỴỵỶỷỸỹ \\/,.;-]+$"
-);
+export const phoneRegex = new RegExp("^[+0-9]*$", "m");
+export const humanNameRegex = new RegExp(`^[\\p{L}\s|_]+$`, "mu");
+export const subjectRegex = new RegExp(`^[^\\p{C}<>&\`\'\"/]*$`, "mu");
+export const addressRegex = new RegExp(`^[\\p{L}0-9 \\/,.;+-]+$`, "mu");
 
 export const userRegex = {
   name: humanNameRegex,
-  email: emailRegex,
-  password: new RegExp("^[a-zA-Z0-9]+$"),
+  password: new RegExp("^[a-zA-Z0-9]+$", "m"),
   phone: phoneRegex,
-  role: new RegExp("^(admin|manager|employee)$"),
 };
 
 export const shippingRegex = {
@@ -27,7 +18,6 @@ export const shippingRegex = {
 
 export const customerRegex = {
   name: subjectRegex,
-  email: emailRegex,
   phone: phoneRegex,
   address: addressRegex,
   curator: humanNameRegex,
@@ -37,11 +27,10 @@ export const customerRegex = {
 
 export const taxRegex = {
   name: subjectRegex,
-  taxCode: new RegExp("^[0-9-]+$"),
+  taxCode: new RegExp("^[0-9+-]+$", "m"),
   address: addressRegex,
   representative: humanNameRegex,
   phone: phoneRegex,
-  email: emailRegex,
 };
 
 export const supplierRegex = {
@@ -54,5 +43,4 @@ export const supplierRegex = {
 
 export const productRegex = {
   name: subjectRegex,
-  category: new RegExp("^(syrup|jam|powder|canned|topping|others)$"),
 };

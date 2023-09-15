@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
-import { managerProcedure } from "../../../trpc.js";
+import { employeeProcedure } from "../../../trpc.js";
 import ITax from "../../../interfaces/collections/tax.js";
 
-export const getTaxes = managerProcedure.query(async () => {
+export const getTaxes = employeeProcedure.query(async () => {
     const taxes = await getAllProducts();
 
     if (taxes === "INTERNAL_SERVER_ERROR")

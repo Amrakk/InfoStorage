@@ -18,14 +18,14 @@ export const resetPassword = employeeProcedure
         const { _id, password } = ctx.user;
         const { oldPass, newPass } = input;
 
-        if (!bcrypt.compareSync(oldPass, password))
+        if (!(await bcrypt.compare(oldPass, password)))
             throw new TRPCError({
                 code: "BAD_REQUEST",
                 message: "Invalid credential",
             });
 
-        const salt = bcrypt.genSaltSync(10);
-        const hashedPassword = bcrypt.hashSync(newPass, salt);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPass, salt);
 
         if (!(await updatePassword(_id, hashedPassword)))
             throw new TRPCError({

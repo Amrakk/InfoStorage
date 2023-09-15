@@ -12,9 +12,25 @@ export default function Header() {
   const [username, setUsername] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-
+  const iconRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (iconRef.current && !iconRef.current.contains(event.target as Node)) {
+        // Click occurred outside of the element, so close it
+        setShowAccount(false);
+      }
+    }
+
+    // Add the event listener when the component mounts
+    document.addEventListener("click", handleClickOutside);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
   useEffect(() => {
     const arrIcon = [
       "/dashboard",
@@ -115,8 +131,9 @@ export default function Header() {
         </div>
         <div className="relative cursor-pointer">
           <div
+            ref={iconRef}
             onClick={() => {
-              setShowAccount(!showAccount);
+              setShowAccount(true);
             }}
             className="flex gap-4 items-center"
           >

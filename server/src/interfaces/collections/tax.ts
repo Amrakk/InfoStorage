@@ -4,7 +4,7 @@ interface ITax {
     address: string;
     representative: string;
     phone: string;
-    email: string | null;
+    email: string;
     participants: string[];
 }
 
