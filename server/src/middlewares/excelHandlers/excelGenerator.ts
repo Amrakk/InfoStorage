@@ -1,24 +1,36 @@
 import XLSX from "xlsx";
+import { settings } from "./settings.js";
 import { CollectionNames } from "../../configs/default.js";
+import { getDataFromDB } from "../collectionHandlers/dataHandlers.js";
 import { TCollections } from "../../interfaces/collections/collections.js";
 
-export async function generateExcelFile(sheets: XLSX.WorkSheet[]) {
+type TSheet = {
+    name: string;
+    worksheet: XLSX.WorkSheet;
+};
+
+export async function generateExcelFile(sheets: TSheet[]) {
     const wb = XLSX.utils.book_new();
 
     sheets.forEach((sheet) => {
-        XLSX.utils.book_append_sheet(wb, sheet, sheet["!name"]);
+        XLSX.utils.book_append_sheet(wb, sheet.worksheet, sheet.name);
     });
 
-    const buffer = XLSX.write(wb, { type: "buffer" });
+    const buffer = XLSX.write(wb, { type: "buffer" }) as Buffer;
     return buffer;
 }
 
 export async function generateExcelSheet(
     collection: CollectionNames,
     data?: TCollections[]
-): Promise<XLSX.WorkSheet> {
-    const worksheet = XLSX.utils.aoa_to_sheet([]);
-    worksheet["!name"] = collection;
+): Promise<TSheet> {
+    const { headers, colsWidth } = settings[collection];
+    if (!data) data = await getDataFromDB(collection);
 
-    return worksheet;
+    const dataArray = data.map(({ _id, ...item }) => Object.values(item));
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...dataArray]);
+
+    worksheet["!cols"] = colsWidth.map((width) => ({ wpx: width }));
+
+    return { worksheet, name: collection };
 }
