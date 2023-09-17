@@ -99,7 +99,7 @@ export default function AddPopup(props: TProps) {
 
   const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
     trpc.service.getDistricts
-      .query({ provinceCode: parseInt(e.target.value) })
+      .query({ provCode: parseInt(e.target.value) })
       .then((res) => {
         setDistricts(res);
       });
@@ -113,7 +113,7 @@ export default function AddPopup(props: TProps) {
 
   const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
     trpc.service.getWards
-      .query({ districtCode: parseInt(e.target.value) })
+      .query({ distCode: parseInt(e.target.value) })
       .then((res) => {
         setWards(res);
       });
@@ -127,16 +127,18 @@ export default function AddPopup(props: TProps) {
   const onSubmit = (data: TShipping) => {
     setLoading(true);
     setTimeout(() => {
-      trpc.shipping.addShipping
-        .mutate({
-          provinceCode: parseInt(data.provinceCode as unknown as string),
-          districtCode: parseInt(data.districtCode as unknown as string),
-          wardCode: parseInt(data.wardCode as unknown as string),
-          name: data.name,
-          address: data.address,
-          note: data.note as string,
-          phone: data.phone as string,
-        })
+      trpc.shipping.addShippings
+        .mutate([
+          {
+            provCode: parseInt(data.provinceCode as unknown as string),
+            distCode: parseInt(data.districtCode as unknown as string),
+            wardCode: parseInt(data.wardCode as unknown as string),
+            name: data.name,
+            address: data.address,
+            note: data.note as string,
+            phone: data.phone as string,
+          },
+        ])
         .then(() => {
           props.getShippings();
         })

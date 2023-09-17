@@ -1,22 +1,25 @@
 import { z } from "zod";
-import { Collection } from "mongodb";
+import { WithId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../database/db.js";
-import { roles } from "../../configs/global.js";
 import { verifiedProcedure } from "../../trpc.js";
-import * as Collections from "../../interfaces/collections/collections.js";
 import { subjectRegex } from "../../configs/regex.js";
+import { rolePermissions } from "../../configs/default.js";
+import { CollectionNames } from "../../configs/default.js";
+import * as Collections from "../../interfaces/collections/collections.js";
+import { toLowerNonAccentVietnamese } from "../../middlewares/textHandler.js";
+
+type TCollections =
+    | WithId<Collections.ITax>
+    | WithId<Collections.IUser>
+    | WithId<Collections.IProduct>
+    | WithId<Collections.ICustomer>
+    | WithId<Collections.IShipping>
+    | WithId<Collections.ISupplier>;
 
 const inputSchema = z.object({
     text: z.string().regex(subjectRegex),
-    type: z.enum([
-        "taxes",
-        "users",
-        "products",
-        "customers",
-        "shippings",
-        "suppliers",
-    ]),
+    type: z.nativeEnum(CollectionNames),
 });
 
 export const searchByName = verifiedProcedure
@@ -25,55 +28,66 @@ export const searchByName = verifiedProcedure
         const { user } = ctx;
         const { text, type } = input;
 
-        if (!roles[user.role].includes(type))
+        if (!rolePermissions[user.role].includes(type))
             throw new TRPCError({
                 code: "FORBIDDEN",
                 message: "You don't have permission to access this resource",
             });
 
-        const things = await getThingsByName(text, type);
-        if (things === "INTERNAL_SERVER_ERROR")
+        const data = await getDataByName(text, type);
+        if (data === "INTERNAL_SERVER_ERROR")
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
                 message: "Internal server error",
             });
 
-        return things;
+        return data;
     });
 
-async function getThingsByName(text: string, type: string) {
+async function getDataByName(text: string, type: CollectionNames) {
     try {
-        const db = database.getDB();
-        let collection: Collection<any>;
+        const data = await getCollectionData(type);
+        const plainText = toLowerNonAccentVietnamese(text);
 
-        if (type === "taxes")
-            collection = db.collection<Collections.ITax>("taxes");
-        else if (type === "users")
-            collection = db.collection<Collections.IUser>("users");
-        else if (type === "products")
-            collection = db.collection<Collections.IProduct>("products");
-        else if (type === "customers")
-            collection = db.collection<Collections.ICustomer>("customers");
-        else if (type === "shippings")
-            collection = db.collection<Collections.IShipping>("shippings");
-        else if (type === "suppliers")
-            collection = db.collection<Collections.ISupplier>("suppliers");
-        else throw new Error("INVALID_TYPE");
+        const result = data.filter((item) => {
+            const regex = new RegExp(`^.*${plainText}.*$`, "gmiu");
+            return regex.test(toLowerNonAccentVietnamese(item.name));
+        });
 
-        await collection.createIndex({ name: "text" });
-        const things = await collection
-            .find({
-                $text: {
-                    $search: `(*UCP)${text}`,
-                    $caseSensitive: false,
-                    $diacriticSensitive: false,
-                },
-            })
-            .sort({ score: { $meta: "textScore" } })
-            .toArray();
-
-        return things;
+        return result;
     } catch (err) {
         return "INTERNAL_SERVER_ERROR";
     }
+}
+
+async function getCollectionData(
+    type: CollectionNames
+): Promise<TCollections[]> {
+    const db = database.getDB();
+
+    if (type === "taxes")
+        return await db.collection<Collections.ITax>("taxes").find().toArray();
+    if (type === "users")
+        return await db.collection<Collections.IUser>("users").find().toArray();
+    if (type === "products")
+        return await db
+            .collection<Collections.IProduct>("products")
+            .find()
+            .toArray();
+    if (type === "customers")
+        return await db
+            .collection<Collections.ICustomer>("customers")
+            .find()
+            .toArray();
+    if (type === "shippings")
+        return await db
+            .collection<Collections.IShipping>("shippings")
+            .find()
+            .toArray();
+    if (type === "suppliers")
+        return await db
+            .collection<Collections.ISupplier>("suppliers")
+            .find()
+            .toArray();
+    throw new Error("INVALID_TYPE");
 }

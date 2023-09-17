@@ -5,12 +5,12 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { taxRegex } from "../../../configs/regex.js";
 import ITax from "../../../interfaces/collections/tax.js";
+import { getUnitName } from "../../../middlewares/addressHandlers.js";
 import {
     getTaxByName,
     getTaxByEmail,
     getTaxByTaxCode,
 } from "../../../middlewares/collectionHandlers/taxHandlers.js";
-import { getProvinceInfo } from "../../../middlewares/addressHandlers.js";
 
 const inputSchema = z.object({
     _id: z.string(),
@@ -55,9 +55,9 @@ export const updateTax = employeeProcedure
                 code: "CONFLICT",
                 message: "Tax already exists",
             });
-        const province = await getProvinceInfo(provinceCode, "province");
-        const district = await getProvinceInfo(districtCode, "district");
-        const ward = await getProvinceInfo(wardCode, "ward");
+        const province = await getUnitName(provinceCode, "province");
+        const district = await getUnitName(districtCode, "district");
+        const ward = await getUnitName(wardCode, "ward");
         if (
             province === "INTERNAL_SERVER_ERROR" ||
             district === "INTERNAL_SERVER_ERROR" ||

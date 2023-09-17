@@ -1,17 +1,11 @@
 import { router } from "../trpc.js";
-import {
-    getWards,
-    getDistricts,
-    getProvinces,
-    getUnitCode,
-} from "../api/services/getProvincesInfo.js";
 import { searchByName } from "../api/services/searchByName.js";
+import * as addressHandlers from "../api/services/addressHandlers.js";
+import * as defaultHandlers from "../api/services/defaultHandlers.js";
 
 export const serviceRouter = router({
-    getWards,
-    getDistricts,
-    getProvinces,
-    getUnitCode,
+    ...addressHandlers,
+    ...defaultHandlers,
 
     searchByName,
 });

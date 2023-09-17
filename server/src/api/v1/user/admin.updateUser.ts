@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { adminProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
+import { UserRoles } from "../../../configs/default.js";
 import IUser from "../../../interfaces/collections/user.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
 
@@ -14,7 +15,7 @@ const inputSchema = z.object({
     email: z.string().email(),
     password: z.string().regex(userRegex.password),
     phone: z.string().regex(userRegex.phone),
-    role: z.enum(["admin", "manager", "employee"]),
+    role: z.nativeEnum(UserRoles),
 });
 
 const internalErr = new TRPCError({

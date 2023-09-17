@@ -128,7 +128,7 @@ export default function AddPopup(props: TProps) {
         .then(async (res) => {
           setValue("provinceCode", res.toString());
           const districts = await trpc.service.getDistricts.query({
-            provinceCode: res,
+            provCode: res,
           });
 
           const findDistrict = districts.findIndex((e) => e.name == district)!;
@@ -137,7 +137,7 @@ export default function AddPopup(props: TProps) {
           setValue("districtCode", districts[0].code.toString());
 
           const wards = await trpc.service.getWards.query({
-            districtCode: districts[0].code,
+            distCode: districts[0].code,
           });
 
           const findWard = wards.findIndex((e) => e.name == ward)!;
@@ -175,7 +175,7 @@ export default function AddPopup(props: TProps) {
 
   const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
     trpc.service.getDistricts
-      .query({ provinceCode: parseInt(e.target.value) })
+      .query({ provCode: parseInt(e.target.value) })
       .then((res) => {
         setDistricts(res);
       });
@@ -189,7 +189,7 @@ export default function AddPopup(props: TProps) {
 
   const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
     trpc.service.getWards
-      .query({ districtCode: parseInt(e.target.value) })
+      .query({ distCode: parseInt(e.target.value) })
       .then((res) => {
         setWards(res);
       });
@@ -201,43 +201,27 @@ export default function AddPopup(props: TProps) {
   };
 
   const onSubmit = (data: TShipping) => {
-    // trpc.shipping.addShipping
-    //   .mutate({
-    //     provinceCode: parseInt(data.provinceCode as unknown as string),
-    //     districtCode: parseInt(data.districtCode as unknown as string),
-    //     wardCode: parseInt(data.wardCode as unknown as string),
-    //     name: data.name,
-    //     address: data.address,
-    //     note: data.note as string,
-    //     phone: data.phone as string,
-    //   })
-    //   .then(() => {
-    //     props.getShippings();
-    //   })
-    //   .finally(() => {
-    //     props.onCancel();
-    //   });
-    // console.log(getValues());
-    // console.log("hello");
     setLoading(true);
-    trpc.shipping.updateShipping
-      .mutate({
-        _id: props.inputValue._id as string,
-        provinceCode: parseInt(data.provinceCode as unknown as string),
-        districtCode: parseInt(data.districtCode as unknown as string),
-        wardCode: parseInt(data.wardCode as unknown as string),
-        name: data.name,
-        address: data.address,
-        note: data.note as string,
-        phone: data.phone as string,
-      })
-      .then(() => {
-        props.getShippings();
-      })
-      .finally(() => {
-        props.onCancel();
-        setLoading(false);
-      });
+    setTimeout(() => {
+      trpc.shipping.updateShipping
+        .mutate({
+          _id: props.inputValue._id as string,
+          provinceCode: parseInt(data.provinceCode as unknown as string),
+          districtCode: parseInt(data.districtCode as unknown as string),
+          wardCode: parseInt(data.wardCode as unknown as string),
+          name: data.name,
+          address: data.address,
+          note: data.note as string,
+          phone: data.phone as string,
+        })
+        .then(() => {
+          props.getShippings();
+        })
+        .finally(() => {
+          props.onCancel();
+          setLoading(false);
+        });
+    }, 1000);
   };
 
   return shouldRender ? (
