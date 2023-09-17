@@ -1,13 +1,11 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
-import ITax from "../../../interfaces/collections/tax.js";
 import {
     addressFilter,
-    TAddressFilter,
     addressFilterShema,
 } from "../../../middlewares/filterHandlers/address.js";
+import { getTaxesFromDB } from "../../../middlewares/collectionHandlers/taxHandlers.js";
 
 const internalErr = new TRPCError({
     code: "INTERNAL_SERVER_ERROR",
@@ -34,15 +32,3 @@ export const getTaxes = employeeProcedure
 
         return taxes;
     });
-
-async function getTaxesFromDB(filter?: TAddressFilter) {
-    try {
-        const db = database.getDB();
-        const taxes = db.collection<ITax>("taxes");
-
-        if (filter) return await taxes.find(filter).toArray();
-        return await taxes.find().toArray();
-    } catch (err) {
-        return "INTERNAL_SERVER_ERROR";
-    }
-}

@@ -5,7 +5,7 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { customerRegex } from "../../../configs/regex.js";
 import ICustomer from "../../../interfaces/collections/customer.js";
-import { getUnitName } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import {
     getCustomerByName,
     getCustomerByEmail,

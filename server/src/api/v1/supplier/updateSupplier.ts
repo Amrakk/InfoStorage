@@ -5,7 +5,7 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { supplierRegex } from "../../../configs/regex.js";
 import ISupplier from "../../../interfaces/collections/supplier.js";
-import { getUnitName } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import { getSupplierByName } from "../../../middlewares/collectionHandlers/supplierHandlers.js";
 
 const inputSchema = z.object({

@@ -1,5 +1,18 @@
 import database from "../../database/db.js";
+import { TAddressFilter } from "../filterHandlers/address.js";
 import ITax from "../../interfaces/collections/tax.js";
+
+export async function getTaxesFromDB(filter?: TAddressFilter) {
+    try {
+        const db = database.getDB();
+        const taxes = db.collection<ITax>("taxes");
+
+        if (filter) return await taxes.find(filter).toArray();
+        return await taxes.find().toArray();
+    } catch (err) {
+        return "INTERNAL_SERVER_ERROR";
+    }
+}
 
 export async function getTaxByName(name: string) {
     try {

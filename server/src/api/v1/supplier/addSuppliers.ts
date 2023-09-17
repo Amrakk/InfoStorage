@@ -7,7 +7,7 @@ import { supplierRegex } from "../../../configs/regex.js";
 import { CollectionNames } from "../../../configs/default.js";
 import { saveImportLog } from "../../../middlewares/importLog.js";
 import ISupplier from "../../../interfaces/collections/supplier.js";
-import { getUnitName } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import { getSupplierByName } from "../../../middlewares/collectionHandlers/supplierHandlers.js";
 
 const inputSchema = z.array(
