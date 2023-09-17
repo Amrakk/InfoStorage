@@ -5,8 +5,27 @@ import { updateCustomer } from "../../api/v1/customer/updateCustomer.js";
 import { deleteCustomer } from "../../api/v1/customer/deleteCustomer.js";
 
 export const customerRouter = router({
+    /**
+     * @name addCustomers
+     * Use by employee to add customers
+     */
     addCustomers,
+
+    /**
+     * @name getCustomers
+     * Use by employee to get customers
+     */
     getCustomers,
+
+    /**
+     * @name addCustomers
+     * Use by employee to add customers
+     */
     updateCustomer,
+
+    /**
+     * @name deleteCustomer
+     * Use by employee to delete customer
+     */
     deleteCustomer,
 });

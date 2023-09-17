@@ -2,6 +2,10 @@ import { TRPCError } from "@trpc/server";
 import { verifiedProcedure } from "../../../trpc.js";
 import { deleteRefToken } from "../../../middlewares/tokenHandlers.js";
 
+/**
+ * @name signout
+ * Use by verified user to signout
+ */
 export const signout = verifiedProcedure.mutation(({ ctx }) => {
     if (!deleteRefToken(ctx.user._id))
         throw new TRPCError({

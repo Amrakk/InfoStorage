@@ -5,7 +5,7 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { customerRegex } from "../../../configs/regex.js";
 import { CollectionNames } from "../../../configs/default.js";
-import { saveImportLog } from "../../../middlewares/importLog.js";
+import { saveImportLog } from "../../../middlewares/saveImportLog.js";
 import ICustomer from "../../../interfaces/collections/customer.js";
 import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import {
