@@ -1,4 +1,4 @@
-import IUnit from "../interfaces/provincesApiRes.js";
+import IUnit from "../../interfaces/provincesApiRes.js";
 
 const apiUrl = process.env.PROVINCES_API_URL!;
 

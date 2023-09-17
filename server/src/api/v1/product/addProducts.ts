@@ -1,11 +1,16 @@
 import { z } from "zod";
+import { ObjectId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { productRegex } from "../../../configs/regex.js";
-import { ProductCategories } from "../../../configs/default.js";
 import IProduct from "../../../interfaces/collections/product.js";
+import { saveImportLog } from "../../../middlewares/importLog.js";
 import { getProductByName } from "../../../middlewares/collectionHandlers/productHandlers.js";
+import {
+    CollectionNames,
+    ProductCategories,
+} from "../../../configs/default.js";
 
 const inputSchema = z.array(
     z.object({
@@ -24,8 +29,8 @@ const internalErr = new TRPCError({
 
 export const addProducts = employeeProcedure
     .input(inputSchema)
-    .mutation(async ({ input }) => {
-        const { ...products } = input;
+    .mutation(async ({ input, ctx }) => {
+        const products = input;
 
         const failedEntries: (IProduct & { error: string })[] = [];
         if (products.length === 0)
@@ -38,12 +43,26 @@ export const addProducts = employeeProcedure
             if (result instanceof TRPCError) throw result;
             if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
         } else {
+            const successEntries: string[] = [];
             for (const product of products) {
                 const result = await insertProduct(product);
                 if (result instanceof TRPCError)
                     failedEntries.push({ ...product, error: result.message });
                 if (result === "INTERNAL_SERVER_ERROR")
                     failedEntries.push({ ...product, error: result });
+                if (result instanceof ObjectId)
+                    successEntries.push(result.toString());
+            }
+
+            const userID = ctx.user._id.toString();
+            const result = await saveImportLog(
+                userID,
+                successEntries,
+                CollectionNames.Products
+            );
+
+            if (result === "INTERNAL_SERVER_ERROR") {
+                // TODO: log error
             }
         }
 
@@ -78,7 +97,9 @@ async function insertProduct(product: IProduct) {
             });
 
         const result = await products.insertOne(product);
-        return result.acknowledged ? true : "INTERNAL_SERVER_ERROR";
+        return result.acknowledged
+            ? result.insertedId
+            : "INTERNAL_SERVER_ERROR";
     } catch (err) {
         if (err instanceof TRPCError) return err;
         return "INTERNAL_SERVER_ERROR";

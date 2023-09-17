@@ -1,10 +1,13 @@
 import { z } from "zod";
+import { ObjectId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { customerRegex } from "../../../configs/regex.js";
+import { CollectionNames } from "../../../configs/default.js";
+import { saveImportLog } from "../../../middlewares/importLog.js";
 import ICustomer from "../../../interfaces/collections/customer.js";
-import { getUnitName } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import {
     getCustomerByName,
     getCustomerByEmail,
@@ -32,8 +35,8 @@ const internalErr = new TRPCError({
 
 export const addCustomers = employeeProcedure
     .input(inputSchema)
-    .mutation(async ({ input }) => {
-        const { ...customers } = input;
+    .mutation(async ({ input, ctx }) => {
+        const customers = input;
 
         const failedEntries: (ICustomer & { error: string })[] = [];
         if (customers.length === 0)
@@ -65,6 +68,7 @@ export const addCustomers = employeeProcedure
             if (result instanceof TRPCError) throw result;
             if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
         } else {
+            const successEntries: string[] = [];
             for (const customer of customers) {
                 const { provCode, distCode, wardCode, ...data } = customer;
                 const result = await insertCustomer(data);
@@ -72,6 +76,19 @@ export const addCustomers = employeeProcedure
                     failedEntries.push({ ...data, error: result.message });
                 if (result === "INTERNAL_SERVER_ERROR")
                     failedEntries.push({ ...data, error: result });
+                if (result instanceof ObjectId)
+                    successEntries.push(result.toString());
+            }
+
+            const userID = ctx.user._id.toString();
+            const result = await saveImportLog(
+                userID,
+                successEntries,
+                CollectionNames.Customers
+            );
+
+            if (result === "INTERNAL_SERVER_ERROR") {
+                // TODO: log error
             }
         }
 
@@ -102,7 +119,9 @@ async function insertCustomer(customer: ICustomer) {
             });
 
         const result = await customers.insertOne(customer);
-        return result.acknowledged ? true : "INTERNAL_SERVER_ERROR";
+        return result.acknowledged
+            ? result.insertedId
+            : "INTERNAL_SERVER_ERROR";
     } catch (err) {
         if (err instanceof TRPCError) return err;
         return "INTERNAL_SERVER_ERROR";

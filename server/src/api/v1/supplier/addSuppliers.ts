@@ -1,10 +1,13 @@
 import { z } from "zod";
+import { ObjectId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { supplierRegex } from "../../../configs/regex.js";
+import { CollectionNames } from "../../../configs/default.js";
+import { saveImportLog } from "../../../middlewares/importLog.js";
 import ISupplier from "../../../interfaces/collections/supplier.js";
-import { getUnitName } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import { getSupplierByName } from "../../../middlewares/collectionHandlers/supplierHandlers.js";
 
 const inputSchema = z.array(
@@ -27,8 +30,8 @@ const internalErr = new TRPCError({
 
 export const addSuppliers = employeeProcedure
     .input(inputSchema)
-    .mutation(async ({ input }) => {
-        const { ...suppliers } = input;
+    .mutation(async ({ input, ctx }) => {
+        const suppliers = input;
 
         const failedEntries: (ISupplier & { error: string })[] = [];
         if (suppliers.length === 0)
@@ -60,6 +63,7 @@ export const addSuppliers = employeeProcedure
             if (result instanceof TRPCError) throw result;
             if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
         } else {
+            const successEntries: string[] = [];
             for (const supplier of suppliers) {
                 const { provCode, distCode, wardCode, ...data } = supplier;
                 const result = await insertSupplier(data);
@@ -67,6 +71,19 @@ export const addSuppliers = employeeProcedure
                     failedEntries.push({ ...data, error: result.message });
                 if (result === "INTERNAL_SERVER_ERROR")
                     failedEntries.push({ ...data, error: result });
+                if (result instanceof ObjectId)
+                    successEntries.push(result.toString());
+            }
+
+            const userID = ctx.user._id.toString();
+            const result = await saveImportLog(
+                userID,
+                successEntries,
+                CollectionNames.Suppliers
+            );
+
+            if (result === "INTERNAL_SERVER_ERROR") {
+                // TODO: log error
             }
         }
 
@@ -92,7 +109,9 @@ async function insertSupplier(supplier: ISupplier) {
             });
 
         const result = await suppliers.insertOne(supplier);
-        return result.acknowledged ? true : "INTERNAL_SERVER_ERROR";
+        return result.acknowledged
+            ? result.insertedId
+            : "INTERNAL_SERVER_ERROR";
     } catch (err) {
         if (err instanceof TRPCError) return err;
         return "INTERNAL_SERVER_ERROR";

@@ -10,7 +10,7 @@ import IUser from "../../../interfaces/collections/user.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
 
 const inputSchema = z.object({
-    _id: z.string(),
+    id: z.string(),
     name: z.string().regex(userRegex.name),
     email: z.string().email(),
     password: z.string().regex(userRegex.password),
@@ -26,11 +26,11 @@ const internalErr = new TRPCError({
 export const updateUser = adminProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { ...user } = input;
+        const { id, ...user } = input;
 
         const isEmailExist = await getUserByEmail(user.email);
         if (isEmailExist === "INTERNAL_SERVER_ERROR") return internalErr;
-        if (isEmailExist?._id !== new ObjectId(user._id))
+        if (isEmailExist && isEmailExist._id.toString() !== id)
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Email already exists",
@@ -40,7 +40,7 @@ export const updateUser = adminProcedure
         const hashedPassword = await bcrypt.hash(user.password, salt);
         user.password = hashedPassword;
 
-        const result = await updateUserInfo(user._id, user);
+        const result = await updateUserInfo(id, user);
         if (!result) throw internalErr;
 
         return { message: "Update sucessfully" };

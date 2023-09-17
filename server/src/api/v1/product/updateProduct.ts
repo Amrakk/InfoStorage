@@ -25,11 +25,11 @@ const internalErr = new TRPCError({
 export const updateProduct = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { ...product } = input;
+        const { id, ...product } = input;
 
         const isNameExist = await getProductByName(product.name);
         if (isNameExist === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (isNameExist?._id !== new ObjectId(product.id))
+        if (isNameExist && isNameExist._id.toString() !== id)
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Product already exists",
@@ -44,7 +44,7 @@ export const updateProduct = employeeProcedure
                 message: "Supplier already exists",
             });
 
-        const result = await updateProductInfo(product.id, product);
+        const result = await updateProductInfo(id, product);
         if (!result) throw internalErr;
 
         return { message: "Update successfully" };

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { WithId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../database/db.js";
 import { verifiedProcedure } from "../../trpc.js";
@@ -7,19 +6,11 @@ import { subjectRegex } from "../../configs/regex.js";
 import { rolePermissions } from "../../configs/default.js";
 import { CollectionNames } from "../../configs/default.js";
 import * as Collections from "../../interfaces/collections/collections.js";
-import { toLowerNonAccentVietnamese } from "../../middlewares/textHandler.js";
-
-type TCollections =
-    | WithId<Collections.ITax>
-    | WithId<Collections.IUser>
-    | WithId<Collections.IProduct>
-    | WithId<Collections.ICustomer>
-    | WithId<Collections.IShipping>
-    | WithId<Collections.ISupplier>;
+import { toLowerNonAccentVietnamese } from "../../middlewares/utils/textHandler.js";
 
 const inputSchema = z.object({
-    text: z.string().regex(subjectRegex),
     type: z.nativeEnum(CollectionNames),
+    text: z.string().regex(subjectRegex),
 });
 
 export const searchByName = verifiedProcedure
@@ -62,29 +53,29 @@ async function getDataByName(text: string, type: CollectionNames) {
 
 async function getCollectionData(
     type: CollectionNames
-): Promise<TCollections[]> {
+): Promise<Collections.TCollections[]> {
     const db = database.getDB();
 
-    if (type === "taxes")
+    if (type === "Taxes")
         return await db.collection<Collections.ITax>("taxes").find().toArray();
-    if (type === "users")
+    if (type === "Users")
         return await db.collection<Collections.IUser>("users").find().toArray();
-    if (type === "products")
+    if (type === "Products")
         return await db
             .collection<Collections.IProduct>("products")
             .find()
             .toArray();
-    if (type === "customers")
+    if (type === "Customers")
         return await db
             .collection<Collections.ICustomer>("customers")
             .find()
             .toArray();
-    if (type === "shippings")
+    if (type === "Shippings")
         return await db
             .collection<Collections.IShipping>("shippings")
             .find()
             .toArray();
-    if (type === "suppliers")
+    if (type === "Suppliers")
         return await db
             .collection<Collections.ISupplier>("suppliers")
             .find()

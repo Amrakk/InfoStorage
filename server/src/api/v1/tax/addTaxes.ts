@@ -4,12 +4,15 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { taxRegex } from "../../../configs/regex.js";
 import ITax from "../../../interfaces/collections/tax.js";
-import { getUnitName } from "../../../middlewares/addressHandlers.js";
+import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import {
     getTaxByName,
     getTaxByEmail,
     getTaxByTaxCode,
 } from "../../../middlewares/collectionHandlers/taxHandlers.js";
+import { ObjectId } from "mongodb";
+import { saveImportLog } from "../../../middlewares/importLog.js";
+import { CollectionNames } from "../../../configs/default.js";
 
 const inputSchema = z.array(
     z.object({
@@ -33,8 +36,8 @@ const internalErr = new TRPCError({
 
 export const addTaxes = employeeProcedure
     .input(inputSchema)
-    .mutation(async ({ input }) => {
-        const { ...taxes } = input;
+    .mutation(async ({ input, ctx }) => {
+        const taxes = input;
 
         const failedEntries: (ITax & { error: string })[] = [];
         if (taxes.length === 0)
@@ -66,6 +69,7 @@ export const addTaxes = employeeProcedure
             if (result instanceof TRPCError) throw result;
             if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
         } else {
+            const successEntries: string[] = [];
             for (const tax of taxes) {
                 const { provCode, distCode, wardCode, ...data } = tax;
                 const result = await insertTax(data);
@@ -73,6 +77,19 @@ export const addTaxes = employeeProcedure
                     failedEntries.push({ ...data, error: result.message });
                 if (result === "INTERNAL_SERVER_ERROR")
                     failedEntries.push({ ...data, error: result });
+                if (result instanceof ObjectId)
+                    successEntries.push(result.toString());
+            }
+
+            const userID = ctx.user._id.toString();
+            const result = await saveImportLog(
+                userID,
+                successEntries,
+                CollectionNames.Taxes
+            );
+
+            if (result === "INTERNAL_SERVER_ERROR") {
+                // TODO: log error
             }
         }
 
@@ -106,7 +123,9 @@ async function insertTax(tax: ITax) {
             });
 
         const result = await taxes.insertOne(tax);
-        return result.acknowledged ? true : "INTERNAL_SERVER_ERROR";
+        return result.acknowledged
+            ? result.insertedId
+            : "INTERNAL_SERVER_ERROR";
     } catch (err) {
         if (err instanceof TRPCError) return err;
         return "INTERNAL_SERVER_ERROR";
