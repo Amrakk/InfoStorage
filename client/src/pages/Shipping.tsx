@@ -11,6 +11,7 @@ import DeletePopup from "../components/DeletePopup";
 import AddPopup from "../components/AddPopup";
 import { useDeletePopupStore } from "../stores/DeletePopup";
 import { useAddPopupStore } from "../stores/AddPopup";
+
 export default function Shipping() {
   const navigate = useNavigate();
   const [shippings, setShippings] = useState<TShipping>([]);
@@ -19,6 +20,7 @@ export default function Shipping() {
   const [editPing, setEditPing] = useState(false);
   const { isDeletePopupOpen, setIsDeletePopupOpen } = useDeletePopupStore();
   const { isAddPopupOpen, setIsAddPopupOpen } = useAddPopupStore();
+
   useEffect(() => {
     trpc.shipping.getShippings
       .query()
@@ -192,6 +194,7 @@ export default function Shipping() {
             onDragLeave={() => {
               setEditPing(false);
             }}
+
             onDragOver={(e) => {
               e.preventDefault();
             }}
@@ -199,6 +202,7 @@ export default function Shipping() {
               setBinPing(false);
               setIsDeletePopupOpen("Shipping");
             }}
+
           >
             <AiFillEdit
               size={55}
@@ -208,6 +212,7 @@ export default function Shipping() {
         </span>
         {isDeletePopupOpen && <DeletePopup message={isDeletePopupOpen} />}
         {isAddPopupOpen && <AddPopup message={isAddPopupOpen} />}
+
       </div>
     </>
   );

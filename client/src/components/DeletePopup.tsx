@@ -2,6 +2,7 @@ import React from "react";
 import { useDeletePopupStore } from "../stores/DeletePopup";
 import { FaTrash } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+
 export default function DeletePopup({ message }: { message: string }) {
   const { setIsDeletePopupOpen } = useDeletePopupStore();
   return (
@@ -17,7 +18,6 @@ export default function DeletePopup({ message }: { message: string }) {
                   <FaTrash className="text-red-500" size={18} />
                 </div>
               </div>
-
               <div className="pt-3">
                 <IoClose
                   size={30}
@@ -39,6 +39,7 @@ export default function DeletePopup({ message }: { message: string }) {
               <button
                 type="button"
                 className="w-32 py-3 bg-gray-300 hover:bg-gray-200 transition-colors  text-primary rounded-md"
+
                 onClick={() => {
                   setIsDeletePopupOpen("");
                 }}
