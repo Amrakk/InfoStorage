@@ -1,9 +1,11 @@
+import { ProductCategories } from "../../configs/default.js";
+
 interface IProduct {
     name: string;
-    category: string;
+    category: ProductCategories;
     quantity: number;
     price: number;
-    suppliers: string[]; // supplier ids
+    suppliers: string[];
 }
 
 export default IProduct;

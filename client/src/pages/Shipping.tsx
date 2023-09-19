@@ -2,13 +2,16 @@ import React, { useState, useEffect } from "react";
 import { trpc, type TRPCError, type TShipping } from "../trpc";
 import { AiOutlineSearch, AiFillEdit } from "react-icons/ai";
 import { IoMdSettings } from "react-icons/io";
-import { FaFilter } from "react-icons/fa";
+import { FaFilter, FaTrash } from "react-icons/fa";
 import { BsFillSkipEndFill, BsFillSkipStartFill } from "react-icons/bs";
 import { GrFormPrevious, GrFormNext } from "react-icons/gr";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BsFillTrash3Fill } from "react-icons/bs";
 import DeletePopup from "../components/DeletePopup";
+import AddPopup from "../components/AddPopup";
 import { useDeletePopupStore } from "../stores/DeletePopup";
+import { useAddPopupStore } from "../stores/AddPopup";
+
 export default function Shipping() {
   const navigate = useNavigate();
   const [shippings, setShippings] = useState<TShipping>([]);
@@ -16,6 +19,8 @@ export default function Shipping() {
   const [binPing, setBinPing] = useState(false);
   const [editPing, setEditPing] = useState(false);
   const { isDeletePopupOpen, setIsDeletePopupOpen } = useDeletePopupStore();
+  const { isAddPopupOpen, setIsAddPopupOpen } = useAddPopupStore();
+
   useEffect(() => {
     trpc.shipping.getShippings
       .query()
@@ -27,6 +32,8 @@ export default function Shipping() {
           navigate("/signin");
         }
       });
+
+    trpc.shipping.addShippings.mutate([{name: "test", address: "test", phone: "test", note: "test"}])
   }, []);
 
   return (
@@ -41,14 +48,17 @@ export default function Shipping() {
             <button className="w-40 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
               Import File
             </button>
-            <button className="w-40 py-3 bg-primary hover:bg-[#5e7563] transition-colors  text-white rounded-md">
+            <button
+              className="w-40 py-3 bg-primary hover:bg-[#5e7563] transition-colors  text-white rounded-md"
+              onClick={() => setIsAddPopupOpen("Shipping")}
+            >
               Create
             </button>
           </div>
         </div>
         <div className="flex mt-8 gap-5 h-10">
           <div className="group flex-1 ">
-            <div className="h-full  group-focus-within:border-[#6AAFC7] group-focus:border flex border border-primary items-center px-1 gap-2 rounded-md">
+            <div className="h-full  group-focus-within:border-[#6AAFC7] transition-colors group-focus:border flex border border-primary items-center px-1 gap-2 rounded-md">
               <AiOutlineSearch size={24} />
               <input
                 type="text"
@@ -71,7 +81,7 @@ export default function Shipping() {
         <div className="mt-8 h-[500px] overflow-auto">
           <table className="w-full table-auto relative border-separate">
             <thead className="">
-              <tr className="text-left ">
+              <tr className="text-left select-none">
                 <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white ">
                   STT
                 </th>
@@ -102,6 +112,7 @@ export default function Shipping() {
                       draggable
                       onDragStart={(e) => {
                         setIconAppear(true);
+                        e.dataTransfer.setData("shippingName", shipping.name);
                       }}
                       onDragEnd={(e) => {
                         setIconAppear(false);
@@ -152,11 +163,14 @@ export default function Shipping() {
             onDragOver={(e) => {
               e.preventDefault();
             }}
-            onDrop={() => {
-              setIsDeletePopupOpen("Bạn có chắc chắn muốn xóa không?");
+            onDrop={(e) => {
+              e.preventDefault();
+              setBinPing(false);
+              const shippingName = e.dataTransfer.getData("shippingName");
+              setIsDeletePopupOpen(shippingName);
             }}
           >
-            <BsFillTrash3Fill
+            <FaTrash
               size={50}
               className="absolute  text-white right-[72px] top-[72px] pointer-events-none"
             />
@@ -180,6 +194,15 @@ export default function Shipping() {
             onDragLeave={() => {
               setEditPing(false);
             }}
+
+            onDragOver={(e) => {
+              e.preventDefault();
+            }}
+            onDrop={() => {
+              setBinPing(false);
+              setIsDeletePopupOpen("Shipping");
+            }}
+
           >
             <AiFillEdit
               size={55}
@@ -188,6 +211,8 @@ export default function Shipping() {
           </span>
         </span>
         {isDeletePopupOpen && <DeletePopup message={isDeletePopupOpen} />}
+        {isAddPopupOpen && <AddPopup message={isAddPopupOpen} />}
+
       </div>
     </>
   );

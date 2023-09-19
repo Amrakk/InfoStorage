@@ -5,6 +5,7 @@ import Signin from "./pages/Signin.tsx";
 import Notfound from "./pages/Notfound.tsx";
 import Home from "./pages/Home.tsx";
 import Shipping from "./pages/Shipping.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 import Header from "./components/Header.tsx";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -38,6 +39,7 @@ function App() {
           <Routes>
             <Route path="/home" element={<Home />} />
             <Route path="/shipping" element={<Shipping />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </>
       )}

@@ -139,7 +139,7 @@ export default function Signin() {
               id="email"
               name="email"
               placeholder="Nhập email"
-              className="border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md"
+              className="border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md transition-colors"
               onChange={(e) => {
                 handleEmail(e);
               }}
@@ -163,7 +163,7 @@ export default function Signin() {
               name="password"
               placeholder="Nhập mật khẩu"
               // {...register("password", { required: true })}
-              className="border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md"
+              className="border border-[#415245] w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] bg-white rounded-md transition-colors"
               onChange={handlePassword}
               onBlur={() => {
                 handleOnBlur("password");

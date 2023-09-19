@@ -3,24 +3,34 @@ import { Response } from "express";
 import { middleware } from "../trpc.js";
 import cache from "../database/cache.js";
 import { TRPCError } from "@trpc/server";
-import { getUserByID } from "./userHandlers.js";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
+import { getUserByID } from "./collectionHandlers/userHandlers.js";
+import {
+    setRateLimit,
+    isLimitRateExceeded,
+} from "./rateLimiter/rateLimitHandlers.js";
 
 const unauthErr = new TRPCError({
-  code: "UNAUTHORIZED",
-  message: "Invalid token",
+    code: "UNAUTHORIZED",
+    message: "Invalid token",
 });
 
 const internalErr = new TRPCError({
-  code: "INTERNAL_SERVER_ERROR",
-  message: "Internal server error",
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Internal server error",
 });
 
 export const verify = (roles?: string[]) =>
-
     middleware(async ({ ctx, next }) => {
+        const { ip } = ctx.req;
         const { accToken, refToken } = ctx.req.cookies;
+
+        const isLimitExceeded = await isLimitRateExceeded(ip);
+        if (isLimitExceeded === "INTERNAL_SERVER_ERROR") throw internalErr;
+        if (isLimitExceeded) throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+        else if ((await setRateLimit(ip, true)) === "INTERNAL_SERVER_ERROR")
+            throw internalErr;
 
         if (!accToken) throw unauthErr;
         let userID: string;
@@ -54,30 +64,30 @@ export const verify = (roles?: string[]) =>
         if (!user) throw unauthErr;
         if (user === "INTERNAL_SERVER_ERROR") throw internalErr;
         if (typeof roles === "object" && !roles.includes(user.role))
-            throw unauthErr;
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "You don't have permission to access this resource",
+            });
 
         return next({
             ctx: { ...ctx, user },
         });
     });
-  });
-
 
 async function verifyRefPayload(payload: ITokenPayload, refToken: string) {
     try {
         const redis = cache.getCache();
         const token = await redis.get(`refToken-${payload.id}`);
-        if (!token || token !== refToken) return false;
+        if (token !== refToken) return false;
 
         return true;
     } catch (err) {
         return false;
     }
-
 }
 
 function clearCookie(res: Response) {
-  res.clearCookie("accToken");
-  res.clearCookie("refToken");
-  return unauthErr;
+    res.clearCookie("accToken");
+    res.clearCookie("refToken");
+    return unauthErr;
 }

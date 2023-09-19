@@ -5,16 +5,17 @@ import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { adminProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
+import { UserRoles } from "../../../configs/default.js";
 import IUser from "../../../interfaces/collections/user.js";
-import { getUserByEmail } from "../../../middlewares/userHandlers.js";
+import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
 
 const inputSchema = z.object({
-    _id: z.string(),
+    id: z.string(),
     name: z.string().regex(userRegex.name),
-    email: z.string().regex(userRegex.email),
+    email: z.string().email(),
     password: z.string().regex(userRegex.password),
     phone: z.string().regex(userRegex.phone),
-    role: z.string().regex(userRegex.role),
+    role: z.nativeEnum(UserRoles),
 });
 
 const internalErr = new TRPCError({
@@ -25,27 +26,24 @@ const internalErr = new TRPCError({
 export const updateUser = adminProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
-        const { ...user } = input;
+        const { id, ...user } = input;
 
-        const data = await getUserByEmail(user.email);
-        if (data === "INTERNAL_SERVER_ERROR") return internalErr;
-        if (data && data._id != new ObjectId(user._id))
+        const isEmailExist = await getUserByEmail(user.email);
+        if (isEmailExist === "INTERNAL_SERVER_ERROR") return internalErr;
+        if (isEmailExist && isEmailExist._id.toString() !== id)
             throw new TRPCError({
                 code: "CONFLICT",
                 message: "Email already exists",
             });
 
-        const salt = bcrypt.genSaltSync(10);
-        const hashedPassword = bcrypt.hashSync(user.password, salt);
-
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(user.password, salt);
         user.password = hashedPassword;
 
-        const result = await updateUserInfo(user._id, user);
+        const result = await updateUserInfo(id, user);
         if (!result) throw internalErr;
 
-        return {
-            message: "Update sucessfully",
-        };
+        return { message: "Update sucessfully" };
     });
 
 async function updateUserInfo(id: string, user: IUser) {

@@ -1,10 +1,10 @@
 interface ICustomer {
     name: string;
-    email: string;
-    phone: string;
     address: string;
-    curator: string;
+    phone: string;
     placer: string;
+    email: string;
+    curator: string;
     note: string;
 }
 
