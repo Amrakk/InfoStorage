@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 import database from "../../database/db.js";
 import { CollectionNames } from "../../configs/default.js";
-import * as Collections from "../../interfaces/collections/collections.js";
+import * as Collections from "../../interfaces/collections/index.js";
 
 export async function getDataFromDB(
     type: CollectionNames
