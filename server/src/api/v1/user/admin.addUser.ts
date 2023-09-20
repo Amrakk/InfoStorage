@@ -3,6 +3,7 @@ import bycrpt from "bcrypt";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { adminProcedure } from "../../../trpc.js";
+import { UserRoles } from "../../../configs/default.js";
 import IUser from "../../../interfaces/collections/user.js";
 import {
     valEmail,
@@ -17,7 +18,7 @@ const addUserSchema = z.object({
     email: z.string().trim(),
     password: z.string(),
     phone: z.string(),
-    role: z.string(),
+    role: z.nativeEnum(UserRoles),
 });
 
 const generalErr = new TRPCError({
