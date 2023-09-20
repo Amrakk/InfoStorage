@@ -1,8 +1,8 @@
 import XLSX from "xlsx";
 import { settings } from "./settings.js";
 import { CollectionNames } from "../../configs/default.js";
+import { TCollections } from "../../interfaces/collections/index.js";
 import { getDataFromDB } from "../collectionHandlers/dataHandlers.js";
-import { TCollections } from "../../interfaces/collections/collections.js";
 
 export type TSheet = {
     name: string;

@@ -10,7 +10,7 @@ export const deleteUser = adminProcedure
     .mutation(async ({ input }) => {
         const { id } = input;
 
-        if (!delUser(id))
+        if (!(await delUser(id)))
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
                 message: "Internal server error",

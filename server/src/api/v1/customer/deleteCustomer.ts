@@ -10,7 +10,7 @@ export const deleteCustomer = employeeProcedure
     .mutation(async ({ input }) => {
         const { id } = input;
 
-        if (!delCustomer(id))
+        if (!(await delCustomer(id)))
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
                 message: "Internal server error",

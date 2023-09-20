@@ -6,6 +6,10 @@ import { TRPCError } from "@trpc/server";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 import { getUserByID } from "./collectionHandlers/userHandlers.js";
+import {
+    setRateLimit,
+    isLimitRateExceeded,
+} from "./rateLimiter/rateLimitHandlers.js";
 
 const unauthErr = new TRPCError({
     code: "UNAUTHORIZED",
@@ -19,7 +23,14 @@ const internalErr = new TRPCError({
 
 export const verify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
+        const { ip } = ctx.req;
         const { accToken, refToken } = ctx.req.cookies;
+
+        const isLimitExceeded = await isLimitRateExceeded(ip);
+        if (isLimitExceeded === "INTERNAL_SERVER_ERROR") throw internalErr;
+        if (isLimitExceeded) throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+        else if ((await setRateLimit(ip, true)) === "INTERNAL_SERVER_ERROR")
+            throw internalErr;
 
         if (!accToken) throw unauthErr;
         let userID: string;

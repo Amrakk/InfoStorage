@@ -6,8 +6,8 @@ import { deleteRefToken } from "../../../middlewares/tokenHandlers.js";
  * @name signout
  * Use by verified user to signout
  */
-export const signout = verifiedProcedure.mutation(({ ctx }) => {
-    if (!deleteRefToken(ctx.user._id))
+export const signout = verifiedProcedure.mutation(async ({ ctx }) => {
+    if (!(await deleteRefToken(ctx.user._id)))
         throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
         });
