@@ -11,6 +11,7 @@ import DeletePopup from "../components/DeletePopup";
 import AddPopup from "../components/AddPopup";
 import { useDeletePopupStore } from "../stores/DeletePopup";
 import { useAddPopupStore } from "../stores/AddPopup";
+import { CollectionNames } from "../../../server/src/configs/default";
 export default function Shipping() {
   const navigate = useNavigate();
   const [shippings, setShippings] = useState<TShipping>([]);
@@ -21,7 +22,11 @@ export default function Shipping() {
   const { isAddPopupOpen, setIsAddPopupOpen } = useAddPopupStore();
   useEffect(() => {
     trpc.shipping.getShippings
-      .query()
+      .query({filter: {
+        provCode: 79,
+        distCode: 771,
+        wardCode: 27190,
+      }})
       .then((res) => {
         setShippings(res);
       })
@@ -30,8 +35,10 @@ export default function Shipping() {
           navigate("/signin");
         }
       });
-
-    trpc.shipping.addShippings.mutate([{name: "test", address: "test", phone: "test", note: "test"}])
+    
+    trpc.service.searchByName.query({type: CollectionNames.Shippings, text: "da"}).then((res) => {
+      console.log(res);
+    })
   }, []);
 
   return (
