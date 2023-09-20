@@ -8,7 +8,7 @@ type RouterOutput = inferRouterOutputs<AppRouter>;
 export type TShipping = RouterOutput["shipping"]["getShippings"];
 export type TProvince = RouterOutput["service"]["getProvinces"];
 export type TDistrict = RouterOutput["service"]["getDistricts"];
-
+export type TWard = RouterOutput["service"]["getWards"];
 export const trpc = createTRPCProxyClient<AppRouter>({
     links: [
         httpBatchLink({
@@ -22,6 +22,8 @@ export const trpc = createTRPCProxyClient<AppRouter>({
         }),
     ],
 });
+
+// export const trpc = createTRPCReact<AppRouter>();
 
 export type TRPCError = {
     message: string;

@@ -7,6 +7,7 @@ import Home from "./pages/Home.tsx";
 import Shipping from "./pages/Shipping.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Header from "./components/Header.tsx";
+import Forgotpassword from "./pages/Forgotpassword.tsx";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 function App() {
@@ -32,6 +33,7 @@ function App() {
         <Routes>
           <Route path="/signin" element={<Signin />} />
           <Route path="*" element={<Notfound />} />
+          <Route path="/forgotpassword" element={<Forgotpassword />} />
         </Routes>
       ) : (
         <>

@@ -10,6 +10,11 @@ export default {
             opacity: 0,
           },
         },
+        updown: {
+          "0%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(10px)" },
+          "100%": { transform: "translateY(0px)" },
+        },
       },
       boxShadow: {
         "3xl": "0 35px 60px -15px rgba(0, 0, 0, 0.3)",
@@ -18,6 +23,13 @@ export default {
 
       colors: {
         primary: "rgb(65, 82, 69)",
+        second: "rgb(106, 175, 199)",
+        accent1: "rgb(210, 15, 15)",
+      },
+      animation: {
+        updown1: "updown 1s ease-in-out infinite",
+        updown2: "updown 1s ease-in-out infinite 150ms",
+        updown3: "updown 1s ease-in-out infinite 300ms",
       },
     },
     safelist: [
