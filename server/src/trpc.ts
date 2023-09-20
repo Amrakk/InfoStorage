@@ -21,10 +21,13 @@ export type Context = inferAsyncReturnType<typeof createContext>;
 
 const t = initTRPC.context<Context>().create({
     errorFormatter({ shape, error }) {
-        if (error.code === "INTERNAL_SERVER_ERROR") console.error(error);
-        if (error.code === "BAD_REQUEST" && error.cause instanceof ZodError) {
+        if (error.code === "BAD_REQUEST" && error.cause instanceof ZodError)
             shape.message = "Invalid input";
+        if (error.code === "INTERNAL_SERVER_ERROR") {
+            console.error(error);
+            shape.message = "Internal Server Error";
         }
+
         shape.data.stack = undefined;
         return {
             ...shape,

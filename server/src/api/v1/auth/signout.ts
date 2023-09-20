@@ -1,19 +1,19 @@
 import { TRPCError } from "@trpc/server";
 import { verifiedProcedure } from "../../../trpc.js";
 import { deleteRefToken } from "../../../middlewares/tokenHandlers.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
 
-/**
- * @name signout
- * Use by verified user to signout
- */
 export const signout = verifiedProcedure.mutation(async ({ ctx }) => {
-    if (!(await deleteRefToken(ctx.user._id)))
+    try {
+        ctx.res.clearCookie("accToken");
+        ctx.res.clearCookie("refToken");
+        await deleteRefToken(ctx.user._id);
+
+        return { message: "Signout successfully" };
+    } catch (err) {
         throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
+            message: getErrorMessage(err),
         });
-
-    ctx.res.clearCookie("accToken");
-    ctx.res.clearCookie("refToken");
-
-    return { message: "Signout successfully" };
+    }
 });

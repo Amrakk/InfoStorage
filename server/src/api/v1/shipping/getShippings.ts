@@ -1,16 +1,12 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { employeeProcedure } from "../../../trpc.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getShippingsFromDB } from "../../../middlewares/collectionHandlers/shippingHandlers.js";
 import {
     addressFilter,
     addressFilterShema,
 } from "../../../middlewares/filterHandlers/address.js";
-import { getShippingsFromDB } from "../../../middlewares/collectionHandlers/shippingHandlers.js";
-
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal server error",
-});
 
 const filterSchema = z.object({
     filter: addressFilterShema.optional(),
@@ -22,13 +18,16 @@ export const getShippings = employeeProcedure
         const { provCode, distCode, wardCode } = input?.filter ?? {};
 
         let filter = undefined;
-        if (provCode)
-            filter = await addressFilter({ provCode, distCode, wardCode });
+        try {
+            if (provCode)
+                filter = await addressFilter({ provCode, distCode, wardCode });
 
-        if (typeof filter === "string") throw internalErr;
-
-        const shippings = await getShippingsFromDB(filter);
-        if (shippings === "INTERNAL_SERVER_ERROR") throw internalErr;
-
-        return shippings;
+            const shippings = await getShippingsFromDB(filter);
+            return shippings;
+        } catch (err) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
+            });
+        }
     });

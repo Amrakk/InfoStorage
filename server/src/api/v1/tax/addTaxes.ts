@@ -8,11 +8,20 @@ import ITax from "../../../interfaces/collections/tax.js";
 import { CollectionNames } from "../../../configs/default.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
 import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
+import { contextRules } from "../../../middlewares/mailHandlers.ts/settings.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { exportDataViaMail } from "../../../middlewares/mailHandlers.ts/sendDataViaMail.js";
 import {
     getTaxByName,
     getTaxByEmail,
     getTaxByTaxCode,
 } from "../../../middlewares/collectionHandlers/taxHandlers.js";
+import {
+    generateExcelFile,
+    generateExcelSheet,
+} from "../../../middlewares/excelHandlers/excelGenerators.js";
+
+type TFailedEntry = ITax & { error: string };
 
 const inputSchema = z.array(
     z.object({
@@ -29,76 +38,72 @@ const inputSchema = z.array(
     })
 );
 
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal Server Error",
-});
-
 export const addTaxes = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input, ctx }) => {
         const taxes = input;
+        const failedEntries: TFailedEntry[] = [];
 
-        const failedEntries: (ITax & { error: string })[] = [];
-        if (taxes.length === 0)
-            throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "No supplier to add",
-            });
-        else if (taxes.length === 1) {
-            const { provCode, distCode, wardCode, ...data } = taxes[0];
-            if (!provCode || !distCode || !wardCode)
+        try {
+            if (taxes.length === 0)
                 throw new TRPCError({
                     code: "BAD_REQUEST",
-                    message: "Missing address info",
+                    message: "No supplier to add",
                 });
+            else if (taxes.length === 1) {
+                const { provCode, distCode, wardCode, ...data } = taxes[0];
+                if (!provCode || !distCode || !wardCode)
+                    throw new TRPCError({
+                        code: "BAD_REQUEST",
+                        message: "Missing address info",
+                    });
 
-            const province = await getUnitName(provCode, "province");
-            const district = await getUnitName(distCode, "district");
-            const ward = await getUnitName(wardCode, "ward");
-            if (
-                province === "INTERNAL_SERVER_ERROR" ||
-                district === "INTERNAL_SERVER_ERROR" ||
-                ward === "INTERNAL_SERVER_ERROR"
-            )
-                throw internalErr;
+                const ward = await getUnitName(wardCode, "ward");
+                const district = await getUnitName(distCode, "district");
+                const province = await getUnitName(provCode, "province");
+                data.address = `${data.address}, ${ward}, ${district}, ${province}`;
 
-            data.address = `${data.address}, ${ward}, ${district}, ${province}`;
-
-            const result = await insertTax(data);
-            if (result instanceof TRPCError) throw result;
-            if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
-        } else {
-            const successEntries: string[] = [];
-            for (const tax of taxes) {
-                const { provCode, distCode, wardCode, ...data } = tax;
                 const result = await insertTax(data);
-                if (result instanceof TRPCError)
-                    failedEntries.push({ ...data, error: result.message });
-                if (result === "INTERNAL_SERVER_ERROR")
-                    failedEntries.push({ ...data, error: result });
-                if (result instanceof ObjectId)
-                    successEntries.push(result.toString());
+                if (result instanceof TRPCError) throw result;
+                if (typeof result === "string") throw new Error(result);
+            } else {
+                const successEntries: string[] = [];
+                for (const tax of taxes) {
+                    const { provCode, distCode, wardCode, ...data } = tax;
+                    const result = await insertTax(data);
+                    if (result instanceof ObjectId)
+                        successEntries.push(result.toString());
+                    else if (typeof result === "string")
+                        failedEntries.push({ ...data, error: result });
+                    else if (result instanceof TRPCError)
+                        failedEntries.push({ ...data, error: result.message });
+                }
+
+                const userID = ctx.user._id.toString();
+                const result = await saveImportLog(
+                    userID,
+                    successEntries,
+                    CollectionNames.Taxes
+                );
+
+                if (typeof result === "string") console.error(result);
             }
 
-            const userID = ctx.user._id.toString();
-            const result = await saveImportLog(
-                userID,
-                successEntries,
-                CollectionNames.Taxes
-            );
-
-            if (result === "INTERNAL_SERVER_ERROR") {
-                // TODO: log error
+            if (failedEntries.length > 0) {
+                await sendFailedEntries(failedEntries, ctx.user.email);
+                return {
+                    message: "Partial success: Review and fix failed entries.",
+                };
             }
+
+            return { message: "Add taxes successfully!" };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
+            });
         }
-
-        if (failedEntries.length > 0)
-            return {
-                message: "Partial success: Review and fix failed entries.",
-                failedEntries,
-            };
-        return { message: "Add taxes successfully!" };
     });
 
 async function insertTax(tax: ITax) {
@@ -109,15 +114,8 @@ async function insertTax(tax: ITax) {
         const isNameExist = await getTaxByName(tax.name);
         const isEmailExist = await getTaxByEmail(tax.email);
         const isTaxCodeExist = await getTaxByTaxCode(tax.taxCode);
-
-        if (
-            isNameExist === "INTERNAL_SERVER_ERROR" ||
-            isEmailExist === "INTERNAL_SERVER_ERROR" ||
-            isTaxCodeExist === "INTERNAL_SERVER_ERROR"
-        )
-            throw internalErr;
         if (isNameExist || isEmailExist || isTaxCodeExist)
-            throw new TRPCError({
+            return new TRPCError({
                 code: "CONFLICT",
                 message: "Tax already exist",
             });
@@ -125,9 +123,28 @@ async function insertTax(tax: ITax) {
         const result = await taxes.insertOne(tax);
         return result.acknowledged
             ? result.insertedId
-            : "INTERNAL_SERVER_ERROR";
+            : "Failed while inserting taxes";
     } catch (err) {
-        if (err instanceof TRPCError) return err;
-        return "INTERNAL_SERVER_ERROR";
+        return getErrorMessage(err);
+    }
+}
+
+async function sendFailedEntries(failedEntries: TFailedEntry[], email: string) {
+    try {
+        const sheet = await generateExcelSheet(
+            CollectionNames.Taxes,
+            failedEntries
+        );
+        const workbook = generateExcelFile([sheet]);
+        const text = `Dear user,\n\nYou have requested to add taxes to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+
+        const mailInfo = {
+            to: [email],
+            text,
+            data: workbook,
+        };
+        await exportDataViaMail(mailInfo, contextRules.failedEntries);
+    } catch (err) {
+        console.error(err);
     }
 }

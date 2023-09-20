@@ -1,15 +1,18 @@
 import nodemailer from "nodemailer";
-import { CollectionNames } from "../../configs/default.js";
+import { contextRules } from "./settings.js";
 import { getCurrentTime } from "../utils/getCurrentTime.js";
 
 type TMailInfo = {
     to: string[];
-    types?: CollectionNames[];
+    text: string;
     data: Buffer;
 };
 
-export async function sendDataViaMail(mailInfo: TMailInfo) {
-    const { to, types, data } = mailInfo;
+export async function exportDataViaMail(
+    mailInfo: TMailInfo,
+    context: contextRules
+) {
+    const { to, text, data } = mailInfo;
 
     const transporter = nodemailer.createTransport({
         secure: true,
@@ -20,12 +23,8 @@ export async function sendDataViaMail(mailInfo: TMailInfo) {
         },
     });
 
-    let typesString = Object.values(CollectionNames).join(", ");
-    if (types) typesString = types.join(", ");
-    const text = `Dear user,\n\nYou have requested to export data from InfoStorage included ${typesString}.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
-
-    const time = getCurrentTime("DD/MM/YYYY");
-    const filename = "InfoStorage_" + time + ".xlsx";
+    const time = getCurrentTime("ddMMyy");
+    const filename = `InfoStorage_${context}_${time}.xlsx`;
 
     const mailOptions = {
         from: `InfoStorage <${process.env.EMAIL_USER}>`,
@@ -35,10 +34,6 @@ export async function sendDataViaMail(mailInfo: TMailInfo) {
         attachments: [{ filename, content: data }],
     };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return true;
-    } catch (err) {
-        return false;
-    }
+    await transporter.sendMail(mailOptions);
+    return true;
 }

@@ -8,7 +8,16 @@ import { userRegex } from "../../../configs/regex.js";
 import IUser from "../../../interfaces/collections/user.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
 import { CollectionNames, UserRoles } from "../../../configs/default.js";
+import { contextRules } from "../../../middlewares/mailHandlers.ts/settings.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { exportDataViaMail } from "../../../middlewares/mailHandlers.ts/sendDataViaMail.js";
+import {
+    generateExcelFile,
+    generateExcelSheet,
+} from "../../../middlewares/excelHandlers/excelGenerators.js";
+
+type TFailedEntry = IUser & { error: string };
 
 const inputSchema = z.array(
     z.object({
@@ -20,56 +29,60 @@ const inputSchema = z.array(
     })
 );
 
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal server error",
-});
-
 export const addUsers = adminProcedure
     .input(inputSchema)
     .mutation(async ({ input, ctx }) => {
         const users = input;
+        const failedEntries: TFailedEntry[] = [];
 
-        const failedEntries: (IUser & { error: string })[] = [];
-        if (users.length === 0)
+        try {
+            if (users.length === 0)
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "No user to add",
+                });
+            else if (users.length === 1) {
+                const result = await insertUser(users[0]);
+                if (result instanceof TRPCError) throw result;
+                if (typeof result === "string") throw new Error(result);
+            } else {
+                const successEntries: string[] = [];
+                for (const user of users) {
+                    const result = await insertUser(user);
+                    if (result instanceof ObjectId)
+                        successEntries.push(result.toString());
+                    if (typeof result === "string")
+                        failedEntries.push({ ...user, error: result });
+                    if (result instanceof TRPCError)
+                        failedEntries.push({ ...user, error: result.message });
+                }
+
+                const userID = ctx.user._id.toString();
+                const result = await saveImportLog(
+                    userID,
+                    successEntries,
+                    CollectionNames.Users
+                );
+
+                if (typeof result === "string") console.error(result);
+            }
+
+            if (failedEntries.length > 0) {
+                await sendFailedEntries(failedEntries, ctx.user.email);
+                return {
+                    message: "Partial success: Review and fix failed entries.",
+                    failedEntries,
+                };
+            }
+
+            return { message: "Add users successfully!" };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
             throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "No user to add",
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
             });
-        else if (users.length === 1) {
-            const result = await insertUser(users[0]);
-            if (result instanceof TRPCError) throw result;
-            if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
-        } else {
-            const successEntries: string[] = [];
-            for (const user of users) {
-                const result = await insertUser(user);
-                if (result instanceof TRPCError)
-                    failedEntries.push({ ...user, error: result.message });
-                if (result === "INTERNAL_SERVER_ERROR")
-                    failedEntries.push({ ...user, error: result });
-                if (result instanceof ObjectId)
-                    successEntries.push(result.toString());
-            }
-
-            const userID = ctx.user._id.toString();
-            const result = await saveImportLog(
-                userID,
-                successEntries,
-                CollectionNames.Users
-            );
-
-            if (result === "INTERNAL_SERVER_ERROR") {
-                // TODO: log error
-            }
         }
-
-        if (failedEntries.length > 0)
-            return {
-                message: "Partial success: Review and fix failed entries.",
-                failedEntries,
-            };
-        return { message: "Add users successfully!" };
     });
 
 async function insertUser(user: IUser) {
@@ -78,9 +91,8 @@ async function insertUser(user: IUser) {
         const users = db.collection<IUser>("users");
 
         const isEmailExist = await getUserByEmail(user.email);
-        if (isEmailExist === "INTERNAL_SERVER_ERROR") throw internalErr;
         if (isEmailExist)
-            throw new TRPCError({
+            return new TRPCError({
                 code: "CONFLICT",
                 message: "Email already exists",
             });
@@ -92,9 +104,28 @@ async function insertUser(user: IUser) {
         const result = await users.insertOne(user);
         return result.acknowledged
             ? result.insertedId
-            : "INTERNAL_SERVER_ERROR";
+            : "Failed while inserting users";
     } catch (err) {
-        if (err instanceof TRPCError) return err;
-        return "INTERNAL_SERVER_ERROR";
+        return getErrorMessage(err);
+    }
+}
+
+async function sendFailedEntries(failedEntries: TFailedEntry[], email: string) {
+    try {
+        const sheet = await generateExcelSheet(
+            CollectionNames.Users,
+            failedEntries
+        );
+        const workbook = generateExcelFile([sheet]);
+        const text = `Dear user,\n\nYou have requested to add users to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+
+        const mailInfo = {
+            to: [email],
+            text,
+            data: workbook,
+        };
+        await exportDataViaMail(mailInfo, contextRules.failedEntries);
+    } catch (err) {
+        console.error(err);
     }
 }

@@ -8,6 +8,7 @@ import { userRegex } from "../../../configs/regex.js";
 import { UserRoles } from "../../../configs/default.js";
 import IUser from "../../../interfaces/collections/user.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
 
 const inputSchema = z.object({
     id: z.string(),
@@ -18,45 +19,43 @@ const inputSchema = z.object({
     role: z.nativeEnum(UserRoles),
 });
 
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal server error",
-});
-
 export const updateUser = adminProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
         const { id, ...user } = input;
 
-        const isEmailExist = await getUserByEmail(user.email);
-        if (isEmailExist === "INTERNAL_SERVER_ERROR") return internalErr;
-        if (isEmailExist && isEmailExist._id.toString() !== id)
+        try {
+            const isEmailExist = await getUserByEmail(user.email);
+            if (isEmailExist && isEmailExist._id.toString() !== id)
+                throw new TRPCError({
+                    code: "CONFLICT",
+                    message: "Email already exists",
+                });
+
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(user.password, salt);
+            user.password = hashedPassword;
+
+            const result = await updateUserInfo(id, user);
+            if (typeof result === "string") throw new Error(result);
+
+            return { message: "Update user sucessfully!" };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
             throw new TRPCError({
-                code: "CONFLICT",
-                message: "Email already exists",
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
             });
-
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(user.password, salt);
-        user.password = hashedPassword;
-
-        const result = await updateUserInfo(id, user);
-        if (!result) throw internalErr;
-
-        return { message: "Update sucessfully" };
+        }
     });
 
 async function updateUserInfo(id: string, user: IUser) {
-    try {
-        const db = database.getDB();
-        const users = db.collection<IUser>("users");
+    const db = database.getDB();
+    const users = db.collection<IUser>("users");
 
-        const result = await users.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: user }
-        );
-        return result.acknowledged;
-    } catch (err) {
-        return false;
-    }
+    const result = await users.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: user }
+    );
+    return result.acknowledged ? true : "Failed while updating user";
 }

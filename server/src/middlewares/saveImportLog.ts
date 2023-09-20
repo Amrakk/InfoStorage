@@ -2,6 +2,7 @@ import database from "../database/db.js";
 import { CollectionNames } from "../configs/default.js";
 import { getCurrentTime } from "./utils/getCurrentTime.js";
 import IImporLog from "../interfaces/collections/importLogs.js";
+import { getErrorMessage } from "./errorHandlers.ts/getErrorMessage.js";
 
 export async function saveImportLog(
     userID: string,
@@ -21,8 +22,8 @@ export async function saveImportLog(
         };
 
         const result = await importLogs.insertOne(log);
-        return result.acknowledged ? true : "INTERNAL_SERVER_ERROR";
+        return result.acknowledged ? true : "Failed while saving import log";
     } catch (err) {
-        return "INTERNAL_SERVER_ERROR";
+        return getErrorMessage(err);
     }
 }

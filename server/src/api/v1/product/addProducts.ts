@@ -6,11 +6,20 @@ import { employeeProcedure } from "../../../trpc.js";
 import { productRegex } from "../../../configs/regex.js";
 import IProduct from "../../../interfaces/collections/product.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
+import { contextRules } from "../../../middlewares/mailHandlers.ts/settings.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { exportDataViaMail } from "../../../middlewares/mailHandlers.ts/sendDataViaMail.js";
 import { getProductByName } from "../../../middlewares/collectionHandlers/productHandlers.js";
 import {
     CollectionNames,
     ProductCategories,
 } from "../../../configs/default.js";
+import {
+    generateExcelFile,
+    generateExcelSheet,
+} from "../../../middlewares/excelHandlers/excelGenerators.js";
+
+type TFailedEntry = IProduct & { error: string };
 
 const inputSchema = z.array(
     z.object({
@@ -22,56 +31,62 @@ const inputSchema = z.array(
     })
 );
 
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal Server Error",
-});
-
 export const addProducts = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input, ctx }) => {
         const products = input;
+        const failedEntries: TFailedEntry[] = [];
 
-        const failedEntries: (IProduct & { error: string })[] = [];
-        if (products.length === 0)
+        try {
+            if (products.length === 0)
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "No product to add",
+                });
+            else if (products.length === 1) {
+                const result = await insertProduct(products[0]);
+                if (result instanceof TRPCError) throw result;
+                if (typeof result === "string") throw new Error(result);
+            } else {
+                const successEntries: string[] = [];
+                for (const product of products) {
+                    const result = await insertProduct(product);
+                    if (result instanceof ObjectId)
+                        successEntries.push(result.toString());
+                    else if (typeof result === "string")
+                        failedEntries.push({ ...product, error: result });
+                    else if (result instanceof TRPCError)
+                        failedEntries.push({
+                            ...product,
+                            error: result.message,
+                        });
+                }
+
+                const userID = ctx.user._id.toString();
+                const result = await saveImportLog(
+                    userID,
+                    successEntries,
+                    CollectionNames.Products
+                );
+
+                if (typeof result === "string") console.error(result);
+            }
+
+            if (failedEntries.length > 0) {
+                await sendFailedEntries(failedEntries, ctx.user.email);
+                return {
+                    message: "Partial success: Review and fix failed entries.",
+                };
+            }
+
+            return { message: "Add products successfully!" };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
             throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "No product to add",
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
             });
-        else if (products.length === 1) {
-            const result = await insertProduct(products[0]);
-            if (result instanceof TRPCError) throw result;
-            if (result === "INTERNAL_SERVER_ERROR") throw internalErr;
-        } else {
-            const successEntries: string[] = [];
-            for (const product of products) {
-                const result = await insertProduct(product);
-                if (result instanceof TRPCError)
-                    failedEntries.push({ ...product, error: result.message });
-                if (result === "INTERNAL_SERVER_ERROR")
-                    failedEntries.push({ ...product, error: result });
-                if (result instanceof ObjectId)
-                    successEntries.push(result.toString());
-            }
-
-            const userID = ctx.user._id.toString();
-            const result = await saveImportLog(
-                userID,
-                successEntries,
-                CollectionNames.Products
-            );
-
-            if (result === "INTERNAL_SERVER_ERROR") {
-                // TODO: log error
-            }
         }
-
-        if (failedEntries.length > 0)
-            return {
-                message: "Partial success: Review and fix failed entries.",
-                failedEntries,
-            };
-        return { message: "Add products successfully!" };
     });
 
 async function insertProduct(product: IProduct) {
@@ -80,9 +95,8 @@ async function insertProduct(product: IProduct) {
         const products = db.collection<IProduct>("products");
 
         const isNameExist = await getProductByName(product.name);
-        if (isNameExist === "INTERNAL_SERVER_ERROR") throw internalErr;
         if (isNameExist)
-            throw new TRPCError({
+            return new TRPCError({
                 code: "CONFLICT",
                 message: "Product already exist",
             });
@@ -91,7 +105,7 @@ async function insertProduct(product: IProduct) {
             return product.suppliers.indexOf(supplier) !== index;
         });
         if (isDuplicate)
-            throw new TRPCError({
+            return new TRPCError({
                 code: "CONFLICT",
                 message: "Duplicate suppliers",
             });
@@ -99,9 +113,28 @@ async function insertProduct(product: IProduct) {
         const result = await products.insertOne(product);
         return result.acknowledged
             ? result.insertedId
-            : "INTERNAL_SERVER_ERROR";
+            : "Failed while inserting products";
     } catch (err) {
-        if (err instanceof TRPCError) return err;
-        return "INTERNAL_SERVER_ERROR";
+        return getErrorMessage(err);
+    }
+}
+
+async function sendFailedEntries(failedEntries: TFailedEntry[], email: string) {
+    try {
+        const sheet = await generateExcelSheet(
+            CollectionNames.Products,
+            failedEntries
+        );
+        const workbook = generateExcelFile([sheet]);
+        const text = `Dear user,\n\nYou have requested to add products to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+
+        const mailInfo = {
+            to: [email],
+            text,
+            data: workbook,
+        };
+        await exportDataViaMail(mailInfo, contextRules.failedEntries);
+    } catch (err) {
+        console.error(err);
     }
 }
