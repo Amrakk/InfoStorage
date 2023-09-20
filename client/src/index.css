@@ -5,109 +5,109 @@
 @tailwind utilities;
 
 #signin {
-  font-family: "Mark Pro", sans-serif;
+    font-family: "Mark Pro", sans-serif;
 }
 
 #ifs {
-  font-family: "Lalezar", Verdana, Geneva, Tahoma, sans-serif;
+    font-family: "Lalezar", Verdana, Geneva, Tahoma, sans-serif;
 }
 
 @layer components {
-  .container {
-    @apply px-2 md:px-5 xl:px-0 xl:w-[1500px] xl:mx-auto;
-  }
+    .container {
+        @apply px-2 md:px-5 xl:px-0 xl:w-[1500px] xl:mx-auto;
+    }
 
-  .icon {
-    @apply flex justify-center items-center flex-col w-20 gap-2 brightness-[1.7];
-  }
+    .icon {
+        @apply flex justify-center items-center flex-col w-20 gap-2 brightness-[1.7];
+    }
 
-  .inputField {
-    @apply border border-primary w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-second bg-white rounded-md;
-  }
+    .inputField {
+        @apply border border-primary w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-second bg-white rounded-md;
+    }
 }
 
 @keyframes fadeIn {
-  from {
-    top: 0;
-    opacity: 0;
-  }
-  to {
-    top: 40px;
-    opacity: 1;
-  }
+    from {
+        top: 0;
+        opacity: 0;
+    }
+    to {
+        top: 40px;
+        opacity: 1;
+    }
 }
 
 @keyframes fadeInPopup {
-  from {
-    margin-top: 0;
-    opacity: 0;
-  }
-  to {
-    margin-top: 96px;
-    opacity: 1;
-  }
+    from {
+        margin-top: 0;
+        opacity: 0;
+    }
+    to {
+        margin-top: 96px;
+        opacity: 1;
+    }
 }
 
 @keyframes fadeOutPopup {
-  from {
-    margin-top: 96px;
-    opacity: 1;
-  }
-  to {
-    margin-top: 0;
-    opacity: 0;
-  }
+    from {
+        margin-top: 96px;
+        opacity: 1;
+    }
+    to {
+        margin-top: 0;
+        opacity: 0;
+    }
 }
 
 .animationPopup {
-  animation: fadeInPopup 0.3s ease-in-out;
+    animation: fadeInPopup 0.3s ease-in-out;
 }
 
 .animationPopout {
-  animation: fadeOutPopup 0.3s ease-in-out forwards;
+    animation: fadeOutPopup 0.3s ease-in-out forwards;
 }
 
 #boxAccount {
-  animation: fadeIn 0.3s ease-in-out;
+    animation: fadeIn 0.3s ease-in-out;
 }
 
 /* width */
 ::-webkit-scrollbar {
-  width: 10px;
+    width: 10px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background-color: #8888887c;
-  border-radius: 10px;
-  transition: all 1.5s linear;
+    background-color: #8888887c;
+    border-radius: 10px;
+    transition: all 1.5s linear;
 }
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #888888c0;
+    background-color: #888888c0;
 }
 
 input[type="text"]:focus ~ .input-text,
 textarea:focus ~ .input-text,
 select:focus ~ .input-text {
-  @apply text-[#6AAFC7] bg-white transform -translate-y-6 -translate-x-2  text-opacity-100 scale-75;
+    @apply text-[#6AAFC7] bg-white transform -translate-y-6 -translate-x-2  text-opacity-100 scale-75;
 }
 
 input[type="text"] ~ .input-text-not-empty,
 textarea ~ .input-text-not-empty,
 select ~ .input-text-not-empty {
-  @apply text-primary  bg-white transform -translate-y-6 -translate-x-2 scale-75 text-opacity-100;
+    @apply text-primary  bg-white transform -translate-y-6 -translate-x-2 scale-75 text-opacity-100;
 }
 
 input[type="text"]:focus ~ .input-text-not-empty,
 textarea:focus ~ .input-text-not-empty,
 select:focus ~ .input-text-not-empty {
-  @apply text-[#6AAFC7];
+    @apply text-[#6AAFC7];
 }
 
 input[type="text"]:focus ~ .input-text-error,
@@ -116,29 +116,33 @@ select:focus ~ .input-text-error,
 input[type="text"] ~ .input-text-error,
 textarea ~ .input-text-error,
 select ~ .input-text-error {
-  @apply text-accent1 bg-white transform -translate-y-6 -translate-x-2  text-opacity-100 scale-75;
+    @apply text-accent1 bg-white transform -translate-y-6 -translate-x-2  text-opacity-100 scale-75;
 }
 
 select option[value=""] {
-  display: none;
+    display: none;
 }
 
 select:required:invalid {
-  color: #415245;
-  opacity: 0.5;
+    color: #415245;
+    opacity: 0.5;
 }
 
 option[value=""][disabled] {
-  display: none;
+    display: none;
 }
 
 select option {
-  color: #415245;
+    color: #415245;
 }
 input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 30px white inset;
+    -webkit-box-shadow: 0 0 0 30px white inset;
 }
 
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 30px white inset;
+    -webkit-box-shadow: 0 0 0 30px white inset;
+}
+
+.stt:hover ~ td {
+    background-color: rgba(156, 163, 175, 0.5);
 }

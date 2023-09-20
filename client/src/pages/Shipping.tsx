@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { trpc, type TRPCError, type TShipping } from "../trpc";
 import { AiOutlineSearch, AiFillEdit } from "react-icons/ai";
 import { IoMdSettings } from "react-icons/io";
@@ -21,14 +21,77 @@ export default function Shipping() {
     const [isAddPopupOpen, setIsAddPopupOpen] = useState<boolean>(false);
     const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState<boolean>(false);
     const [_id, set_Id] = useState("");
+    const mouseFollowRef = useRef<HTMLCanvasElement>(null);
+    const [isShowCopyBox, setIsShowCopyBox] = useState<boolean>(false);
     const [searchValue, setSearchValue] = useState<string>(""); // ["name", "address", "phone", "note"]
+
     const [inputValue, setInputValue] = useState<{
         [key: string]: string | null | undefined;
     }>({}); // ["name", "address", "phone", "note"
 
+    const [idTimeOut, setIdTimeOut] = useState<ReturnType<typeof setTimeout>>();
+
     const inputStyle = {
         caretColor: "transparent",
     };
+
+    const handleCopyBox = (x: number, y: number) => {
+        if (!isShowCopyBox) {
+            mouseFollowRef.current?.style.setProperty("opacity", "0");
+            return;
+        }
+
+        const mouseFollow = mouseFollowRef.current;
+        if (mouseFollow) {
+            const ctx = mouseFollow.getContext("2d");
+            if (ctx) {
+                ctx.clearRect(0, 0, mouseFollow.width, mouseFollow.height);
+
+                ctx.fillStyle = "#415245";
+                ctx.strokeStyle = "#415245";
+                ctx.beginPath();
+                ctx.roundRect(x + 12, y - 20, 70, 40, 20);
+                ctx.stroke();
+                ctx.fill();
+                ctx.fillStyle = "white";
+                ctx.font = "bold 12px System-UI ";
+
+                //background black
+
+                ctx.fillText("Copied!", x + 26, y + 5);
+            }
+        }
+    };
+
+    useEffect(() => {
+        const mouseMoveListener = (e: MouseEvent) => {
+            handleCopyBox(e.clientX, e.clientY);
+        };
+        document.addEventListener("mousemove", mouseMoveListener);
+        return () => {
+            document.removeEventListener("mousemove", mouseMoveListener);
+        };
+    }, [isShowCopyBox]);
+
+    useEffect(() => {
+        return () => {
+            idTimeOut && clearTimeout(idTimeOut);
+        };
+    }, [idTimeOut]);
+
+    function handleCopy(data: string) {
+        return () => {
+            navigator.clipboard.writeText(data);
+
+            setIsShowCopyBox(true);
+            mouseFollowRef.current?.style.setProperty("opacity", "1");
+            setIdTimeOut(
+                setTimeout(() => {
+                    mouseFollowRef.current?.style.setProperty("opacity", "0");
+                }, 1000)
+            );
+        };
+    }
 
     function getShippings() {
         trpc.shipping.getShippings
@@ -86,6 +149,15 @@ export default function Shipping() {
 
     return (
         <>
+            <canvas
+                ref={mouseFollowRef}
+                className="fixed inset-0 transition-all duration-300 pointer-events-none justify-center flex items-center text-primary z-10"
+                width={window.innerWidth}
+                height={window.innerHeight}
+            >
+                {/* Sao chép thành công */}
+            </canvas>
+
             <div className="container text-primary">
                 <div className="flex justify-between mt-8">
                     <div className="text-3xl">Shipping</div>
@@ -165,7 +237,7 @@ export default function Shipping() {
                                     return (
                                         <tr
                                             key={shipping._id}
-                                            className="border-b-2 border-[#D1DBD3]  hover:bg-gray-200  hover:duration-200 hover:ease-in-out cursor-pointer"
+                                            className=" border-b-2 border-[#D1DBD3]  hover:bg-gray-200  hover:duration-200 hover:ease-in-out cursor-pointer active:bg-gray-300 transition-colors"
                                             draggable
                                             onDragStart={(e) => {
                                                 setIconAppear(true);
@@ -195,20 +267,56 @@ export default function Shipping() {
                                                 setIconAppear(false);
                                             }}
                                         >
-                                            <td className="text-center">
+                                            <td
+                                                className="text-center stt hover:bg-gray-400 hover:bg-opacity-50"
+                                                onClick={handleCopy(
+                                                    `${shipping.name}\n${shipping.address}\n${shipping.phone}\n\n${shipping.note}`
+                                                )}
+                                            >
                                                 {index + 1}
                                             </td>
-                                            <td className="p-3">
+                                            <td
+                                                className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
+                                                onClick={handleCopy(
+                                                    shipping.name
+                                                )}
+                                            >
                                                 {shipping.name}
                                             </td>
-                                            <td className="p-3">
+                                            <td
+                                                className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
+                                                onClick={handleCopy(
+                                                    shipping.address
+                                                )}
+                                            >
                                                 {shipping.address}
                                             </td>
-                                            <td className="p-3">
+                                            <td
+                                                className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
+                                                onClick={handleCopy(
+                                                    shipping.phone
+                                                )}
+                                            >
                                                 {shipping.phone}
                                             </td>
-                                            <td className="p-3">
-                                                {shipping.note}
+                                            <td
+                                                className="p-3 whitespace-normal break-words hover:bg-gray-400 hover:bg-opacity-50"
+                                                onClick={handleCopy(
+                                                    shipping.note
+                                                )}
+                                            >
+                                                <p>
+                                                    {shipping.note
+                                                        .split("\n")
+                                                        .map((item, i) => {
+                                                            return (
+                                                                <>
+                                                                    {item}
+                                                                    <br />
+                                                                </>
+                                                            );
+                                                        })}
+                                                </p>
                                             </td>
                                         </tr>
                                     );
