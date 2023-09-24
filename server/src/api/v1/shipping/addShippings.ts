@@ -77,13 +77,16 @@ export const addShippings = employeeProcedure
                     userID,
                     successEntries,
                     CollectionNames.Shippings
-                );
-
+                ).catch((err) => getErrorMessage(err));
                 if (typeof result === "string") console.error(result);
             }
 
             if (failedEntries.length > 0) {
-                await sendFailedEntries(failedEntries, ctx.user.email);
+                const result = await sendFailedEntries(
+                    failedEntries,
+                    ctx.user.email
+                ).catch((err) => getErrorMessage(err));
+                if (typeof result === "string") console.error(result);
                 return {
                     message: "Partial success: Review and fix failed entries.",
                 };
@@ -121,21 +124,17 @@ async function insertShipping(shipping: IShipping) {
 }
 
 async function sendFailedEntries(failedEntries: TFailedEntry[], email: string) {
-    try {
-        const sheet = await generateExcelSheet(
-            CollectionNames.Shippings,
-            failedEntries
-        );
-        const workbook = generateExcelFile([sheet]);
-        const text = `Dear user,\n\nYou have requested to add shippings to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+    const sheet = await generateExcelSheet(
+        CollectionNames.Shippings,
+        failedEntries
+    );
+    const workbook = generateExcelFile([sheet]);
+    const text = `Dear user,\n\nYou have requested to add shippings to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
 
-        const mailInfo = {
-            to: [email],
-            text,
-            data: workbook,
-        };
-        await exportDataViaMail(mailInfo, contextRules.failedEntries);
-    } catch (err) {
-        console.error(err);
-    }
+    const mailInfo = {
+        to: [email],
+        text,
+        data: workbook,
+    };
+    await exportDataViaMail(mailInfo, contextRules.failedEntries);
 }
