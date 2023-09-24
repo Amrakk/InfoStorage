@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { verifiedProcedure } from "../../../trpc.js";
 import { deleteRefToken } from "../../../middlewares/tokenHandlers.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 
 export const signout = verifiedProcedure.mutation(async ({ ctx }) => {
     try {

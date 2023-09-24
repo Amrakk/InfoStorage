@@ -1,16 +1,16 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { verifiedProcedure } from "../../trpc.js";
+import { contextRules } from "../../middlewares/mailHandlers/settings.js";
 import { CollectionNames, rolePermissions } from "../../configs/default.js";
 import { getDataFromDB } from "../../middlewares/collectionHandlers/dataHandlers.js";
-import { exportDataViaMail } from "../../middlewares/mailHandlers.ts/sendDataViaMail.js";
-import { getErrorMessage } from "../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { exportDataViaMail } from "../../middlewares/mailHandlers/sendDataViaMail.js";
+import { getErrorMessage } from "../../middlewares/errorHandlers/getErrorMessage.js";
 import {
     TSheet,
     generateExcelFile,
     generateExcelSheet,
 } from "../../middlewares/excelHandlers/excelGenerators.js";
-import { contextRules } from "../../middlewares/mailHandlers.ts/settings.js";
 
 const inputSchema = z.object({
     type: z.nativeEnum(CollectionNames),

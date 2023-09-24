@@ -2,7 +2,6 @@ import database from "../database/db.js";
 import { CollectionNames } from "../configs/default.js";
 import { getCurrentTime } from "./utils/getCurrentTime.js";
 import IImporLog from "../interfaces/collections/importLogs.js";
-import { getErrorMessage } from "./errorHandlers.ts/getErrorMessage.js";
 
 export async function saveImportLog(
     userID: string,

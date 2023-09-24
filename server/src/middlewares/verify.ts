@@ -6,7 +6,7 @@ import { TRPCError } from "@trpc/server";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 import { getUserByID } from "./collectionHandlers/userHandlers.js";
-import { getErrorMessage } from "./errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "./errorHandlers/getErrorMessage.js";
 import {
     setRateLimit,
     isLimitRateExceeded,

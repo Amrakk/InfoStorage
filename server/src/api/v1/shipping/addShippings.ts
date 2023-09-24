@@ -8,9 +8,9 @@ import { CollectionNames } from "../../../configs/default.js";
 import IShipping from "../../../interfaces/collections/shipping.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
 import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
-import { contextRules } from "../../../middlewares/mailHandlers.ts/settings.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
-import { exportDataViaMail } from "../../../middlewares/mailHandlers.ts/sendDataViaMail.js";
+import { contextRules } from "../../../middlewares/mailHandlers/settings.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
+import { exportDataViaMail } from "../../../middlewares/mailHandlers/sendDataViaMail.js";
 import { getShippingByName } from "../../../middlewares/collectionHandlers/shippingHandlers.js";
 import {
     generateExcelFile,

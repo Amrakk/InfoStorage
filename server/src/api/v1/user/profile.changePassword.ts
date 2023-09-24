@@ -6,14 +6,14 @@ import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
 import IUser from "../../../interfaces/collections/user.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 
 const inputSchema = z.object({
     oldPass: z.string().regex(userRegex.password),
     newPass: z.string().regex(userRegex.password),
 });
 
-export const resetPassword = employeeProcedure
+export const changePassword = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ ctx, input }) => {
         const { _id, password } = ctx.user;
@@ -32,7 +32,7 @@ export const resetPassword = employeeProcedure
             const result = await updatePassword(_id, hashedPassword);
             if (typeof result === "string") throw new Error(result);
 
-            return { message: "Reset password successfully!" };
+            return { message: "Change password successfully!" };
         } catch (err) {
             if (err instanceof TRPCError) throw err;
             throw new TRPCError({

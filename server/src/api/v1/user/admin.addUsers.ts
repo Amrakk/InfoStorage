@@ -8,10 +8,10 @@ import { userRegex } from "../../../configs/regex.js";
 import IUser from "../../../interfaces/collections/user.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
 import { CollectionNames, UserRoles } from "../../../configs/default.js";
-import { contextRules } from "../../../middlewares/mailHandlers.ts/settings.js";
+import { contextRules } from "../../../middlewares/mailHandlers/settings.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
-import { exportDataViaMail } from "../../../middlewares/mailHandlers.ts/sendDataViaMail.js";
+import { exportDataViaMail } from "../../../middlewares/mailHandlers/sendDataViaMail.js";
 import {
     generateExcelFile,
     generateExcelSheet,

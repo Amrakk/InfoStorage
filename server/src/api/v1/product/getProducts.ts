@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { employeeProcedure } from "../../../trpc.js";
 import { ProductCategories } from "../../../configs/default.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getProductsFromDB } from "../../../middlewares/collectionHandlers/productHandlers.js";
 
 const categoryFilterShema = z.object({

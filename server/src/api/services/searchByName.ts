@@ -2,11 +2,10 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { verifiedProcedure } from "../../trpc.js";
 import { subjectRegex } from "../../configs/regex.js";
-import { rolePermissions } from "../../configs/default.js";
-import { CollectionNames } from "../../configs/default.js";
+import { rolePermissions, CollectionNames } from "../../configs/default.js";
 import { toLowerNonAccentVietnamese } from "../../middlewares/utils/textHandler.js";
 import { getDataFromDB } from "../../middlewares/collectionHandlers/dataHandlers.js";
-import { getErrorMessage } from "../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "../../middlewares/errorHandlers/getErrorMessage.js";
 
 const inputSchema = z.object({
     type: z.nativeEnum(CollectionNames),

@@ -6,9 +6,9 @@ import { employeeProcedure } from "../../../trpc.js";
 import { productRegex } from "../../../configs/regex.js";
 import IProduct from "../../../interfaces/collections/product.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
-import { contextRules } from "../../../middlewares/mailHandlers.ts/settings.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
-import { exportDataViaMail } from "../../../middlewares/mailHandlers.ts/sendDataViaMail.js";
+import { contextRules } from "../../../middlewares/mailHandlers/settings.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
+import { exportDataViaMail } from "../../../middlewares/mailHandlers/sendDataViaMail.js";
 import { getProductByName } from "../../../middlewares/collectionHandlers/productHandlers.js";
 import {
     CollectionNames,

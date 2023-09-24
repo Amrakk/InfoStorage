@@ -3,8 +3,8 @@ import bcrypt from "bcrypt";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
 import {
     setAccToken,
     setRefToken,
@@ -31,9 +31,10 @@ export const signin = publicProcedure
             setAccToken(user._id, ctx.res);
             await setRefToken(user._id, ctx.res);
 
+            const { password: _, ...info } = user;
             return {
                 message: "Signin successfully",
-                user: { name: user.name, role: user.role },
+                user: { ...info },
             };
         } catch (err) {
             if (err instanceof TRPCError) throw err;

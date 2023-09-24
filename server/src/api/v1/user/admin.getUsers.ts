@@ -2,8 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { adminProcedure } from "../../../trpc.js";
 import { UserRoles } from "../../../configs/default.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getUsersFromDB } from "../../../middlewares/collectionHandlers/userHandlers.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
 
 const roleFilterSchema = z.object({
     role: z.nativeEnum(UserRoles),

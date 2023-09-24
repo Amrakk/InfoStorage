@@ -2,15 +2,15 @@ import { z } from "zod";
 import { ObjectId } from "mongodb";
 import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
-import { employeeProcedure } from "../../../trpc.js";
 import { taxRegex } from "../../../configs/regex.js";
+import { employeeProcedure } from "../../../trpc.js";
 import ITax from "../../../interfaces/collections/tax.js";
 import { CollectionNames } from "../../../configs/default.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
 import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
-import { contextRules } from "../../../middlewares/mailHandlers.ts/settings.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
-import { exportDataViaMail } from "../../../middlewares/mailHandlers.ts/sendDataViaMail.js";
+import { contextRules } from "../../../middlewares/mailHandlers/settings.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
+import { exportDataViaMail } from "../../../middlewares/mailHandlers/sendDataViaMail.js";
 import {
     getTaxByName,
     getTaxByEmail,

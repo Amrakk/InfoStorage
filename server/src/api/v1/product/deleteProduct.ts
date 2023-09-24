@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { employeeProcedure } from "../../../trpc.js";
 import IProduct from "../../../interfaces/collections/product.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 
 export const deleteProduct = employeeProcedure
     .input(z.object({ id: z.string() }))

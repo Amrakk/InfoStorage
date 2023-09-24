@@ -6,7 +6,7 @@ import { employeeProcedure } from "../../../trpc.js";
 import { productRegex } from "../../../configs/regex.js";
 import { ProductCategories } from "../../../configs/default.js";
 import IProduct from "../../../interfaces/collections/product.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getProductByName } from "../../../middlewares/collectionHandlers/productHandlers.js";
 
 const inputSchema = z.object({

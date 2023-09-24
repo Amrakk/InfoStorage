@@ -4,7 +4,7 @@ import { TRPCError } from "@trpc/server";
 import database from "../../../database/db.js";
 import { adminProcedure } from "../../../trpc.js";
 import IUser from "../../../interfaces/collections/user.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 
 export const deleteUser = adminProcedure
     .input(z.object({ id: z.string() }))

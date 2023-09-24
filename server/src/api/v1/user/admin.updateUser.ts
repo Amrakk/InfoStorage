@@ -7,8 +7,8 @@ import { adminProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
 import { UserRoles } from "../../../configs/default.js";
 import IUser from "../../../interfaces/collections/user.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
 
 const inputSchema = z.object({
     id: z.string(),

@@ -3,7 +3,7 @@ import { addUsers } from "../../api/v1/user/admin.addUsers.js";
 import { getUsers } from "../../api/v1/user/admin.getUsers.js";
 import { updateUser } from "../../api/v1/user/admin.updateUser.js";
 import { deleteUser } from "../../api/v1/user/admin.deleteUser.js";
-import { resetPassword } from "../../api/v1/user/profile.resetPassword.js";
+import { changePassword } from "../../api/v1/user/profile.changePassword.js";
 
 export const userRouter = router({
     /**
@@ -31,8 +31,8 @@ export const userRouter = router({
     deleteUser,
 
     /**
-     * @name resetPassword
-     * Use by user to reset their password
+     * @name changePassword
+     * Use by user to change their password
      */
-    resetPassword,
+    changePassword,
 });

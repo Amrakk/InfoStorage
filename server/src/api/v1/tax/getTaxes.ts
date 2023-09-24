@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { employeeProcedure } from "../../../trpc.js";
 import { getTaxesFromDB } from "../../../middlewares/collectionHandlers/taxHandlers.js";
-import { getErrorMessage } from "../../../middlewares/errorHandlers.ts/getErrorMessage.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import {
     addressFilter,
     addressFilterShema,

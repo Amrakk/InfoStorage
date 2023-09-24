@@ -1,6 +1,6 @@
 import database from "../../database/db.js";
-import { TAddressFilter } from "../filterHandlers/address.js";
 import ITax from "../../interfaces/collections/tax.js";
+import { TAddressFilter } from "../filterHandlers/address.js";
 
 export async function getTaxesFromDB(filter?: TAddressFilter) {
     const db = database.getDB();
