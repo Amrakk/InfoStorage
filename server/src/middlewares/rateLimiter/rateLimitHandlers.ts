@@ -15,8 +15,6 @@ export async function isLimitRateExceeded(ip: string) {
     const redis = cache.getCache();
     let result = await redis.get(`RPM-${ip}`);
     if (!result) result = (await setRateLimit(ip, false)).toString();
-    if (result === "INTERNAL_SERVER_ERROR")
-        throw new Error("Set rate limit failed");
 
     return Number(result) > Number(process.env.RATE_LIMIT_MAX);
 }
