@@ -1,5 +1,5 @@
 import { trpc } from "../trpc";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 const passwordRegex = new RegExp(/^[a-zA-Z0-9]+$/m);
 
@@ -54,8 +54,8 @@ export default function Account() {
 		
 		if(passwordWarning !== "" || newPasswordWarning !== "" || confirmPasswordWarning !== "") return;
 		trpc.user.changePassword.mutate({oldPass: password.value, newPass: newPassword.value}).then((res) => {
-			alert(res);
-		});
+			alert(res.message);
+		}).catch((err) => { alert(err.message) });
 	}
   
   return (<>
