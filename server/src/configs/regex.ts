@@ -1,4 +1,4 @@
-export const phoneRegex = new RegExp("^[+0-9]*$", "m");
+export const phoneRegex = new RegExp(/^[+0-9]*$/m);
 export const humanNameRegex = new RegExp(/^[\p{L}\s|_'.]+$/mu);
 export const subjectRegex = new RegExp(/^[^\p{C}<>&`"/]*$/mu);
 export const addressRegex = new RegExp(/^[\p{L}0-9 \\/,.;+-,;]+$/mu);

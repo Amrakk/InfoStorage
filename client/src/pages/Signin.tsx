@@ -13,7 +13,7 @@ const isBlinking = {
 
 function Warning({ message }: { message: string | undefined }) {
   return (
-    <div className="absolute text-red-500 mt-1 right-1">
+    <div className="absolute text-accent1 mt-1 right-1">
       <p>{message}</p>
     </div>
   );
@@ -30,6 +30,10 @@ export default function Signin() {
     try {
       const user = await trpc.auth.signin.mutate({ email, password });
       localStorage.setItem("username", user.user.name);
+      localStorage.setItem("email", user.user.email);
+      localStorage.setItem("phone", user.user.phone);
+      localStorage.setItem("role", user.user.role);
+
       navigate("/dashboard");
     } catch (err) {
       alert((err as TRPCError).message);
@@ -43,13 +47,13 @@ export default function Signin() {
     if (password.value === "") {
       const password = document.getElementById("password") as HTMLInputElement;
       password.classList.remove("focus:border-[#6AAFC7]", "focus:border");
-      password.classList.add("border-red-500");
+      password.classList.add("border-accent1");
       setPasswordWarning("Required");
     }
     if (email.value === "") {
       const email = document.getElementById("email") as HTMLInputElement;
       email.classList.remove("focus:border-[#6AAFC7]", "focus:border");
-      email.classList.add("border-red-500");
+      email.classList.add("border-accent1");
       setEmailWarning("Required");
     }
     handleLogin();
@@ -64,15 +68,15 @@ export default function Signin() {
     );
 
     if (emailValue !== "" && !emailValid) {
-      emailInput.classList.add("border-red-500");
+      emailInput.classList.add("border-accent1");
       emailInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
       setEmailWarning("Invalid email");
     } else if (emailValue === "") {
-      emailInput.classList.add("border-red-500");
+      emailInput.classList.add("border-accent1");
       emailInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
       setEmailWarning("Required");
     } else {
-      emailInput.classList.remove("border-red-500");
+      emailInput.classList.remove("border-accent1");
       emailInput.classList.add("focus:border-[#6AAFC7]", "focus:border");
       setEmailWarning("");
     }
@@ -84,17 +88,17 @@ export default function Signin() {
     const passwordInput = e.target as HTMLInputElement;
 
     // if (passwordValue !== "" && passwordValue.length < 8) {
-    //   passwordInput.classList.add("border-red-500");
+    //   passwordInput.classList.add("border-accent1");
     //   passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
     //   setPasswordWarning("The password is too short");
     // } else
     if (passwordValue === "") {
-      passwordInput.classList.add("border-red-500");
+      passwordInput.classList.add("border-accent1");
       passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
       setPasswordWarning("Required");
     }
     // else if (passwordValue.length >= 8) {
-    //   passwordInput.classList.remove("border-red-500");
+    //   passwordInput.classList.remove("border-accent1");
     //   passwordInput.classList.add("focus:border-[#6AAFC7]", "focus:border");
     //   setPasswordWarning("");
     // }
@@ -106,7 +110,7 @@ export default function Signin() {
     ) as HTMLInputElement;
 
     if (emailAndPassword.value === "") {
-      emailAndPassword.classList.add("border-red-500");
+      emailAndPassword.classList.add("border-accent1");
       emailAndPassword.classList.remove(
         "focus:border-[#6AAFC7]",
         "focus:border"
@@ -180,7 +184,7 @@ export default function Signin() {
           </button>
 
           <Link
-            to="/home"
+            to="/forgotpassword"
             className="flex justify-center mt-7 hover:text-[#5e7563]"
           >
             Quên mật khẩu?

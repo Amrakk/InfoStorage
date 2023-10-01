@@ -23,7 +23,7 @@ export default function InputField({
   };
   function Warning({ message }: { message: string | undefined }) {
     return (
-      <div className="absolute text-red-500 mt-1 right-1">
+      <div className="absolute text-accent1 mt-1 right-1">
         <p>{message}</p>
       </div>
     );
@@ -39,9 +39,9 @@ export default function InputField({
         id={id}
         placeholder={`Nhập ${placeholder.toLowerCase()}`}
         className={`border ${
-          isInvalid ? "border-red-500" : "[#415245]"
+          isInvalid ? "border-accent1" : "[#415245]"
         } w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border ${
-          isInvalid ? "border-red-500" : "[#6AAFC7]"
+          isInvalid ? "border-accent1" : "[#6AAFC7]"
         } bg-white rounded-md`}
         value={value}
         onChange={onChange}

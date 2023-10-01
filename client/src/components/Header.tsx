@@ -7,14 +7,31 @@ import { BsFillPeopleFill } from "react-icons/bs";
 import { RiInboxFill } from "react-icons/ri";
 import { LuBuilding } from "react-icons/lu";
 import { FiArrowUpRight } from "react-icons/fi";
+
 export default function Header() {
   const [showAccount, setShowAccount] = useState(false);
   const [username, setUsername] = useState("");
   const location = useLocation();
   const navigate = useNavigate();
-
+  const iconRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (iconRef.current && !iconRef.current.contains(event.target as Node)) {
+        // Click occurred outside of the element, so close it
+        setShowAccount(false);
+      }
+    }
+
+    // Add the event listener when the component mounts
+    document.addEventListener("click", handleClickOutside);
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
   useEffect(() => {
     const arrIcon = [
       "/dashboard",
@@ -33,6 +50,14 @@ export default function Header() {
     const username = localStorage.getItem("username");
     setUsername(username || "");
   }, []);
+
+  async function handleAccount() {
+    try {
+      navigate("/account");
+    } catch (err) {
+      alert((err as TRPCError).message);
+    }
+  }
 
   async function handleSignOut() {
     try {
@@ -115,8 +140,9 @@ export default function Header() {
         </div>
         <div className="relative cursor-pointer">
           <div
+            ref={iconRef}
             onClick={() => {
-              setShowAccount(!showAccount);
+              setShowAccount(true);
             }}
             className="flex gap-4 items-center"
           >
@@ -129,8 +155,8 @@ export default function Header() {
               id="boxAccount"
               className="absolute right-0 top-10 bg-white border  rounded-md shadow-aesthetic py-4 px-5 flex-col gap-1 z-10 "
             >
-              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                <div>Profile</div>
+              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out" onClick={handleAccount}>
+                <div>Account</div>
                 <FiArrowUpRight />
               </div>
               <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">

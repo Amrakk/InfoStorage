@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
 import {
     setAccToken,
@@ -14,36 +15,32 @@ const inputSchema = z.object({
     password: z.string().regex(userRegex.password),
 });
 
-const generalErr = new TRPCError({
-    code: "BAD_REQUEST",
-    message: "Invalid credentials",
-});
-
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal server error",
-});
-
 export const signin = publicProcedure
     .input(inputSchema)
     .mutation(async ({ ctx, input }) => {
         const { email, password } = input;
 
-        const user = await getUserByEmail(email);
-        if (!user) throw generalErr;
-        if (user === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (!(await bcrypt.compare(password, user.password))) throw generalErr;
+        try {
+            const user = await getUserByEmail(email);
+            if (!user || !(await bcrypt.compare(password, user.password)))
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Invalid credentials",
+                });
 
-        const isSet =
-            setAccToken(user._id, ctx.res) &&
-            (await setRefToken(user._id, ctx.res));
-        if (!isSet) throw internalErr;
+            setAccToken(user._id, ctx.res);
+            await setRefToken(user._id, ctx.res);
 
-        return {
-            message: "Signin successfully",
-            user: {
-                name: user.name,
-                role: user.role,
-            },
-        };
+            const { password: _, ...info } = user;
+            return {
+                message: "Signin successfully",
+                user: { ...info },
+            };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
+            });
+        }
     });

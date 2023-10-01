@@ -7,6 +7,8 @@ import Home from "./pages/Home.tsx";
 import Shipping from "./pages/Shipping.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Header from "./components/Header.tsx";
+import Account from "./pages/Account.tsx";
+import Forgotpassword from "./pages/Forgotpassword.tsx";
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 function App() {
@@ -20,6 +22,7 @@ function App() {
   }, []);
 
   const arrRoutes = [
+    "/account",
     "/dashboard",
     "/customer",
     "/shipping",
@@ -32,11 +35,13 @@ function App() {
         <Routes>
           <Route path="/signin" element={<Signin />} />
           <Route path="*" element={<Notfound />} />
+          <Route path="/forgotpassword" element={<Forgotpassword />} />
         </Routes>
       ) : (
         <>
           <Header />
           <Routes>
+            <Route path="/account" element={<Account />} />
             <Route path="/home" element={<Home />} />
             <Route path="/shipping" element={<Shipping />} />
             <Route path="/dashboard" element={<Dashboard />} />

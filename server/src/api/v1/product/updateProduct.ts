@@ -6,6 +6,7 @@ import { employeeProcedure } from "../../../trpc.js";
 import { productRegex } from "../../../configs/regex.js";
 import { ProductCategories } from "../../../configs/default.js";
 import IProduct from "../../../interfaces/collections/product.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getProductByName } from "../../../middlewares/collectionHandlers/productHandlers.js";
 
 const inputSchema = z.object({
@@ -17,51 +18,49 @@ const inputSchema = z.object({
     suppliers: z.array(z.string()),
 });
 
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal Server Error",
-});
-
 export const updateProduct = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
         const { id, ...product } = input;
 
-        const isNameExist = await getProductByName(product.name);
-        if (isNameExist === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (isNameExist && isNameExist._id.toString() !== id)
-            throw new TRPCError({
-                code: "CONFLICT",
-                message: "Product already exists",
+        try {
+            const isNameExist = await getProductByName(product.name);
+            if (isNameExist && isNameExist._id.toString() !== id)
+                throw new TRPCError({
+                    code: "CONFLICT",
+                    message: "Product already exists",
+                });
+
+            const isDuplicate = product.suppliers.some((supplier, index) => {
+                return product.suppliers.indexOf(supplier) !== index;
             });
+            if (isDuplicate)
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Supplier already exists",
+                });
 
-        const isDuplicate = product.suppliers.some((supplier, index) => {
-            return product.suppliers.indexOf(supplier) !== index;
-        });
-        if (isDuplicate)
+            const result = await updateProductInfo(id, product);
+            if (typeof result === "string") throw new Error(result);
+
+            return { message: "Update product successfully!" };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
             throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Supplier already exists",
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
             });
-
-        const result = await updateProductInfo(id, product);
-        if (!result) throw internalErr;
-
-        return { message: "Update successfully" };
+        }
     });
 
 async function updateProductInfo(id: string, product: IProduct) {
-    try {
-        const db = database.getDB();
-        const products = db.collection<IProduct>("products");
+    const db = database.getDB();
+    const products = db.collection<IProduct>("products");
 
-        const result = await products.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: product }
-        );
+    const result = await products.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: product }
+    );
 
-        return result.acknowledged;
-    } catch (err) {
-        return false;
-    }
+    return result.acknowledged ? true : "Failed while updating product";
 }

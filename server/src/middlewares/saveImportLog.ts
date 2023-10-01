@@ -8,21 +8,17 @@ export async function saveImportLog(
     importedData: string[],
     collection: CollectionNames
 ) {
-    try {
-        const db = database.getDB();
-        const importLogs = db.collection<IImporLog>("importLogs");
-        const date = getCurrentTime();
+    const db = database.getDB();
+    const importLogs = db.collection<IImporLog>("importLogs");
+    const date = getCurrentTime();
 
-        const log: IImporLog = {
-            userID,
-            date,
-            collection,
-            importedData,
-        };
+    const log: IImporLog = {
+        userID,
+        date,
+        collection,
+        importedData,
+    };
 
-        const result = await importLogs.insertOne(log);
-        return result.acknowledged ? true : "INTERNAL_SERVER_ERROR";
-    } catch (err) {
-        return "INTERNAL_SERVER_ERROR";
-    }
+    const result = await importLogs.insertOne(log);
+    return result.acknowledged ? true : "Failed while saving import log";
 }
