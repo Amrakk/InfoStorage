@@ -22,27 +22,30 @@ export default function Account() {
 		const passwordValue = e.target.value;
 		const name = e.target.name;
 		
+		passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border", "border-primary");
+		passwordInput.classList.add("border-accent1");
+
 		let warning = "";
-		if (passwordValue === "") {
-			passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
-			passwordInput.classList.add("border-accent1");
-			warning = "Required";
-		}
-		else if(passwordValue.match(passwordRegex) === null) {
-			passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border");
-			passwordInput.classList.add("border-accent1");
-			warning = "Password only include a-z, A-Z, 0-9";
-		}
+		if (passwordValue === "") { warning = "Required"; }
+		else if(passwordValue.match(passwordRegex) === null) { warning = "Password only include a-z, A-Z, 0-9"; }
 		else {
 			passwordInput.classList.remove("border-accent1");
-			passwordInput.classList.add("focus:border-[#6AAFC7]", "focus:border");
+			passwordInput.classList.add("focus:border-[#6AAFC7]", "focus:border", "border-primary");
 		}
 		
 		if(name === "password") return setPasswordWarning(warning);
 		else if(name === "newPassword") return setNewPasswordWarning(warning);
 		else {
-			if (warning === "" && passwordValue !== (document.getElementById("newPassword") as HTMLInputElement)?.value) 
+			if (warning === "" && passwordValue !== (document.getElementById("newPassword") as HTMLInputElement)?.value) {
+				passwordInput.classList.remove("focus:border-[#6AAFC7]", "focus:border", "border-primary");
+				passwordInput.classList.add("border-accent1");
 				warning = "Confirm password not match";
+			}
+			else {
+				passwordInput.classList.remove("border-accent1");
+				passwordInput.classList.add("focus:border-[#6AAFC7]", "focus:border", "border-primary");
+			} 
+
 			return setConfirmPasswordWarning(warning);
 		};
 	}

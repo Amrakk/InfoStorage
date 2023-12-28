@@ -6,9 +6,6 @@ const redis = new Redis(url, { lazyConnect: true });
 const init = async () => {
     try {
         await redis.connect();
-        setInterval(() => {
-            redis.ping();
-        }, 1000 * 60 * 5);
 
         console.log("Cache connected");
     } catch (err) {
