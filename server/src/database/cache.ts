@@ -6,7 +6,6 @@ const redis = new Redis(url, { lazyConnect: true });
 const init = async () => {
     try {
         await redis.connect();
-
         console.log("Cache connected");
     } catch (err) {
         console.log(err);
