@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { Response } from "express";
 import { middleware } from "../trpc.js";
 import cache from "../database/cache.js";
+import database from "../database/db.js";
 import { TRPCError } from "@trpc/server";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
@@ -23,10 +24,12 @@ export const verify = (roles?: string[]) =>
         const { accToken, refToken } = ctx.req.cookies;
 
         try {
+            if (await isBanned(ip)) throw new TRPCError({ code: "FORBIDDEN" });
+            await setRateLimit(ip);
+
             const isLimitExceeded = await isLimitRateExceeded(ip);
             if (isLimitExceeded)
                 throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-            else await setRateLimit(ip, true);
 
             if (!accToken) throw unauthErr;
             let userID: string;
@@ -88,4 +91,9 @@ function clearCookie(res: Response) {
     res.clearCookie("accToken");
     res.clearCookie("refToken");
     return unauthErr;
+}
+
+async function isBanned(ip: string) {
+    const db = database.getDB();
+    return await db.collection("bannedIPs").findOne({ ip });
 }
