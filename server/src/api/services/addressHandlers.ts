@@ -1,22 +1,22 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { employeeProcedure } from "../../trpc.js";
+import { getErrorMessage } from "../../middlewares/errorHandlers/getErrorMessage.js";
 import {
     getUnitsInfo,
     searchUnitCode,
 } from "../../middlewares/utils/addressHandlers.js";
 
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal server error",
-});
-
 export const getProvinces = employeeProcedure.query(async () => {
-    const data = await getUnitsInfo("province");
-
-    if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
-
-    return data;
+    try {
+        const data = await getUnitsInfo("province");
+        return data;
+    } catch (err) {
+        throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: getErrorMessage(err),
+        });
+    }
 });
 
 export const getDistricts = employeeProcedure
@@ -24,10 +24,15 @@ export const getDistricts = employeeProcedure
     .query(async ({ input }) => {
         const { provCode } = input;
 
-        const data = await getUnitsInfo("district", provCode);
-        if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
-
-        return data;
+        try {
+            const data = await getUnitsInfo("district", provCode);
+            return data;
+        } catch (err) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
+            });
+        }
     });
 
 export const getWards = employeeProcedure
@@ -35,10 +40,15 @@ export const getWards = employeeProcedure
     .query(async ({ input }) => {
         const { distCode } = input;
 
-        const data = await getUnitsInfo("ward", distCode);
-        if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
-
-        return data;
+        try {
+            const data = await getUnitsInfo("ward", distCode);
+            return data;
+        } catch (err) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
+            });
+        }
     });
 
 export const getUnitCode = employeeProcedure
@@ -51,8 +61,13 @@ export const getUnitCode = employeeProcedure
     .query(async ({ input }) => {
         const { name, type } = input;
 
-        const data = await searchUnitCode(name, type);
-        if (data === "INTERNAL_SERVER_ERROR") throw internalErr;
-
-        return data;
+        try {
+            const data = await searchUnitCode(name, type);
+            return data;
+        } catch (err) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
+            });
+        }
     });

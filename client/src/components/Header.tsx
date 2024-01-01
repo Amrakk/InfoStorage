@@ -7,6 +7,7 @@ import { BsFillPeopleFill } from "react-icons/bs";
 import { RiInboxFill } from "react-icons/ri";
 import { LuBuilding } from "react-icons/lu";
 import { FiArrowUpRight } from "react-icons/fi";
+
 export default function Header() {
   const [showAccount, setShowAccount] = useState(false);
   const [username, setUsername] = useState("");
@@ -49,6 +50,14 @@ export default function Header() {
     const username = localStorage.getItem("username");
     setUsername(username || "");
   }, []);
+
+  async function handleAccount() {
+    try {
+      navigate("/account");
+    } catch (err) {
+      alert((err as TRPCError).message);
+    }
+  }
 
   async function handleSignOut() {
     try {
@@ -146,8 +155,8 @@ export default function Header() {
               id="boxAccount"
               className="absolute right-0 top-10 bg-white border  rounded-md shadow-aesthetic py-4 px-5 flex-col gap-1 z-10 "
             >
-              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                <div>Profile</div>
+              <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out" onClick={handleAccount}>
+                <div>Account</div>
                 <FiArrowUpRight />
               </div>
               <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">

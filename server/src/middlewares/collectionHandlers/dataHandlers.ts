@@ -5,69 +5,53 @@ import * as Collections from "../../interfaces/collections/index.js";
 
 export async function getDataFromDB(
     type: CollectionNames
-): Promise<Collections.TCollections[]> {
+): Promise<Collections.TIDCollections[]>;
+export async function getDataFromDB(
+    type: CollectionNames,
+    dataIDs: string[]
+): Promise<Collections.TIDCollections[]>;
+export async function getDataFromDB(
+    type: CollectionNames,
+    dataIDs?: string[]
+): Promise<Collections.TIDCollections[]> {
     const db = database.getDB();
 
-    if (type === "Taxes")
-        return await db.collection<Collections.ITax>("taxes").find().toArray();
-    if (type === "Users")
-        return await db.collection<Collections.IUser>("users").find().toArray();
-    if (type === "Products")
-        return await db
-            .collection<Collections.IProduct>("products")
-            .find()
-            .toArray();
-    if (type === "Customers")
-        return await db
-            .collection<Collections.ICustomer>("customers")
-            .find()
-            .toArray();
-    if (type === "Shippings")
-        return await db
-            .collection<Collections.IShipping>("shippings")
-            .find()
-            .toArray();
-    if (type === "Suppliers")
-        return await db
-            .collection<Collections.ISupplier>("suppliers")
-            .find()
-            .toArray();
-    throw new Error("INVALID_TYPE");
-}
-
-export async function getDataByID(type: CollectionNames, dataIDs: string[]) {
-    const db = database.getDB();
-    const ids = dataIDs.map((id) => new ObjectId(id));
+    let filter = {};
+    let ids: ObjectId[] = [];
+    if (dataIDs) {
+        ids = dataIDs.map((id) => new ObjectId(id));
+        filter = { _id: { $in: ids } };
+    }
 
     if (type === "Taxes")
         return await db
             .collection<Collections.ITax>("taxes")
-            .find({ _id: { $in: ids } })
+            .find(filter)
             .toArray();
     if (type === "Users")
         return await db
             .collection<Collections.IUser>("users")
-            .find({ _id: { $in: ids } })
+            .find(filter)
             .toArray();
     if (type === "Products")
         return await db
             .collection<Collections.IProduct>("products")
-            .find({ _id: { $in: ids } })
+            .find(filter)
             .toArray();
     if (type === "Customers")
         return await db
             .collection<Collections.ICustomer>("customers")
-            .find({ _id: { $in: ids } })
+            .find(filter)
             .toArray();
     if (type === "Shippings")
         return await db
             .collection<Collections.IShipping>("shippings")
-            .find({ _id: { $in: ids } })
+            .find(filter)
             .toArray();
     if (type === "Suppliers")
         return await db
             .collection<Collections.ISupplier>("suppliers")
-            .find({ _id: { $in: ids } })
+            .find(filter)
             .toArray();
-    throw new Error("INVALID_TYPE");
+    throw new Error("Invalid type");
 }

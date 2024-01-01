@@ -30,6 +30,10 @@ export default function Signin() {
     try {
       const user = await trpc.auth.signin.mutate({ email, password });
       localStorage.setItem("username", user.user.name);
+      localStorage.setItem("email", user.user.email);
+      localStorage.setItem("phone", user.user.phone);
+      localStorage.setItem("role", user.user.role);
+
       navigate("/dashboard");
     } catch (err) {
       alert((err as TRPCError).message);

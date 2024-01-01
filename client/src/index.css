@@ -12,6 +12,10 @@
     font-family: "Lalezar", Verdana, Geneva, Tahoma, sans-serif;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    cursor: default;
+}
+
 @layer components {
     .container {
         @apply px-2 md:px-5 xl:px-0 xl:w-[1500px] xl:mx-auto;

@@ -1,23 +1,20 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { verifiedProcedure } from "../../trpc.js";
+import { contextRules } from "../../middlewares/mailHandlers/settings.js";
 import { CollectionNames, rolePermissions } from "../../configs/default.js";
-import { getDataByID } from "../../middlewares/collectionHandlers/dataHandlers.js";
+import { getDataFromDB } from "../../middlewares/collectionHandlers/dataHandlers.js";
+import { exportDataViaMail } from "../../middlewares/mailHandlers/sendDataViaMail.js";
+import { getErrorMessage } from "../../middlewares/errorHandlers/getErrorMessage.js";
 import {
     TSheet,
     generateExcelFile,
     generateExcelSheet,
 } from "../../middlewares/excelHandlers/excelGenerators.js";
-import { sendDataViaMail } from "../../middlewares/mailHandlers.ts/sendDataViaMail.js";
 
 const inputSchema = z.object({
     type: z.nativeEnum(CollectionNames),
     dataIDs: z.array(z.string()).optional(),
-});
-
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Failed to send email",
 });
 
 export const exportData = verifiedProcedure
@@ -26,33 +23,36 @@ export const exportData = verifiedProcedure
         const { user } = ctx;
         const { type, dataIDs } = input;
 
-        if (!rolePermissions[user.role].includes(type))
+        try {
+            if (!rolePermissions[user.role].includes(type))
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message:
+                        "You don't have permission to access this resource",
+                });
+
+            let sheet: TSheet;
+            if (dataIDs) {
+                const data = await getDataFromDB(type, dataIDs);
+                sheet = await generateExcelSheet(type, data);
+            } else sheet = await generateExcelSheet(type);
+
+            const workbook = generateExcelFile([sheet]);
+            const text = `Dear user,\n\nYou have requested to export data from InfoStorage included ${type}.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+
+            const mailInfo = {
+                to: [user.email],
+                text,
+                data: workbook,
+            };
+            await exportDataViaMail(mailInfo, contextRules.export);
+
+            return { message: "File exported via email successfully" };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
             throw new TRPCError({
-                code: "FORBIDDEN",
-                message: "You don't have permission to access this resource",
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
             });
-
-        let sheet: TSheet | false;
-        if (dataIDs) {
-            const data = await getDataByID(type, dataIDs);
-            sheet = await generateExcelSheet(type, data);
-            if (!sheet) throw internalErr;
-        } else {
-            sheet = await generateExcelSheet(type);
-            if (!sheet) throw internalErr;
         }
-
-        const workbook = await generateExcelFile([sheet]);
-        if (!workbook) throw internalErr;
-
-        const mailInfo = {
-            to: [user.email],
-            types: [type],
-            data: workbook,
-        };
-
-        const result = await sendDataViaMail(mailInfo);
-        if (!result) throw internalErr;
-
-        return { message: "File exported via email successfully" };
     });

@@ -1,4 +1,4 @@
-export function getCurrentTime(format?: "DD/MM/YYYY") {
+export function getCurrentTime(format?: "ddMMyy") {
     const timestamp = new Date();
     const date = new Date(
         timestamp.getTime() + 7 * 60 * 60 * 1000
@@ -16,6 +16,6 @@ export function getCurrentTime(format?: "DD/MM/YYYY") {
     const [month, day, year, time] = date.split(/\/|, |: /);
     const [hour, minute, second] = time.split(" ");
 
-    if (format === "DD/MM/YYYY") return `${day}/${month}/${year}`;
+    if (format === "ddMMyy") return `${day}${month}${year}`;
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 }

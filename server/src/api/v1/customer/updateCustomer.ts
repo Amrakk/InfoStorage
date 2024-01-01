@@ -6,6 +6,7 @@ import { employeeProcedure } from "../../../trpc.js";
 import { customerRegex } from "../../../configs/regex.js";
 import ICustomer from "../../../interfaces/collections/customer.js";
 import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import {
     getCustomerByName,
     getCustomerByEmail,
@@ -25,62 +26,49 @@ const inputSchema = z.object({
     note: z.string().regex(customerRegex.note),
 });
 
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal Server Error",
-});
-
 export const updateCustomer = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
         const { provCode, distCode, wardCode, id, ...customer } = input;
 
-        const isNameExist = await getCustomerByName(customer.name);
-        const isEmailExist = await getCustomerByEmail(customer.email);
-        if (
-            isNameExist === "INTERNAL_SERVER_ERROR" ||
-            isEmailExist === "INTERNAL_SERVER_ERROR"
-        )
-            throw internalErr;
-        if (
-            (isNameExist && isNameExist._id.toString() !== id) ||
-            (isEmailExist && isEmailExist._id.toString() !== id)
-        )
+        try {
+            const isNameExist = await getCustomerByName(customer.name);
+            const isEmailExist = await getCustomerByEmail(customer.email);
+            if (
+                (isNameExist && isNameExist._id.toString() !== id) ||
+                (isEmailExist && isEmailExist._id.toString() !== id)
+            )
+                throw new TRPCError({
+                    code: "CONFLICT",
+                    message: "Customer already exists",
+                });
+
+            const ward = await getUnitName(wardCode, "ward");
+            const district = await getUnitName(distCode, "district");
+            const province = await getUnitName(provCode, "province");
+            customer.address = `${customer.address}, ${ward}, ${district}, ${province}`;
+
+            const result = await updateCustomerInfo(id, customer);
+            if (typeof result === "string") throw new Error(result);
+
+            return { message: "Update customer successfully!" };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
             throw new TRPCError({
-                code: "CONFLICT",
-                message: "Customer already exists",
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
             });
-
-        const province = await getUnitName(provCode, "province");
-        const district = await getUnitName(distCode, "district");
-        const ward = await getUnitName(wardCode, "ward");
-        if (
-            province === "INTERNAL_SERVER_ERROR" ||
-            district === "INTERNAL_SERVER_ERROR" ||
-            ward === "INTERNAL_SERVER_ERROR"
-        )
-            throw internalErr;
-
-        customer.address = `${customer.address}, ${ward}, ${district}, ${province}`;
-
-        const result = await updateCustomerInfo(id, customer);
-        if (!result) throw internalErr;
-
-        return { message: "Update successfully" };
+        }
     });
 
 async function updateCustomerInfo(id: string, customer: ICustomer) {
-    try {
-        const db = database.getDB();
-        const customers = db.collection<ICustomer>("customers");
+    const db = database.getDB();
+    const customers = db.collection<ICustomer>("customers");
 
-        const result = await customers.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: customer }
-        );
+    const result = await customers.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: customer }
+    );
 
-        return result.acknowledged;
-    } catch (err) {
-        return false;
-    }
+    return result.acknowledged ? true : "Failed while updating customer";
 }

@@ -7,11 +7,21 @@ import IShipping from "./shipping.js";
 import ISupplier from "./supplier.js";
 
 export type TCollections =
+    | ITax
+    | IUser
+    | IProduct
+    | ICustomer
+    | IShipping
+    | ISupplier;
+
+export type TIDCollections =
     | WithId<ITax>
     | WithId<IUser>
     | WithId<IProduct>
     | WithId<ICustomer>
     | WithId<IShipping>
     | WithId<ISupplier>;
+
+export type TErrCollections = TCollections & { error: string; _id?: undefined };
 
 export { ICustomer, IProduct, IShipping, ISupplier, ITax, IUser };

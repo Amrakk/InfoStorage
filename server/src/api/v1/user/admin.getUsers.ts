@@ -2,10 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { adminProcedure } from "../../../trpc.js";
 import { UserRoles } from "../../../configs/default.js";
-import {
-    getUsersFromDB,
-    TRoleFilter,
-} from "../../../middlewares/collectionHandlers/userHandlers.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
+import { getUsersFromDB } from "../../../middlewares/collectionHandlers/userHandlers.js";
 
 const roleFilterSchema = z.object({
     role: z.nativeEnum(UserRoles),
@@ -20,12 +18,16 @@ export const getUsers = adminProcedure
     .query(async ({ input }) => {
         const { role } = input?.filter ?? {};
 
-        let filter: TRoleFilter | undefined = undefined;
+        let filter = undefined;
         if (role) filter = { role: { $regex: role } };
 
-        const users = await getUsersFromDB(filter);
-        if (users === "INTERNAL_SERVER_ERROR")
-            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-
-        return users.map(({ password, ...user }) => user);
+        try {
+            const users = await getUsersFromDB(filter);
+            return users.map(({ password, ...user }) => user);
+        } catch (err) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
+            });
+        }
     });

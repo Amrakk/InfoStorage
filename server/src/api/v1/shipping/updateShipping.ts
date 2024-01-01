@@ -6,6 +6,7 @@ import { employeeProcedure } from "../../../trpc.js";
 import { shippingRegex } from "../../../configs/regex.js";
 import IShipping from "../../../interfaces/collections/shipping.js";
 import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
+import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getShippingByName } from "../../../middlewares/collectionHandlers/shippingHandlers.js";
 
 const inputSchema = z.object({
@@ -19,54 +20,45 @@ const inputSchema = z.object({
     note: z.string().regex(shippingRegex.note),
 });
 
-const internalErr = new TRPCError({
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Internal server error",
-});
-
 export const updateShipping = employeeProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
         const { provCode, distCode, wardCode, id, ...shipping } = input;
 
-        const isNameExist = await getShippingByName(shipping.name);
-        if (isNameExist === "INTERNAL_SERVER_ERROR") throw internalErr;
-        if (isNameExist && isNameExist._id.toString() !== id)
+        try {
+            const isNameExist = await getShippingByName(shipping.name);
+            if (isNameExist && isNameExist._id.toString() !== id)
+                throw new TRPCError({
+                    code: "CONFLICT",
+                    message: "Shipping already exists",
+                });
+
+            const ward = await getUnitName(wardCode, "ward");
+            const district = await getUnitName(distCode, "district");
+            const province = await getUnitName(provCode, "province");
+            shipping.address = `${shipping.address}, ${ward}, ${district}, ${province}`;
+
+            const result = await updateShippingInfo(id, shipping);
+            if (typeof result === "string") throw new Error(result);
+
+            return { message: "Update shipping successfully!" };
+        } catch (err) {
+            if (err instanceof TRPCError) throw err;
             throw new TRPCError({
-                code: "CONFLICT",
-                message: "Shipping already exists",
+                code: "INTERNAL_SERVER_ERROR",
+                message: getErrorMessage(err),
             });
-
-        const province = await getUnitName(provCode, "province");
-        const district = await getUnitName(distCode, "district");
-        const ward = await getUnitName(wardCode, "ward");
-        if (
-            province === "INTERNAL_SERVER_ERROR" ||
-            district === "INTERNAL_SERVER_ERROR" ||
-            ward === "INTERNAL_SERVER_ERROR"
-        )
-            throw internalErr;
-
-        shipping.address = `${shipping.address}, ${ward}, ${district}, ${province}`;
-
-        const result = await updateShippingInfo(id, shipping);
-        if (!result) throw internalErr;
-
-        return { message: "Update successfully!" };
+        }
     });
 
 async function updateShippingInfo(id: string, shipping: IShipping) {
-    try {
-        const db = database.getDB();
-        const shippings = db.collection<IShipping>("shippings");
+    const db = database.getDB();
+    const shippings = db.collection<IShipping>("shippings");
 
-        const result = await shippings.updateOne(
-            { _id: new ObjectId(id) },
-            { $set: shipping }
-        );
+    const result = await shippings.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: shipping }
+    );
 
-        return result.acknowledged;
-    } catch (err) {
-        return false;
-    }
+    return result.acknowledged ? true : "Failed while updating shipping";
 }
