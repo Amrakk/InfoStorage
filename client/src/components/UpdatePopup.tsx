@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoClose } from "react-icons/io5";
 import { AiFillEdit } from "react-icons/ai";
-
 import { trpc, type TProvince, type TDistrict, type TWard } from "../trpc";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -65,6 +64,45 @@ const inputStyle = {
 };
 
 export default function AddPopup(props: TProps) {
+    const [shouldRender, setShouldRender] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (props.isShown) {
+            setShouldRender(true);
+        }
+    }, [props.isShown]);
+
+    function handleAnimationEnd() {
+        if (!props.isShown) {
+            setShouldRender(false);
+        }
+    }
+    //"C30 Thành Thái, Phường 14, Quận 10, Thành phố Hồ Chí Minh".split(",").map((e) => e.trim()).reverse()
+
+    return shouldRender ? (
+        <>
+            <Content
+                getShippings={props.getShippings}
+                isShown={props.isShown}
+                onCancel={props.onCancel}
+                inputValue={props.inputValue}
+                handleAnimationEnd={handleAnimationEnd}
+            />
+        </>
+    ) : null;
+}
+
+type TPropsContent = {
+    getShippings: () => void;
+    isShown: boolean;
+    onCancel: () => void;
+    inputValue: {
+        [key: string]: string | null | undefined;
+    };
+    handleAnimationEnd: () => void;
+};
+
+function Content(props: TPropsContent) {
     const [provinces, setProvinces] = useState<TProvince>([]);
     const [districts, setDistricts] = useState<TDistrict>([]);
     const [wards, setWards] = useState<TWard>([]);
@@ -82,7 +120,10 @@ export default function AddPopup(props: TProps) {
         resolver: zodResolver(inputSchema),
         mode: "onChange",
     });
-    const [shouldRender, setShouldRender] = useState<boolean>(false);
+
+    useEffect(() => {
+        return () => reset();
+    }, []);
 
     if (Object.keys(errors).length > 0) {
         console.log(errors);
@@ -113,11 +154,6 @@ export default function AddPopup(props: TProps) {
             typeof props.inputValue["address" as string] == "string" &&
             props.inputValue["address" as string]!.length > 0
         ) {
-            // console.log(
-            //   props.inputValue["address" as string]!.split(",")
-            //     .map((e) => e.trim())
-            //     .reverse()
-            // );
             const [province, district, ward, ...address] = props.inputValue[
                 "address" as string
             ]!.split(",")
@@ -151,31 +187,13 @@ export default function AddPopup(props: TProps) {
                     setValue("wardCode", wards[0].code.toString());
                 });
         }
+    }, []);
 
-        if (props.isShown) {
-            setShouldRender(true);
-        }
-    }, [props.isShown]);
-
-    function handleAnimationEnd() {
-        if (!props.isShown) {
-            setShouldRender(false);
-            reset();
-        }
-    }
-    //"C30 Thành Thái, Phường 14, Quận 10, Thành phố Hồ Chí Minh".split(",").map((e) => e.trim()).reverse()
     useEffect(() => {
-        // trpc.service.getUnitCode
-        //   .query({ name: "Hồ", type: "province" })
-        //   .then((res) => {
-        //     console.log(res);
-        //   })
-        //   .catch((err) => {
-        //     console.log(err.message);
-        //   });
         trpc.service.getProvinces.query().then((res) => {
             setProvinces(res);
         });
+        console.log("update");
     }, []);
 
     const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -230,13 +248,13 @@ export default function AddPopup(props: TProps) {
         }, 1000);
     };
 
-    return shouldRender ? (
+    return (
         <>
             <div
                 className={`justify-center mt-24 fixed inset-0 z-50 select-none ${
                     props.isShown ? "animationPopup" : "animationPopout"
                 } `}
-                onAnimationEnd={handleAnimationEnd}
+                onAnimationEnd={props.handleAnimationEnd}
             >
                 <div className="relative w-1/4  mx-auto">
                     {/*content*/}
@@ -262,126 +280,143 @@ export default function AddPopup(props: TProps) {
                         </div>
                         {/*body*/}
                         <div className="relative px-5 flex-auto text-lg text-primary font-semibold">
-                            <form onSubmit={handleSubmit(onSubmit)}>
-                                {/* Ten Don Vi */}
+                            {provinces.length == 0 ||
+                            districts.length == 0 ||
+                            wards.length == 0 ? (
+                                <div className="animate-pulse">
+                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
+                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
+                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
+                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
+                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
+                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
+                                    <div className="h-[160px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
+                                    <div className="flex items-center justify-end mb-6 mt-8 border-slate-200  gap-4 font-semibold">
+                                        <div className="h-[52px] bg-gray-200 rounded-md dark:bg-gray-400 w-32 py-3"></div>
+                                        <div className="h-[52px] bg-gray-200 rounded-md dark:bg-gray-400 w-32 py-3"></div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleSubmit(onSubmit)}>
+                                    {/* Ten Don Vi */}
 
-                                <Input
-                                    {...register("name", { required: true })}
-                                    label="Tên Đơn Vị"
-                                    error={errors.name?.message}
-                                    curValue={getValues("name")}
-                                    onClick={() => {
-                                        // console.log(props.inputValue["address" as string]);
-                                    }}
-                                />
+                                    <Input
+                                        {...register("name", {
+                                            required: true,
+                                        })}
+                                        label="Tên Đơn Vị"
+                                        error={errors.name?.message}
+                                        curValue={getValues("name")}
+                                    />
 
-                                {/* Dia Chi */}
-                                <Input
-                                    {...register("address")}
-                                    label="Địa Chỉ"
-                                    error={errors.address?.message}
-                                    curValue={getValues("address")}
-                                />
+                                    {/* Dia Chi */}
+                                    <Input
+                                        {...register("address")}
+                                        label="Địa Chỉ"
+                                        error={errors.address?.message}
+                                        curValue={getValues("address")}
+                                    />
 
-                                {/* Thanh Pho */}
+                                    {/* Thanh Pho */}
 
-                                <Select
-                                    {...register("provinceCode", {
-                                        onChange: getDistricts,
-                                    })}
-                                    data={provinces}
-                                    label="Tỉnh/Thành"
-                                    placeholder="Chọn Tỉnh/Thành"
-                                ></Select>
+                                    <Select
+                                        {...register("provinceCode", {
+                                            onChange: getDistricts,
+                                        })}
+                                        data={provinces}
+                                        label="Tỉnh/Thành"
+                                        placeholder="Chọn Tỉnh/Thành"
+                                    ></Select>
 
-                                {/* Quan */}
-                                <Select
-                                    {...register("districtCode", {
-                                        onChange: getWards,
-                                    })}
-                                    data={districts}
-                                    label="Quận/Huyện"
-                                    placeholder="Chọn Quận/Huyện"
-                                    className={`${
-                                        !getValues("provinceCode")
-                                            ? "pointer-events-none"
-                                            : "pointer-events-auto"
-                                    }`}
-                                ></Select>
+                                    {/* Quan */}
+                                    <Select
+                                        {...register("districtCode", {
+                                            onChange: getWards,
+                                        })}
+                                        data={districts}
+                                        label="Quận/Huyện"
+                                        placeholder="Chọn Quận/Huyện"
+                                        className={`${
+                                            !getValues("provinceCode")
+                                                ? "pointer-events-none"
+                                                : "pointer-events-auto"
+                                        }`}
+                                    ></Select>
 
-                                {/* Phuong */}
-                                <Select
-                                    {...register("wardCode")}
-                                    data={wards}
-                                    label="Xã/Phường"
-                                    placeholder="Chọn Xã/Phường"
-                                    className={`${
-                                        !getValues("districtCode")
-                                            ? "pointer-events-none"
-                                            : "pointer-events-auto"
-                                    }`}
-                                ></Select>
+                                    {/* Phuong */}
+                                    <Select
+                                        {...register("wardCode")}
+                                        data={wards}
+                                        label="Xã/Phường"
+                                        placeholder="Chọn Xã/Phường"
+                                        className={`${
+                                            !getValues("districtCode")
+                                                ? "pointer-events-none"
+                                                : "pointer-events-auto"
+                                        }`}
+                                    ></Select>
 
-                                {/* So Dien Thoai */}
-                                <Input
-                                    {...register("phone")}
-                                    label="Số Điện Thoại"
-                                    error={errors.phone?.message}
-                                    curValue={getValues("phone")}
-                                />
+                                    {/* So Dien Thoai */}
+                                    <Input
+                                        {...register("phone")}
+                                        label="Số Điện Thoại"
+                                        error={errors.phone?.message}
+                                        curValue={getValues("phone")}
+                                    />
 
-                                {/* Ghi Chu */}
-                                <Textarea
-                                    {...register("note")}
-                                    label="Ghi Chú"
-                                    curValue={getValues("note")}
-                                />
+                                    {/* Ghi Chu */}
+                                    <Textarea
+                                        {...register("note")}
+                                        label="Ghi Chú"
+                                        curValue={getValues("note")}
+                                    />
 
-                                {/*footer*/}
-                                <div className="flex items-center justify-end my-6 border-slate-200  gap-4 font-semibold">
-                                    <button
-                                        type="button"
-                                        className="w-32 py-3 bg-gray-300 hover:bg-gray-200 transition-colors  text-primary rounded-md"
-                                        onClick={() => {
-                                            props.onCancel();
-                                        }}
-                                    >
-                                        Hủy
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        ref={refButton}
-                                        className="w-32 bg-second hover:bg-[#92cadf] transition-colors  text-white rounded-md  h-[52px] overflow-hidden"
-                                    >
-                                        <div
-                                            className="h-full transition-transform duration-300"
-                                            style={{
-                                                transform: loading
-                                                    ? "translateY(-5px)"
-                                                    : "translateY(-52px)",
+                                    {/*footer*/}
+                                    <div className="flex items-center justify-end my-6 border-slate-200  gap-4 font-semibold">
+                                        <button
+                                            type="button"
+                                            className="w-32 py-3 bg-gray-300 hover:bg-gray-200 transition-colors  text-primary rounded-md"
+                                            onClick={() => {
+                                                props.onCancel();
                                             }}
                                         >
-                                            <div className="h-full flex justify-center items-center gap-3">
-                                                {loading && (
-                                                    <>
-                                                        <div className="w-2 aspect-square bg-white rounded-full animate-updown1"></div>
-                                                        <div className="w-2 aspect-square bg-white rounded-full animate-updown2"></div>
-                                                        <div className="w-2 aspect-square bg-white rounded-full animate-updown3"></div>
-                                                    </>
-                                                )}
+                                            Hủy
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            ref={refButton}
+                                            className="w-32 bg-second hover:bg-[#92cadf] transition-colors  text-white rounded-md  h-[52px] overflow-hidden"
+                                        >
+                                            <div
+                                                className="h-full transition-transform duration-300"
+                                                style={{
+                                                    transform: loading
+                                                        ? "translateY(-5px)"
+                                                        : "translateY(-52px)",
+                                                }}
+                                            >
+                                                <div className="h-full flex justify-center items-center gap-3">
+                                                    {loading && (
+                                                        <>
+                                                            <div className="w-2 aspect-square bg-white rounded-full animate-updown1"></div>
+                                                            <div className="w-2 aspect-square bg-white rounded-full animate-updown2"></div>
+                                                            <div className="w-2 aspect-square bg-white rounded-full animate-updown3"></div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="h-full flex justify-center items-center">
+                                                    Cập Nhật
+                                                </div>
                                             </div>
-                                            <div className="h-full flex justify-center items-center">
-                                                Cập Nhật
-                                            </div>
-                                        </div>
-                                    </button>
-                                </div>
-                            </form>
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
             <div className="opacity-50 fixed inset-0 z-40 bg-black"></div>
         </>
-    ) : null;
+    );
 }

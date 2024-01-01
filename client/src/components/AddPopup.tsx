@@ -61,25 +61,6 @@ const inputStyle = {
 };
 
 export default function AddPopup(props: TProps) {
-    const [provinces, setProvinces] = useState<TProvince>([]);
-    const [districts, setDistricts] = useState<TDistrict>([]);
-    const [wards, setWards] = useState<TWard>([]);
-    const [loading, setLoading] = useState(false);
-
-    const refButton = useRef<HTMLButtonElement>(null);
-
-    const {
-        register,
-        setValue,
-        getValues,
-        handleSubmit,
-        reset,
-        formState: { errors },
-    } = useForm<TShipping>({
-        resolver: zodResolver(inputSchema),
-        mode: "onChange",
-    });
-
     const [shouldRender, setShouldRender] = useState<boolean>(false);
 
     useEffect(() => {
@@ -94,38 +75,45 @@ export default function AddPopup(props: TProps) {
         }
     }
 
+    return shouldRender ? (
+        <Content
+            getShippings={props.getShippings}
+            isShown={props.isShown}
+            onCancel={props.onCancel}
+            handleAnimationEnd={handleAnimationEnd}
+        />
+    ) : null;
+}
+
+type TPropsContent = {
+    getShippings: () => void;
+    isShown: boolean;
+    onCancel: () => void;
+    handleAnimationEnd: () => void;
+};
+
+function Content(props: TPropsContent) {
+    const [provinces, setProvinces] = useState<TProvince>([]);
+    const [districts, setDistricts] = useState<TDistrict>([]);
+    const [wards, setWards] = useState<TWard>([]);
+    const [loading, setLoading] = useState(false);
+    const {
+        register,
+        setValue,
+        getValues,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<TShipping>({
+        resolver: zodResolver(inputSchema),
+        mode: "onChange",
+    });
+
     useEffect(() => {
         trpc.service.getProvinces.query().then((res) => {
             setProvinces(res);
         });
     }, []);
-
-    const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getDistricts
-            .query({ provCode: parseInt(e.target.value) })
-            .then((res) => {
-                setDistricts(res);
-            });
-        let current = getValues("provinceCode");
-        current = current == "" ? -1 : current;
-        if (current != -1) {
-            setValue("districtCode", "");
-            setValue("wardCode", "");
-        }
-    };
-
-    const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getWards
-            .query({ distCode: parseInt(e.target.value) })
-            .then((res) => {
-                setWards(res);
-            });
-        let current = getValues("districtCode");
-        current = current == "" ? -1 : current;
-        if (current != -1) {
-            setValue("wardCode", "");
-        }
-    };
 
     const onSubmit = (data: TShipping) => {
         setLoading(true);
@@ -157,13 +145,42 @@ export default function AddPopup(props: TProps) {
         }, 1000);
     };
 
-    return shouldRender ? (
+    const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        trpc.service.getDistricts
+            .query({ provCode: parseInt(e.target.value) })
+            .then((res) => {
+                setDistricts(res);
+            });
+        let current = getValues("provinceCode");
+        current = current == "" ? -1 : current;
+        if (current != -1) {
+            setValue("districtCode", "");
+            setValue("wardCode", "");
+        }
+    };
+
+    const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        trpc.service.getWards
+            .query({ distCode: parseInt(e.target.value) })
+            .then((res) => {
+                setWards(res);
+            });
+        let current = getValues("districtCode");
+        current = current == "" ? -1 : current;
+        if (current != -1) {
+            setValue("wardCode", "");
+        }
+    };
+
+    const refButton = useRef<HTMLButtonElement>(null);
+
+    return (
         <>
             <div
                 className={`justify-center mt-24 fixed inset-0 z-50 select-none ${
                     props.isShown ? "animationPopup" : "animationPopout"
                 } `}
-                onAnimationEnd={handleAnimationEnd}
+                onAnimationEnd={props.handleAnimationEnd}
             >
                 <div className="relative w-1/4  mx-auto">
                     {/*content*/}
@@ -306,5 +323,5 @@ export default function AddPopup(props: TProps) {
             </div>
             <div className="opacity-50 fixed inset-0 z-40 bg-black"></div>
         </>
-    ) : null;
+    );
 }
