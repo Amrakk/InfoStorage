@@ -1,5 +1,7 @@
 import { ObjectId } from "mongodb";
-import { Response } from "express";
+import type { Response, Request } from "express";
+import type { ParamsDictionary, Query } from "express-serve-static-core";
+import { IncomingMessage } from "http";
 import { middleware } from "../trpc.js";
 import cache from "../database/cache.js";
 import database from "../database/db.js";
@@ -18,9 +20,26 @@ const unauthErr = new TRPCError({
     message: "Invalid token",
 });
 
+type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
+
+function isREQ(req: Request | IncomingMessage): req is REQ {
+    return (req as IncomingMessage).socket === undefined;
+}
+
 export const verify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
-        const { ip } = ctx.req;
+        var ip;
+        if (!isREQ(ctx.req)) {
+            ip = ctx.req.socket.remoteAddress;
+            console.log(ctx);
+
+            console.log(ip);
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        }
+
+        const req = ctx.req as REQ;
+        const res = ctx.res as Response;
+        ip = ctx.req.ip;
         const { accToken, refToken } = ctx.req.cookies;
 
         try {
@@ -38,9 +57,9 @@ export const verify = (roles?: string[]) =>
                 accToken,
                 process.env.ACCESS_SECRET_KEY!
             );
-            if (!accPayload) throw clearCookie(ctx.res);
+            if (!accPayload) throw clearCookie(res);
             if (accPayload === "expired") {
-                if (!refToken) throw clearCookie(ctx.res);
+                if (!refToken) throw clearCookie(res);
                 const refPayload = verifyToken(
                     refToken,
                     process.env.REFRESH_SECRET_KEY!
@@ -51,9 +70,9 @@ export const verify = (roles?: string[]) =>
                     refPayload === "expired" ||
                     !(await verifyRefPayload(refPayload, refToken))
                 )
-                    throw clearCookie(ctx.res);
+                    throw clearCookie(res);
 
-                setAccToken(new ObjectId(refPayload.id), ctx.res);
+                setAccToken(new ObjectId(refPayload.id), res);
 
                 userID = refPayload.id;
             } else userID = accPayload.id;
@@ -67,9 +86,7 @@ export const verify = (roles?: string[]) =>
                         "You don't have permission to access this resource",
                 });
 
-            return next({
-                ctx: { ...ctx, user },
-            });
+            return next({ ctx: { ...ctx, user } });
         } catch (err) {
             if (err instanceof TRPCError) throw err;
             throw new TRPCError({

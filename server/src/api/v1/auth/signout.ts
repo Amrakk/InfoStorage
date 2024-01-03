@@ -5,8 +5,8 @@ import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMess
 
 export const signout = verifiedProcedure.mutation(async ({ ctx }) => {
     try {
-        ctx.res.clearCookie("accToken");
-        ctx.res.clearCookie("refToken");
+        // ctx.res.clearCookie("accToken");
+        // ctx.res.clearCookie("refToken");
         await deleteRefToken(ctx.user._id);
 
         return { message: "Signout successfully" };

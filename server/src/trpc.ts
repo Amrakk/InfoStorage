@@ -1,12 +1,19 @@
+import ws from "ws";
 import { ZodError } from "zod";
 import { ObjectId } from "mongodb";
+import { IncomingMessage } from "http";
 import { initTRPC } from "@trpc/server";
 import { verify } from "./middlewares/verify.js";
 import IUser from "./interfaces/collections/user.js";
 import type { inferAsyncReturnType } from "@trpc/server";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
 
-export async function createContext(opts: CreateExpressContextOptions) {
+export async function createContext(
+    opts:
+        | CreateExpressContextOptions
+        | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>
+) {
     return {
         req: opts.req,
         res: opts.res,
@@ -43,6 +50,7 @@ export const middleware = t.middleware;
 export const publicProcedure = t.procedure;
 
 // Protected procedures
+export const wssProcedure = t.procedure.use(verify());
 export const verifiedProcedure = t.procedure.use(verify());
 export const adminProcedure = t.procedure.use(verify(["admin"]));
 export const managerProcedure = t.procedure.use(verify(["admin", "manager"]));
