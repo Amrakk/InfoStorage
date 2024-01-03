@@ -31,7 +31,7 @@ export default function Dashboard() {
     return (
         <div className="container lg:mt-8 mt-4">
             <h1 className="text-3xl font-semibold">Dashboard</h1>
-            <div className="grid grid-cols-3 lg:mt-8 mt-4 lg:gap-8 gap-4">
+            <div className="lg:grid grid-cols-3 lg:mt-8 mt-4 lg:gap-8 gap-4">
                 <div className="col-span-2">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                         {!customers || !shippings || !products || !suppliers ? (
