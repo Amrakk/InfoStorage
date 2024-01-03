@@ -10,7 +10,7 @@ type TProps = {
 export default function Search(props: TProps) {
     return (
         <>
-            <div className="flex mt-8 gap-5 h-10">
+            <div className="lg:flex lg:mt-8 mt-4 gap-5 h-10 hidden">
                 <div className="group flex-1 ">
                     <div className="h-full  group-focus-within:border-[#6AAFC7] transition-colors group-focus:border flex border border-primary items-center px-1 gap-2 rounded-md">
                         <AiOutlineSearch
