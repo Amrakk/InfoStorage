@@ -153,7 +153,7 @@ export default function Shipping() {
                 {/* Sao chép thành công */}
             </canvas>
 
-            <div className="container text-primary">
+            <div className="container text-primary mx-auto">
                 <PageActionHub handleAddPopUp={handleAddPopUp} title="Shipping" />
 
                 <Search handleSearch={handleSearch} />
