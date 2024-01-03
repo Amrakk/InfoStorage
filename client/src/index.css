@@ -182,3 +182,23 @@ input:-webkit-autofill:focus {
 .stt:hover ~ td {
     background-color: rgba(156, 163, 175, 0.5);
 }
+
+
+#invitation-card {
+    animation: pop 0.3s ease-in-out;
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

@@ -1,6 +1,6 @@
 export default function RoomInvitation() {
     return (
-        <div className="rounded-md overflow-hidden shadow-md lg:mt-0 mt-4">
+        <div className="rounded-md overflow-hidden shadow-md lg:mt-0 mt-4" id="invitation-card">
             <div className="bg-second py-2 px-4">
                 <h2 className="text-xl text-white font-semibold">Lời mời</h2>
             </div>
