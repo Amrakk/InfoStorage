@@ -79,181 +79,183 @@ export default function Header() {
 
     return (
         <header className=" border-b border-b-gray-300 text-primary select-none">
-            <div className="container h-24 lg:flex justify-between items-center hidden">
-                <div className="flex gap-10 h-full items-center">
-                    <h1 id="ifs" className="text-3xl cursor-pointer font-semibold">
-                        IFS
-                    </h1>
-                    <div className="flex gap-10 h-full font-semibold relative ">
-                        <Link
-                            to="/dashboard"
-                            id="dashboard"
-                            className={`icon cursor-pointer ${
-                                location.pathname === "/dashboard" ? "text-primary brightness-100" : ""
-                            }`}
-                        >
-                            <AiOutlineDashboard size={24} />
-                            <div>Dashboard</div>
-                        </Link>
-                        <Link
-                            to="/customer"
-                            className={`icon cursor-pointer ${
-                                location.pathname === "/customer" ? "text-primary brightness-100" : ""
-                            }`}
-                        >
-                            <BsFillPeopleFill size={24} />
-                            <div>Customer</div>
-                        </Link>
-                        <Link
-                            className={`icon cursor-pointer ${
-                                location.pathname === "/shipping" ? "text-primary brightness-100" : ""
-                            }`}
-                            to="/shipping"
-                        >
-                            <FaTruck size={24} />
-                            <div>Shipping</div>
-                        </Link>
-                        <Link
-                            to="/product"
-                            className={`icon cursor-pointer ${
-                                location.pathname === "/product" ? "text-primary brightness-100" : ""
-                            }`}
-                        >
-                            <RiInboxFill size={24} />
-                            <div>Product</div>
-                        </Link>
-                        <Link
-                            to="/supplier"
-                            className={`icon cursor-pointer ${
-                                location.pathname === "/supplier" ? "text-primary brightness-100" : ""
-                            }`}
-                        >
-                            <LuBuilding size={24} />
-                            <div>Supplier</div>
-                        </Link>
-                        <div
-                            className="absolute left-0 bottom-0 h-[2px] w-20 bg-primary transition-[left] duration-[250ms] "
-                            ref={barRef}
-                        ></div>
+            <div className="relative container mx-auto">
+                <div className=" h-24 lg:flex justify-between items-center hidden">
+                    <div className="flex gap-10 h-full items-center">
+                        <h1 id="ifs" className="text-3xl cursor-pointer font-semibold">
+                            IFS
+                        </h1>
+                        <div className="flex gap-10 h-full font-semibold relative ">
+                            <Link
+                                to="/dashboard"
+                                id="dashboard"
+                                className={`icon cursor-pointer ${
+                                    location.pathname === "/dashboard" ? "text-primary brightness-100" : ""
+                                }`}
+                            >
+                                <AiOutlineDashboard size={24} />
+                                <div>Dashboard</div>
+                            </Link>
+                            <Link
+                                to="/customer"
+                                className={`icon cursor-pointer ${
+                                    location.pathname === "/customer" ? "text-primary brightness-100" : ""
+                                }`}
+                            >
+                                <BsFillPeopleFill size={24} />
+                                <div>Customer</div>
+                            </Link>
+                            <Link
+                                className={`icon cursor-pointer ${
+                                    location.pathname === "/shipping" ? "text-primary brightness-100" : ""
+                                }`}
+                                to="/shipping"
+                            >
+                                <FaTruck size={24} />
+                                <div>Shipping</div>
+                            </Link>
+                            <Link
+                                to="/product"
+                                className={`icon cursor-pointer ${
+                                    location.pathname === "/product" ? "text-primary brightness-100" : ""
+                                }`}
+                            >
+                                <RiInboxFill size={24} />
+                                <div>Product</div>
+                            </Link>
+                            <Link
+                                to="/supplier"
+                                className={`icon cursor-pointer ${
+                                    location.pathname === "/supplier" ? "text-primary brightness-100" : ""
+                                }`}
+                            >
+                                <LuBuilding size={24} />
+                                <div>Supplier</div>
+                            </Link>
+                            <div
+                                className="absolute left-0 bottom-0 h-[2px] w-20 bg-primary transition-[left] duration-[250ms] "
+                                ref={barRef}
+                            ></div>
+                        </div>
                     </div>
-                </div>
-                <div className="relative cursor-pointer">
-                    <div
-                        ref={iconRef}
-                        onClick={() => {
-                            setShowAccount(true);
-                        }}
-                        className="flex gap-4 items-center"
-                    >
-                        <div>{username}</div>
-                        <FaUser size={24} />
-                    </div>
-                </div>
-            </div>
-            <div className="lg:hidden container h-24 flex justify-between items-center">
-                <h1 id="ifs" className="text-3xl cursor-pointer font-semibold">
-                    IFS
-                </h1>
-                <div
-                    ref={listRef}
-                    className="active:bg-gray-200 active:rounded-full active:duration-200 active:ease-in-out"
-                    onClick={() => {
-                        setShowOption(true);
-                    }}
-                >
-                    <BsList size={32} />
-                </div>
-
-                {showOption && (
-                    <div
-                        id="boxOption"
-                        className="absolute right-0 top-16 bg-white border  rounded-md shadow-aesthetic py-3 px-3 flex-col gap-1 z-10 "
-                    >
+                    <div className="relative cursor-pointer">
                         <div
-                            className="option"
-                            onClick={() => {
-                                handleNavigation("dashboard");
-                            }}
-                        >
-                            <div>Dashboard</div>
-                            <FiArrowUpRight />
-                        </div>
-                        <div
-                            className="option"
-                            onClick={() => {
-                                handleNavigation("customer");
-                            }}
-                        >
-                            <div>Customer</div>
-                            <FiArrowUpRight />
-                        </div>
-                        <div
-                            className="option"
-                            onClick={() => {
-                                handleNavigation("shipping");
-                            }}
-                        >
-                            <div>Shipping</div>
-                            <FiArrowUpRight />
-                        </div>
-                        <div
-                            className="option"
-                            onClick={() => {
-                                handleNavigation("product");
-                            }}
-                        >
-                            <div>Product</div>
-                            <FiArrowUpRight />
-                        </div>
-                        <div
-                            className="option"
-                            onClick={() => {
-                                handleNavigation("supplier");
-                            }}
-                        >
-                            <div>Supplier</div>
-                            <FiArrowUpRight />
-                        </div>
-                        <div
-                            ref={boxAccountRef}
-                            className="option"
+                            ref={iconRef}
                             onClick={() => {
                                 setShowAccount(true);
                             }}
+                            className="flex gap-4 items-center"
                         >
-                            <div>Profile</div>
+                            <div>{username}</div>
+                            <FaUser size={24} />
+                        </div>
+                    </div>
+                </div>
+                <div className="lg:hidden h-24 flex justify-between items-center mx-auto">
+                    <h1 id="ifs" className="text-3xl cursor-pointer font-semibold">
+                        IFS
+                    </h1>
+                    <div
+                        ref={listRef}
+                        className="active:bg-gray-200 active:rounded-full active:duration-200 active:ease-in-out"
+                        onClick={() => {
+                            setShowOption(true);
+                        }}
+                    >
+                        <BsList size={32} />
+                    </div>
+
+                    {showOption && (
+                        <div
+                            id="boxOption"
+                            className="absolute right-0 top-16 bg-white border  rounded-md shadow-aesthetic py-3 px-3 flex-col gap-1 z-10 "
+                        >
+                            <div
+                                className="option"
+                                onClick={() => {
+                                    handleNavigation("dashboard");
+                                }}
+                            >
+                                <div>Dashboard</div>
+                                <FiArrowUpRight />
+                            </div>
+                            <div
+                                className="option"
+                                onClick={() => {
+                                    handleNavigation("customer");
+                                }}
+                            >
+                                <div>Customer</div>
+                                <FiArrowUpRight />
+                            </div>
+                            <div
+                                className="option"
+                                onClick={() => {
+                                    handleNavigation("shipping");
+                                }}
+                            >
+                                <div>Shipping</div>
+                                <FiArrowUpRight />
+                            </div>
+                            <div
+                                className="option"
+                                onClick={() => {
+                                    handleNavigation("product");
+                                }}
+                            >
+                                <div>Product</div>
+                                <FiArrowUpRight />
+                            </div>
+                            <div
+                                className="option"
+                                onClick={() => {
+                                    handleNavigation("supplier");
+                                }}
+                            >
+                                <div>Supplier</div>
+                                <FiArrowUpRight />
+                            </div>
+                            <div
+                                ref={boxAccountRef}
+                                className="option"
+                                onClick={() => {
+                                    setShowAccount(true);
+                                }}
+                            >
+                                <div>Profile</div>
+                                <FiArrowUpRight />
+                            </div>
+                        </div>
+                    )}
+                </div>
+                {showAccount && (
+                    <div
+                        id="boxAccount"
+                        className="absolute lg:right-0 right-40 top-60 lg:top-16 bg-white border  rounded-md shadow-aesthetic py-4 lg:px-5 px-3 flex-col gap-1 z-10 "
+                    >
+                        <div
+                            className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out"
+                            onClick={() => {
+                                handleNavigation("account");
+                            }}
+                        >
+                            <div>Account</div>
+                            <FiArrowUpRight />
+                        </div>
+                        <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
+                            <div>Tax</div>
+                            <FiArrowUpRight />
+                        </div>
+                        <div
+                            className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out"
+                            onClick={handleSignOut}
+                        >
+                            <div>Sign Out</div>
                             <FiArrowUpRight />
                         </div>
                     </div>
                 )}
             </div>
-            {showAccount && (
-                <div
-                    id="boxAccount"
-                    className="absolute lg:right-52 right-40 top-60 lg:top-16 bg-white border  rounded-md shadow-aesthetic py-4 lg:px-5 px-3 flex-col gap-1 z-10 "
-                >
-                    <div
-                        className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out"
-                        onClick={() => {
-                            handleNavigation("account");
-                        }}
-                    >
-                        <div>Account</div>
-                        <FiArrowUpRight />
-                    </div>
-                    <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
-                        <div>Tax</div>
-                        <FiArrowUpRight />
-                    </div>
-                    <div
-                        className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out"
-                        onClick={handleSignOut}
-                    >
-                        <div>Sign Out</div>
-                        <FiArrowUpRight />
-                    </div>
-                </div>
-            )}
         </header>
     );
 }

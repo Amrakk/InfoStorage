@@ -45,6 +45,10 @@ export default function Table(props: TProps) {
                         {shippings.length == 0 ? (
                             <tr className="animate-pulse">
                                 <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
+                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
+                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
+                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
+                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
                             </tr>
                         ) : (
                             <>

@@ -23,7 +23,7 @@ h6 {
 
 @layer components {
     .container {
-        @apply px-2 md:px-5 xl:px-0 xl:w-[1500px] xl:mx-auto;
+        @apply px-2 md:px-5 xl:px-0 xl:w-[1500px] mx-auto;
     }
 
     .icon {
