@@ -154,7 +154,7 @@ export default function Shipping() {
             </canvas>
 
             <div className="container text-primary">
-                <PageActionHub handleAddPopUp={handleAddPopUp} />
+                <PageActionHub handleAddPopUp={handleAddPopUp} title="Shipping" />
 
                 <Search handleSearch={handleSearch} />
 
@@ -165,17 +165,9 @@ export default function Shipping() {
                 <Drag handleUpdatePopUp={handleUpdatePopUp} />
 
                 {isDeletePopupOpen && (
-                    <DeletePopup
-                        message={isDeletePopupOpen}
-                        _id={_id}
-                        getShippings={getShippings}
-                    />
+                    <DeletePopup message={isDeletePopupOpen} _id={_id} getShippings={getShippings} />
                 )}
-                <AddPopup
-                    getShippings={getShippings}
-                    isShown={isAddPopupOpen}
-                    onCancel={hideAddPopUp}
-                />
+                <AddPopup getShippings={getShippings} isShown={isAddPopupOpen} onCancel={hideAddPopUp} />
                 <UpdatePopup
                     getShippings={getShippings}
                     isShown={isUpdatePopupOpen}

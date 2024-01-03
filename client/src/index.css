@@ -12,7 +12,12 @@
     font-family: "Lalezar", Verdana, Geneva, Tahoma, sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     cursor: default;
 }
 
@@ -28,6 +33,10 @@ h1, h2, h3, h4, h5, h6 {
     .inputField {
         @apply border border-primary w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-second bg-white rounded-md;
     }
+
+    .option {
+        @apply flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out;
+    }
 }
 
 @keyframes fadeIn {
@@ -36,7 +45,18 @@ h1, h2, h3, h4, h5, h6 {
         opacity: 0;
     }
     to {
-        top: 40px;
+        top: 240px;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInBoxOption {
+    from {
+        top: 0;
+        opacity: 0;
+    }
+    to {
+        top: 64px;
         opacity: 1;
     }
 }
@@ -71,8 +91,20 @@ h1, h2, h3, h4, h5, h6 {
     animation: fadeOutPopup 0.3s ease-in-out forwards;
 }
 
-#boxAccount {
-    animation: fadeIn 0.3s ease-in-out;
+@media (max-width: 800px) {
+    #boxAccount {
+        animation: fadeIn 0.3s ease-in-out;
+    }
+}
+
+@media (min-width: 801px) {
+    #boxAccount {
+        animation: fadeInBoxOption 0.3s ease-in-out;
+    }
+}
+
+#boxOption {
+    animation: fadeInBoxOption 0.3s ease-in-out;
 }
 
 /* width */
