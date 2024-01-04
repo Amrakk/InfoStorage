@@ -1,7 +1,7 @@
 import React from "react";
 import { useShippingsStore } from "../stores/Shippings";
 import { useIconAppear } from "../stores/IconAppear";
-
+import TableSkeleton from "./TableSkeleton";
 const inputStyle = {
     caretColor: "transparent",
 };
@@ -18,7 +18,7 @@ export default function Table(props: TProps) {
         <>
             <div className="mt-8 h-[500px] overflow-auto">
                 <table
-                    className="w-[1280px] table-fixed relative border-separate text-left "
+                    className="w-[1500px] table-fixed relative border-separate text-left "
                     style={inputStyle}
                 >
                     <thead className="">
@@ -26,13 +26,13 @@ export default function Table(props: TProps) {
                             <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white w-[5%]">
                                 STT
                             </th>
-                            <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[20%]">
+                            <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[22%]">
                                 Tên Đơn Vị
                             </th>
-                            <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[28%]">
+                            <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[40%]">
                                 Địa Chỉ
                             </th>
-                            <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[12%]">
+                            <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[8%]">
                                 Số Điện Thoại
                             </th>
                             <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white ">
@@ -43,13 +43,7 @@ export default function Table(props: TProps) {
 
                     <tbody className="h-full">
                         {shippings.length == 0 ? (
-                            <tr className="animate-pulse">
-                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
-                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
-                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
-                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
-                                <td className="lg:h-[46px] h-8 bg-gray-200 rounded-md dark:bg-gray-400 w-full"></td>
-                            </tr>
+                            <TableSkeleton />
                         ) : (
                             <>
                                 {shippings.map((shipping, index) => {
