@@ -1,15 +1,15 @@
 import { ObjectId } from "mongodb";
-import type { Response, Request } from "express";
-import type { ParamsDictionary, Query } from "express-serve-static-core";
 import { IncomingMessage } from "http";
 import { middleware } from "../trpc.js";
 import cache from "../database/cache.js";
 import database from "../database/db.js";
 import { TRPCError } from "@trpc/server";
+import type { Response, Request } from "express";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 import { getUserByID } from "./collectionHandlers/userHandlers.js";
 import { getErrorMessage } from "./errorHandlers/getErrorMessage.js";
+import type { ParamsDictionary, Query } from "express-serve-static-core";
 import {
     setRateLimit,
     isLimitRateExceeded,
@@ -28,19 +28,14 @@ function isREQ(req: Request | IncomingMessage): req is REQ {
 
 export const verify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
-        var ip;
-        if (!isREQ(ctx.req)) {
-            ip = ctx.req.socket.remoteAddress;
-            console.log(ctx);
+        console.log(isREQ(ctx.req));
+        console.log(ctx.req);
+        if (!isREQ(ctx.req)) return next({ ctx });
 
-            console.log(ip);
-            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-        }
+        ctx.res = ctx.res as Response;
 
-        const req = ctx.req as REQ;
-        const res = ctx.res as Response;
-        ip = ctx.req.ip;
-        const { accToken, refToken } = ctx.req.cookies;
+        const { ip } = ctx.req as Request;
+        const { accToken, refToken } = (ctx.req as Request).cookies;
 
         try {
             if (await isBanned(ip)) throw new TRPCError({ code: "FORBIDDEN" });
@@ -57,9 +52,9 @@ export const verify = (roles?: string[]) =>
                 accToken,
                 process.env.ACCESS_SECRET_KEY!
             );
-            if (!accPayload) throw clearCookie(res);
+            if (!accPayload) throw clearCookie(ctx.res);
             if (accPayload === "expired") {
-                if (!refToken) throw clearCookie(res);
+                if (!refToken) throw clearCookie(ctx.res);
                 const refPayload = verifyToken(
                     refToken,
                     process.env.REFRESH_SECRET_KEY!
@@ -70,9 +65,9 @@ export const verify = (roles?: string[]) =>
                     refPayload === "expired" ||
                     !(await verifyRefPayload(refPayload, refToken))
                 )
-                    throw clearCookie(res);
+                    throw clearCookie(ctx.res);
 
-                setAccToken(new ObjectId(refPayload.id), res);
+                setAccToken(new ObjectId(refPayload.id), ctx.res);
 
                 userID = refPayload.id;
             } else userID = accPayload.id;
@@ -86,7 +81,13 @@ export const verify = (roles?: string[]) =>
                         "You don't have permission to access this resource",
                 });
 
-            return next({ ctx: { ...ctx, user } });
+            return next({
+                ctx: {
+                    req: ctx.req as Request,
+                    res: ctx.res as Response,
+                    user,
+                },
+            });
         } catch (err) {
             if (err instanceof TRPCError) throw err;
             throw new TRPCError({

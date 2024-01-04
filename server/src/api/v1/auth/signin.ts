@@ -1,5 +1,6 @@
 import { z } from "zod";
 import bcrypt from "bcrypt";
+import type { Response } from "express";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
@@ -28,8 +29,8 @@ export const signin = publicProcedure
                     message: "Invalid credentials",
                 });
 
-            // setAccToken(user._id, ctx.res);
-            // await setRefToken(user._id, ctx.res);
+            setAccToken(user._id, ctx.res as Response);
+            await setRefToken(user._id, ctx.res as Response);
 
             const { password: _, ...info } = user;
             return {
