@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useWindowDimensions } from "../hooks";
+import { useTitle, useWindowDimensions } from "../hooks";
 import { useDashboard } from "../stores/Dashboard";
 import { trpc } from "../trpc";
 import { DashboardViews } from "../views";
@@ -11,6 +11,8 @@ export default function Dashboard() {
     const [willShow, setWillShow] = useState(false);
 
     const { width } = useWindowDimensions();
+
+    useTitle("InfoStorage | Dashboard");
 
     useEffect(() => {
         trpc.customer.getCustomers.query().then((customers) => setData({ customers }));
