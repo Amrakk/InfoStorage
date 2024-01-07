@@ -23,13 +23,14 @@ const unauthErr = new TRPCError({
 type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
 
 function isREQ(req: Request | IncomingMessage): req is REQ {
-    return (req as IncomingMessage).socket === undefined;
+    console.log((req as IncomingMessage).headers.upgrade);
+    return (req as IncomingMessage).headers.upgrade !== "websocket";
 }
 
 export const verify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
         console.log(isREQ(ctx.req));
-        console.log(ctx.req);
+        // console.log(ctx.req);
         if (!isREQ(ctx.req)) return next({ ctx });
 
         ctx.res = ctx.res as Response;

@@ -23,21 +23,35 @@ export const appRouter = router({
     supplier: supplierRouter,
 
     wssRouter: router({
-        wss: wssProcedure.subscription(() => {
-            return observable<string>((emit) => {
-                console.log("Subscribing");
-                eventEmitter.on("message", () => {
-                    console.log("Subscribed");
-                    return "Subscribed";
+        onWss: wssProcedure.subscription(() => {
+            return observable<number>((emit) => {
+                var int: NodeJS.Timeout;
+                eventEmitter.on("subscribe", () => {
+                    int = setInterval(() => {
+                        var n = Math.random();
+                        console.log(n);
+                        emit.next(n);
+                    }, 2000);
                 });
+                int = setInterval(() => {
+                    var n = Math.random();
+                    console.log(n);
+                    emit.next(n);
+                }, 2000);
+
+                // eventEmitter.emit("subscribe");
 
                 return () => {
-                    eventEmitter.off("message", () => {
-                        console.log("Unsubscribed");
-                        return "Unsubscribed";
-                    });
+                    console.log("Unsubscribed");
+                    eventEmitter.removeAllListeners("subscribe");
+                    clearInterval(int);
                 };
             });
+        }),
+
+        wss: wssProcedure.query(() => {
+            eventEmitter.emit("subscribe");
+            return { message: "Subscribed" };
         }),
     }),
 });

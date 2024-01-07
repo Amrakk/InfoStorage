@@ -1,4 +1,4 @@
-import ws from "ws";
+import { WebSocket } from "ws";
 import { ZodError } from "zod";
 import { ObjectId } from "mongodb";
 import { IncomingMessage } from "http";
@@ -13,7 +13,7 @@ import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http"
 export async function createContext(
     opts:
         | CreateExpressContextOptions
-        | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>
+        | NodeHTTPCreateContextFnOptions<IncomingMessage, WebSocket>
 ) {
     return {
         req: opts.req,
