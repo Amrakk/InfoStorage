@@ -18,23 +18,14 @@ export const shippingRegex = {
 };
 
 const inputSchema = z.object({
-    name: z
-        .string()
-        .nonempty("Không được bỏ trống")
-        .regex(shippingRegex.name, "Tên không hợp lệ"),
-    address: z
-        .string()
-        .nonempty("Không được bỏ trống")
-        .regex(shippingRegex.address, "Địa chỉ không hợp lệ"),
+    name: z.string().nonempty("Không được bỏ trống").regex(shippingRegex.name, "Tên không hợp lệ"),
+    address: z.string().nonempty("Không được bỏ trống").regex(shippingRegex.address, "Địa chỉ không hợp lệ"),
     phone: z
         .string()
         .regex(shippingRegex.phone, "Số điện thoại không hợp lệ")
         .max(11, "Số điện thoại tối đa chỉ 11 số")
         .nullable(),
-    note: z
-        .string()
-        .regex(shippingRegex.note, "Ghi chú không hợp lệ")
-        .nullable(),
+    note: z.string().regex(shippingRegex.note, "Ghi chú không hợp lệ").nullable(),
     provinceCode: z.string().nonempty("Không được bỏ trống"),
     districtCode: z.string().nonempty("Không được bỏ trống"),
     wardCode: z.string().nonempty("Không được bỏ trống"),
@@ -132,10 +123,7 @@ function Content(props: TPropsContent) {
 
     useEffect(() => {
         for (let key in props.inputValue) {
-            if (
-                typeof props.inputValue[key] == "string" &&
-                props.inputValue[key]!.length > 0
-            ) {
+            if (typeof props.inputValue[key] == "string" && props.inputValue[key]!.length > 0) {
                 setValue(
                     key as
                         | "name"
@@ -154,38 +142,32 @@ function Content(props: TPropsContent) {
             typeof props.inputValue["address" as string] == "string" &&
             props.inputValue["address" as string]!.length > 0
         ) {
-            const [province, district, ward, ...address] = props.inputValue[
-                "address" as string
-            ]!.split(",")
+            const [province, district, ward, ...address] = props.inputValue["address" as string]!.split(",")
                 .map((e) => e.trim())
                 .reverse();
 
             setValue("address", address.reverse().join(", "));
 
-            trpc.service.getUnitCode
-                .query({ name: province, type: "province" })
-                .then(async (res) => {
-                    setValue("provinceCode", res.toString());
-                    const districts = await trpc.service.getDistricts.query({
-                        provCode: res,
-                    });
-
-                    const findDistrict = districts.findIndex(
-                        (e) => e.name == district
-                    )!;
-                    districts.unshift(districts.splice(findDistrict, 1)[0]);
-                    setDistricts(districts);
-                    setValue("districtCode", districts[0].code.toString());
-
-                    const wards = await trpc.service.getWards.query({
-                        distCode: districts[0].code,
-                    });
-
-                    const findWard = wards.findIndex((e) => e.name == ward)!;
-                    wards.unshift(wards.splice(findWard, 1)[0]);
-                    setWards(wards);
-                    setValue("wardCode", wards[0].code.toString());
+            trpc.service.getUnitCode.query({ name: province, type: "province" }).then(async (res) => {
+                setValue("provinceCode", res.toString());
+                const districts = await trpc.service.getDistricts.query({
+                    provCode: res,
                 });
+
+                const findDistrict = districts.findIndex((e) => e.name == district)!;
+                districts.unshift(districts.splice(findDistrict, 1)[0]);
+                setDistricts(districts);
+                setValue("districtCode", districts[0].code.toString());
+
+                const wards = await trpc.service.getWards.query({
+                    distCode: districts[0].code,
+                });
+
+                const findWard = wards.findIndex((e) => e.name == ward)!;
+                wards.unshift(wards.splice(findWard, 1)[0]);
+                setWards(wards);
+                setValue("wardCode", wards[0].code.toString());
+            });
         }
     }, []);
 
@@ -193,15 +175,12 @@ function Content(props: TPropsContent) {
         trpc.service.getProvinces.query().then((res) => {
             setProvinces(res);
         });
-        console.log("update");
     }, []);
 
     const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getDistricts
-            .query({ provCode: parseInt(e.target.value) })
-            .then((res) => {
-                setDistricts(res);
-            });
+        trpc.service.getDistricts.query({ provCode: parseInt(e.target.value) }).then((res) => {
+            setDistricts(res);
+        });
         let current = getValues("provinceCode");
         current = current == "" ? -1 : current;
         if (current != -1) {
@@ -211,11 +190,9 @@ function Content(props: TPropsContent) {
     };
 
     const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getWards
-            .query({ distCode: parseInt(e.target.value) })
-            .then((res) => {
-                setWards(res);
-            });
+        trpc.service.getWards.query({ distCode: parseInt(e.target.value) }).then((res) => {
+            setWards(res);
+        });
         let current = getValues("districtCode");
         current = current == "" ? -1 : current;
         if (current != -1) {
@@ -256,17 +233,14 @@ function Content(props: TPropsContent) {
                 } `}
                 onAnimationEnd={props.handleAnimationEnd}
             >
-                <div className="relative w-1/4  mx-auto">
+                <div className="relative xl:w-1/4 w-2/4 mx-auto">
                     {/*content*/}
                     <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                         {/*header*/}
                         <div className="h-20 flex px-6 justify-between">
                             <div className="flex items-center">
                                 <div className="aspect-square w-12 bg-[#bde3f1] border border-second rounded-full flex justify-center items-center   ">
-                                    <AiFillEdit
-                                        className="text-second"
-                                        size={20}
-                                    />
+                                    <AiFillEdit className="text-second" size={20} />
                                 </div>
                             </div>
 
@@ -280,9 +254,7 @@ function Content(props: TPropsContent) {
                         </div>
                         {/*body*/}
                         <div className="relative px-5 flex-auto text-lg text-primary font-semibold">
-                            {provinces.length == 0 ||
-                            districts.length == 0 ||
-                            wards.length == 0 ? (
+                            {provinces.length == 0 || districts.length == 0 || wards.length == 0 ? (
                                 <div className="animate-pulse">
                                     <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
                                     <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
