@@ -91,20 +91,14 @@ h6 {
     animation: fadeOutPopup 0.3s ease-in-out forwards;
 }
 
-@media (max-width: 800px) {
-    #boxAccount {
-        animation: fadeIn 0.3s ease-in-out;
-    }
+#boxAccount {
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-@media (min-width: 801px) {
+@media (min-width: 1024px) {
     #boxAccount {
         animation: fadeInBoxOption 0.3s ease-in-out;
     }
-}
-
-#boxOption {
-    animation: fadeInBoxOption 0.3s ease-in-out;
 }
 
 /* width */
@@ -182,7 +176,6 @@ input:-webkit-autofill:focus {
 .stt:hover ~ td {
     background-color: rgba(156, 163, 175, 0.5);
 }
-
 
 #invitation-card {
     animation: pop 0.3s ease-in-out;

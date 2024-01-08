@@ -78,9 +78,9 @@ export default function Header() {
     }
 
     return (
-        <header className=" border-b border-b-gray-300 text-primary select-none">
+        <header className="border-b border-b-gray-300 text-primary select-none ">
             <div className="relative container mx-auto">
-                <div className=" h-24 lg:flex justify-between items-center hidden">
+                <div className="h-24 lg:flex justify-between items-center hidden">
                     <div className="flex gap-10 h-full items-center">
                         <h1 id="ifs" className="text-3xl cursor-pointer font-semibold">
                             IFS
@@ -151,7 +151,7 @@ export default function Header() {
                         </div>
                     </div>
                 </div>
-                <div className="lg:hidden h-24 flex justify-between items-center mx-auto">
+                <div className="lg:hidden h-12 flex justify-between items-center mx-auto">
                     <h1 id="ifs" className="text-3xl cursor-pointer font-semibold">
                         IFS
                     </h1>

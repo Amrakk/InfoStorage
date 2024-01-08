@@ -105,15 +105,6 @@ export default function Shipping() {
         getShippings();
     }, []);
 
-    // useEffect(() => {
-    //     const abortController = new AbortController();
-    //     trpc.service.searchByName
-    //         .query({ type: CollectionNames.Shippings, text: searchValue })
-    //         .then((res) => {
-    //             setShippings(res);
-    //         });
-    // }, [searchValue]);
-
     function handleAddPopUp() {
         setIsAddPopupOpen(true);
     }

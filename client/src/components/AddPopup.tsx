@@ -18,23 +18,14 @@ const shippingRegex = {
 };
 
 const inputSchema = z.object({
-    name: z
-        .string()
-        .nonempty("Không được bỏ trống")
-        .regex(shippingRegex.name, "Tên không hợp lệ"),
-    address: z
-        .string()
-        .nonempty("Không được bỏ trống")
-        .regex(shippingRegex.address, "Địa chỉ không hợp lệ"),
+    name: z.string().nonempty("Không được bỏ trống").regex(shippingRegex.name, "Tên không hợp lệ"),
+    address: z.string().nonempty("Không được bỏ trống").regex(shippingRegex.address, "Địa chỉ không hợp lệ"),
     phone: z
         .string()
         .regex(shippingRegex.phone, "Số điện thoại không hợp lệ")
         .max(11, "Số điện thoại tối đa chỉ 11 số")
         .nullable(),
-    note: z
-        .string()
-        .regex(shippingRegex.note, "Ghi chú không hợp lệ")
-        .nullable(),
+    note: z.string().regex(shippingRegex.note, "Ghi chú không hợp lệ").nullable(),
     provinceCode: z.string().nonempty("Không được bỏ trống"),
     districtCode: z.string().nonempty("Không được bỏ trống"),
     wardCode: z.string().nonempty("Không được bỏ trống"),
@@ -121,12 +112,8 @@ function Content(props: TPropsContent) {
             trpc.shipping.addShippings
                 .mutate([
                     {
-                        provCode: parseInt(
-                            data.provinceCode as unknown as string
-                        ),
-                        distCode: parseInt(
-                            data.districtCode as unknown as string
-                        ),
+                        provCode: parseInt(data.provinceCode as unknown as string),
+                        distCode: parseInt(data.districtCode as unknown as string),
                         wardCode: parseInt(data.wardCode as unknown as string),
                         name: data.name,
                         address: data.address,
@@ -146,11 +133,9 @@ function Content(props: TPropsContent) {
     };
 
     const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getDistricts
-            .query({ provCode: parseInt(e.target.value) })
-            .then((res) => {
-                setDistricts(res);
-            });
+        trpc.service.getDistricts.query({ provCode: parseInt(e.target.value) }).then((res) => {
+            setDistricts(res);
+        });
         let current = getValues("provinceCode");
         current = current == "" ? -1 : current;
         if (current != -1) {
@@ -160,11 +145,9 @@ function Content(props: TPropsContent) {
     };
 
     const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getWards
-            .query({ distCode: parseInt(e.target.value) })
-            .then((res) => {
-                setWards(res);
-            });
+        trpc.service.getWards.query({ distCode: parseInt(e.target.value) }).then((res) => {
+            setWards(res);
+        });
         let current = getValues("districtCode");
         current = current == "" ? -1 : current;
         if (current != -1) {
@@ -182,17 +165,14 @@ function Content(props: TPropsContent) {
                 } `}
                 onAnimationEnd={props.handleAnimationEnd}
             >
-                <div className="relative w-1/4  mx-auto">
+                <div className="relative xl:w-1/4 w-2/4  mx-auto">
                     {/*content*/}
                     <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                         {/*header*/}
                         <div className="h-20 flex px-6 justify-between">
                             <div className="flex items-center">
                                 <div className="aspect-square w-12 bg-[#bddec4] border border-primary rounded-full flex justify-center items-center   ">
-                                    <MdLibraryAdd
-                                        className="text-primary"
-                                        size={18}
-                                    />
+                                    <MdLibraryAdd className="text-primary" size={18} />
                                 </div>
                             </div>
 
@@ -296,9 +276,7 @@ function Content(props: TPropsContent) {
                                         <div
                                             className="h-full transition-transform duration-300"
                                             style={{
-                                                transform: loading
-                                                    ? "translateY(-5px)"
-                                                    : "translateY(-52px)",
+                                                transform: loading ? "translateY(-5px)" : "translateY(-52px)",
                                             }}
                                         >
                                             <div className="h-full flex justify-center items-center gap-3">
