@@ -10,8 +10,9 @@ import { shippingRouter } from "./collectionRouters/shippingRouter.js";
 import { observable } from "@trpc/server/observable";
 import { EventEmitter } from "events";
 
+import z from "zod";
 const eventEmitter = new EventEmitter().setMaxListeners(10000000000);
-
+var int: NodeJS.Timeout;
 export const appRouter = router({
     tax: taxRouter,
     auth: authRouter,
@@ -25,33 +26,33 @@ export const appRouter = router({
     wssRouter: router({
         onWss: wssProcedure.subscription(() => {
             return observable<number>((emit) => {
-                var int: NodeJS.Timeout;
-                eventEmitter.on("subscribe", () => {
+                eventEmitter.on("subscribe", (num) => {
                     int = setInterval(() => {
-                        var n = Math.random();
+                        var n = Math.random() + num;
                         console.log(n);
                         emit.next(n);
-                    }, 2000);
+                    }, 1500);
                 });
-                int = setInterval(() => {
-                    var n = Math.random();
-                    console.log(n);
-                    emit.next(n);
-                }, 2000);
-
-                // eventEmitter.emit("subscribe");
 
                 return () => {
                     console.log("Unsubscribed");
                     eventEmitter.removeAllListeners("subscribe");
+
                     clearInterval(int);
                 };
             });
         }),
 
-        wss: wssProcedure.query(() => {
-            eventEmitter.emit("subscribe");
+        wss: wssProcedure.input(z.object({ num: z.number() })).query((ctx) => {
+            console.log(ctx.input.num);
+            eventEmitter.emit("subscribe", ctx.input.num);
             return { message: "Subscribed" };
+        }),
+
+        offWss: wssProcedure.query(() => {
+            clearInterval(int);
+
+            return { message: "off" };
         }),
     }),
 });

@@ -24,6 +24,7 @@ type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
 
 function isREQ(req: Request | IncomingMessage): req is REQ {
     console.log((req as IncomingMessage).headers.upgrade);
+    // console.log((req as IncomingMessage).);
     return (req as IncomingMessage).headers.upgrade !== "websocket";
 }
 
