@@ -17,7 +17,7 @@ export type TDistrict = RouterOutput["service"]["getDistricts"];
 export type TWard = RouterOutput["service"]["getWards"];
 
 const wsClient = createWSClient({
-    url: "ws://localhost:3001/trpc",
+    url: "ws://localhost:3000/wss",
 });
 
 export const trpc = createTRPCProxyClient<AppRouter>({
