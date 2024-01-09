@@ -15,6 +15,8 @@ import {
     isLimitRateExceeded,
 } from "./rateLimiter/rateLimitHandlers.js";
 
+import { WebSocket } from "ws";
+
 const unauthErr = new TRPCError({
     code: "UNAUTHORIZED",
     message: "Invalid token",
@@ -26,18 +28,26 @@ function isREQ(req: Request | IncomingMessage): req is REQ {
     return (req as IncomingMessage).headers.upgrade !== "websocket";
 }
 
-export const verify = (roles?: string[]) =>
+export const wssVerify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
-        if (!isREQ(ctx.req))
+        if (isREQ(ctx.req))
             throw new TRPCError({
                 code: "PRECONDITION_FAILED",
                 message: "Invalid request",
             });
 
-        const { ip } = ctx.req;
-        const { accToken, refToken } = ctx.req.cookies;
+        const ip = (ctx.req.headers["x-forwarded-for"] ||
+            ctx.req.socket.remoteAddress) as string;
 
-        ctx.res = ctx.res as Response;
+        const cookies = ctx.req.headers.cookie?.split("; ");
+        const accToken = cookies
+            ?.find((c) => c.startsWith("accToken"))
+            ?.split("=")[1];
+        const refToken = cookies
+            ?.find((c) => c.startsWith("refToken"))
+            ?.split("=")[1];
+
+        ctx.res = ctx.res as WebSocket;
 
         try {
             if (await isBanned(ip)) throw new TRPCError({ code: "FORBIDDEN" });
@@ -54,9 +64,9 @@ export const verify = (roles?: string[]) =>
                 accToken,
                 process.env.ACCESS_SECRET_KEY!
             );
-            if (!accPayload) throw clearCookie(ctx.res);
+            if (!accPayload) throw unauthErr;
             if (accPayload === "expired") {
-                if (!refToken) throw clearCookie(ctx.res);
+                if (!refToken) throw unauthErr;
                 const refPayload = verifyToken(
                     refToken,
                     process.env.REFRESH_SECRET_KEY!
@@ -67,11 +77,12 @@ export const verify = (roles?: string[]) =>
                     refPayload === "expired" ||
                     !(await verifyRefPayload(refPayload, refToken))
                 )
-                    throw clearCookie(ctx.res);
+                    throw unauthErr;
 
-                setAccToken(new ObjectId(refPayload.id), ctx.res);
-
-                userID = refPayload.id;
+                throw new TRPCError({
+                    code: "CLIENT_CLOSED_REQUEST",
+                    message: "Expired token",
+                });
             } else userID = accPayload.id;
 
             const user = await getUserByID(userID);
@@ -85,8 +96,8 @@ export const verify = (roles?: string[]) =>
 
             return next({
                 ctx: {
-                    req: ctx.req as Request,
-                    res: ctx.res as Response,
+                    req: ctx.req as IncomingMessage,
+                    res: ctx.res as WebSocket,
                     user,
                 },
             });
@@ -105,12 +116,6 @@ async function verifyRefPayload(payload: ITokenPayload, refToken: string) {
     if (token !== refToken) return false;
 
     return true;
-}
-
-function clearCookie(res: Response) {
-    res.clearCookie("accToken");
-    res.clearCookie("refToken");
-    return unauthErr;
 }
 
 async function isBanned(ip: string) {

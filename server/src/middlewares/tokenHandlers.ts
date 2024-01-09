@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 import { Response } from "express";
 import cache from "../database/cache.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
-
+import { WebSocket } from "ws";
 const isDev = process.env.ENV === "development";
 
 export function setAccToken(id: ObjectId, res: Response) {

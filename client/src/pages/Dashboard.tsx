@@ -13,6 +13,12 @@ export default function Dashboard() {
   var int = 0;
 
   test = trpc.wssRouter.onWss.subscribe(undefined, {
+    onError: (err) => {
+      console.log(err);
+      trpc.service.getAccToken.query().then((res) => {
+        console.log(res);
+      });
+    },
     onData: (data) => {
       console.log(data);
     },

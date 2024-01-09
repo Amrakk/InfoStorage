@@ -17,14 +17,16 @@ export type TDistrict = RouterOutput["service"]["getDistricts"];
 export type TWard = RouterOutput["service"]["getWards"];
 
 const wsClient = createWSClient({
-    url: "ws://localhost:3000/wss",
+    url: "ws://localhost:3002/wss2",
 });
 
 export const trpc = createTRPCProxyClient<AppRouter>({
     links: [
         splitLink({
             condition: (op) =>
-                op.type === "subscription" || op.path.includes("wssRouter"),
+                op.type === "subscription" ||
+                op.path.includes("wss") ||
+                op.path.includes("wss2"),
             true: wsLink({ client: wsClient }),
             false: httpBatchLink({
                 // url: "https://infostorage.up.railway.app/trpc",

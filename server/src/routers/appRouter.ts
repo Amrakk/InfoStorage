@@ -51,7 +51,38 @@ export const appRouter = router({
 
         offWss: wssProcedure.query(() => {
             clearInterval(int);
+            return { message: "off" };
+        }),
+    }),
 
+    wssRouter2: router({
+        onWss2: wssProcedure.subscription(() => {
+            return observable<number>((emit) => {
+                eventEmitter.on("subscribe", (num) => {
+                    int = setInterval(() => {
+                        var n = Math.random() + num;
+                        console.log(n);
+                        emit.next(n);
+                    }, 1500);
+                });
+
+                return () => {
+                    console.log("Unsubscribed");
+                    eventEmitter.removeAllListeners("subscribe");
+
+                    clearInterval(int);
+                };
+            });
+        }),
+
+        wss2: wssProcedure.input(z.object({ num: z.number() })).query((ctx) => {
+            console.log(ctx.input.num);
+            eventEmitter.emit("subscribe", ctx.input.num);
+            return { message: "Subscribed" };
+        }),
+
+        offWss2: wssProcedure.query(() => {
+            clearInterval(int);
             return { message: "off" };
         }),
     }),

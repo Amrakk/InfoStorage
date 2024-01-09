@@ -3,9 +3,9 @@ import { ZodError } from "zod";
 import { ObjectId } from "mongodb";
 import { IncomingMessage } from "http";
 import { initTRPC } from "@trpc/server";
-import type { Response, Request } from "express";
 import { verify } from "./middlewares/verify.js";
 import IUser from "./interfaces/collections/user.js";
+import { wssVerify } from "./middlewares/wssVerify.js";
 import type { inferAsyncReturnType } from "@trpc/server";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
@@ -51,7 +51,8 @@ export const middleware = t.middleware;
 export const publicProcedure = t.procedure;
 
 // Protected procedures
-export const wssProcedure = t.procedure.use(verify());
+export const wssProcedure = t.procedure.use(wssVerify());
+
 export const verifiedProcedure = t.procedure.use(verify());
 export const adminProcedure = t.procedure.use(verify(["admin"]));
 export const managerProcedure = t.procedure.use(verify(["admin", "manager"]));

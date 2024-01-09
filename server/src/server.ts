@@ -1,14 +1,14 @@
 import cors from "cors";
 import express from "express";
-import { WebSocketServer } from "ws";
 import cache from "./database/cache.js";
 import database from "./database/db.js";
 import cookieParser from "cookie-parser";
 import { createContext } from "./trpc.js";
+import { MySocketServer } from "./MySocket.js";
 import { appRouter } from "./routers/appRouter.js";
 import logger from "./middlewares/logger/logger.js";
-import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { Server } from "http";
 
 const app = express();
 
@@ -38,26 +38,18 @@ app.on("close", async () => {
 
 export type AppRouter = typeof appRouter;
 
-const wss = new WebSocketServer({ server, path: "/wss" });
+const wss = new MySocketServer(
+    express().listen(3001),
+    "/wss",
+    appRouter,
+    createContext
+);
+wss.run();
 
-const handler = applyWSSHandler({
-    wss: wss,
-    router: appRouter,
-    createContext,
-});
-
-wss.on("connection", (ws) => {
-    console.log(`Got a connection ${wss.clients.size}`);
-    wss.once("close", () => {
-        console.log(`Closed connection ${wss.clients.size}`);
-    });
-    ws.on("message", (message) => {
-        console.log(message.toString());
-    });
-});
-
-process.on("SIGINT", () => {
-    console.log("Got SIGTERM");
-    handler.broadcastReconnectNotification();
-    wss.close();
-});
+const wss2 = new MySocketServer(
+    express().listen(3002),
+    "/wss2",
+    appRouter,
+    createContext
+);
+wss2.run();
