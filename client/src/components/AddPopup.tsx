@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { IoClose } from "react-icons/io5";
 import { MdLibraryAdd } from "react-icons/md";
-import { trpc, type TProvince, type TDistrict, type TWard } from "../trpc";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input, Select, Textarea } from ".";
+import { useProvinces } from "../stores/Provinces";
+import { trpc, type TDistrict, type TWard } from "../trpc";
 export const phoneRegex = new RegExp("^[+0-9]*$", "m");
 export const subjectRegex = new RegExp(/^[^\p{C}<>&`"/]*$/mu);
 export const addressRegex = new RegExp(/^[\p{L}0-9 \\/,.;+-,;]+$/mu);
@@ -34,9 +35,9 @@ const inputSchema = z.object({
 type TShipping = {
     name: string;
     address: string;
-    provinceCode: number | string;
-    districtCode: number | string;
-    wardCode: number | string;
+    provinceCode: string;
+    districtCode: string;
+    wardCode: string;
     phone: string | null;
     note: string | null;
 };
@@ -84,10 +85,10 @@ type TPropsContent = {
 };
 
 function Content(props: TPropsContent) {
-    const [provinces, setProvinces] = useState<TProvince>([]);
     const [districts, setDistricts] = useState<TDistrict>([]);
     const [wards, setWards] = useState<TWard>([]);
     const [loading, setLoading] = useState(false);
+    const { provinces } = useProvinces();
     const {
         register,
         setValue,
@@ -99,12 +100,6 @@ function Content(props: TPropsContent) {
         resolver: zodResolver(inputSchema),
         mode: "onChange",
     });
-
-    useEffect(() => {
-        trpc.service.getProvinces.query().then((res) => {
-            setProvinces(res);
-        });
-    }, []);
 
     const onSubmit = (data: TShipping) => {
         setLoading(true);
@@ -133,25 +128,24 @@ function Content(props: TPropsContent) {
     };
 
     const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getDistricts.query({ provCode: parseInt(e.target.value) }).then((res) => {
-            setDistricts(res);
-        });
-        let current = getValues("provinceCode");
-        current = current == "" ? -1 : current;
-        if (current != -1) {
+        const targetProvince = provinces.find((prov) => prov.code == parseInt(e.target.value));
+        if (targetProvince) {
+            setDistricts(targetProvince.districts);
             setValue("districtCode", "");
             setValue("wardCode", "");
         }
     };
 
     const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getWards.query({ distCode: parseInt(e.target.value) }).then((res) => {
-            setWards(res);
-        });
-        let current = getValues("districtCode");
-        current = current == "" ? -1 : current;
-        if (current != -1) {
-            setValue("wardCode", "");
+        const targetProvince = provinces.find((prov) => prov.code == parseInt(getValues("provinceCode")));
+        if (targetProvince) {
+            const targetDistrict = targetProvince.districts.find(
+                (dist) => dist.code == parseInt(e.target.value)
+            );
+            if (targetDistrict) {
+                setWards(targetDistrict.wards);
+                setValue("wardCode", "");
+            }
         }
     };
 
@@ -165,7 +159,7 @@ function Content(props: TPropsContent) {
                 } `}
                 onAnimationEnd={props.handleAnimationEnd}
             >
-                <div className="relative xl:w-1/4 w-2/4  mx-auto">
+                <div className="relative xl:w-1/3 w-2/4 2xl:w-1/4  mx-auto">
                     {/*content*/}
                     <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                         {/*header*/}

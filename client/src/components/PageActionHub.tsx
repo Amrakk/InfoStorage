@@ -11,10 +11,10 @@ export default function PageActionHub(props: TProps) {
             <div className="lg:flex justify-between lg:mt-8 mt-4">
                 <div className="text-3xl font-semibold text-center lg:text-left">{props.title}</div>
                 <div className="lg:flex gap-5 hidden">
-                    <button className="w-40 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
+                    <button className="w-40 py-3 bg-gray-200 hover:bg-gray-300 transition-colors rounded-md">
                         Export File
                     </button>
-                    <button className="w-40 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
+                    <button className="w-40 py-3 bg-gray-200 hover:bg-gray-300 transition-colors rounded-md">
                         Import File
                     </button>
                     <button

@@ -35,7 +35,15 @@ h6 {
     }
 
     .option {
-        @apply flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out;
+        @apply flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out active:bg-gray-300 cursor-pointer;
+    }
+
+    .numOfPages {
+        @apply py-1 hover:bg-[#D1DBD3] w-32 hover:rounded-md hover:duration-200 hover:ease-in-out cursor-pointer;
+    }
+
+    .hover-pagination {
+        @apply hover:bg-gray-200 rounded-full active:bg-gray-300 cursor-pointer;
     }
 }
 
@@ -83,6 +91,11 @@ h6 {
     }
 }
 
+.disabled {
+    pointer-events: none;
+    opacity: 0.5; /* You can adjust the opacity to visually indicate the button is disabled */
+}
+
 .animationPopup {
     animation: fadeInPopup 0.3s ease-in-out;
 }
@@ -93,6 +106,10 @@ h6 {
 
 #boxAccount {
     animation: fadeIn 0.3s ease-in-out;
+}
+
+#boxOption {
+    animation: fadeInBoxOption 0.3s ease-in-out;
 }
 
 @media (min-width: 1024px) {

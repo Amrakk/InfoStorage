@@ -8,10 +8,7 @@ import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 import { getUserByID } from "./collectionHandlers/userHandlers.js";
 import { getErrorMessage } from "./errorHandlers/getErrorMessage.js";
-import {
-    setRateLimit,
-    isLimitRateExceeded,
-} from "./rateLimiter/rateLimitHandlers.js";
+import { setRateLimit, isLimitRateExceeded } from "./rateLimiter/rateLimitHandlers.js";
 
 const unauthErr = new TRPCError({
     code: "UNAUTHORIZED",
@@ -23,28 +20,28 @@ export const verify = (roles?: string[]) =>
         const { ip } = ctx.req;
         const { accToken, refToken } = ctx.req.cookies;
 
+        if (!ip) {
+            throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "IP address is not found",
+            });
+        }
+
         try {
             if (await isBanned(ip)) throw new TRPCError({ code: "FORBIDDEN" });
             await setRateLimit(ip);
 
             const isLimitExceeded = await isLimitRateExceeded(ip);
-            if (isLimitExceeded)
-                throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+            if (isLimitExceeded) throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
 
             if (!accToken) throw unauthErr;
             let userID: string;
 
-            const accPayload = verifyToken(
-                accToken,
-                process.env.ACCESS_SECRET_KEY!
-            );
+            const accPayload = verifyToken(accToken, process.env.ACCESS_SECRET_KEY!);
             if (!accPayload) throw clearCookie(ctx.res);
             if (accPayload === "expired") {
                 if (!refToken) throw clearCookie(ctx.res);
-                const refPayload = verifyToken(
-                    refToken,
-                    process.env.REFRESH_SECRET_KEY!
-                );
+                const refPayload = verifyToken(refToken, process.env.REFRESH_SECRET_KEY!);
 
                 if (
                     !refPayload ||
@@ -63,8 +60,7 @@ export const verify = (roles?: string[]) =>
             if (typeof roles === "object" && !roles.includes(user.role))
                 throw new TRPCError({
                     code: "FORBIDDEN",
-                    message:
-                        "You don't have permission to access this resource",
+                    message: "You don't have permission to access this resource",
                 });
 
             return next({
