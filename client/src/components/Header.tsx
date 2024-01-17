@@ -234,7 +234,7 @@ export default function Header() {
                         className="absolute lg:right-0 right-40 top-60 lg:top-16 bg-white border  rounded-md shadow-aesthetic py-4 lg:px-5 px-3 flex-col gap-1 z-10 "
                     >
                         <div
-                            className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out"
+                            className="option"
                             onClick={() => {
                                 handleNavigation("account");
                             }}
@@ -242,14 +242,11 @@ export default function Header() {
                             <div>Account</div>
                             <FiArrowUpRight />
                         </div>
-                        <div className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out">
+                        <div className="option">
                             <div>Tax</div>
                             <FiArrowUpRight />
                         </div>
-                        <div
-                            className="flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out"
-                            onClick={handleSignOut}
-                        >
+                        <div className="option" onClick={handleSignOut}>
                             <div>Sign Out</div>
                             <FiArrowUpRight />
                         </div>

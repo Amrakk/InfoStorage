@@ -2,12 +2,12 @@ import { create } from "zustand";
 import type { TShipping } from "../trpc";
 
 type TShippings = {
-    shippings: TShipping;
+    shippings: TShipping | null;
     setShippings: (shippings: TShipping) => Promise<void>;
 };
 
 export const useShippingsStore = create<TShippings>()((set) => ({
-    shippings: [],
+    shippings: null,
     setShippings: async (shippings: TShipping) => {
         set({
             shippings: shippings,

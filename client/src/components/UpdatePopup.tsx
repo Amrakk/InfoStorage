@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
-import { IoClose } from "react-icons/io5";
-import { AiFillEdit } from "react-icons/ai";
-import { trpc, type TProvince, type TDistrict, type TWard } from "../trpc";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { AiFillEdit } from "react-icons/ai";
+import { IoClose } from "react-icons/io5";
+import { z } from "zod";
 import { Input, Select, Textarea } from ".";
+import { useProvinces } from "../stores/Provinces";
+import { trpc, type TDistrict, type TWard } from "../trpc";
 export const phoneRegex = new RegExp("^[+0-9]*$", "m");
 export const subjectRegex = new RegExp(/^[^\p{C}<>&`"/]*$/mu);
 export const addressRegex = new RegExp(/^[\p{L}0-9 \\/,.;+-,;]+$/mu);
@@ -34,9 +35,9 @@ const inputSchema = z.object({
 type TShipping = {
     name: string;
     address: string;
-    provinceCode: number | string;
-    districtCode: number | string;
-    wardCode: number | string;
+    provinceCode: string;
+    districtCode: string;
+    wardCode: string;
     phone: string | null;
     note: string | null;
 };
@@ -48,10 +49,6 @@ type TProps = {
     inputValue: {
         [key: string]: string | null | undefined;
     };
-};
-
-const inputStyle = {
-    caretColor: "transparent",
 };
 
 export default function AddPopup(props: TProps) {
@@ -94,10 +91,9 @@ type TPropsContent = {
 };
 
 function Content(props: TPropsContent) {
-    const [provinces, setProvinces] = useState<TProvince>([]);
     const [districts, setDistricts] = useState<TDistrict>([]);
     const [wards, setWards] = useState<TWard>([]);
-
+    const { provinces } = useProvinces();
     const [loading, setLoading] = useState(false);
     const refButton = useRef<HTMLButtonElement>(null);
     const {
@@ -124,79 +120,52 @@ function Content(props: TPropsContent) {
     useEffect(() => {
         for (let key in props.inputValue) {
             if (typeof props.inputValue[key] == "string" && props.inputValue[key]!.length > 0) {
-                setValue(
-                    key as
-                        | "name"
-                        | "address"
-                        | "phone"
-                        | "note"
-                        | "provinceCode"
-                        | "districtCode"
-                        | "wardCode",
-                    props.inputValue[key]!
-                );
+                setValue(key as keyof TShipping, props.inputValue[key]!);
             }
         }
 
-        if (
-            typeof props.inputValue["address" as string] == "string" &&
-            props.inputValue["address" as string]!.length > 0
-        ) {
-            const [province, district, ward, ...address] = props.inputValue["address" as string]!.split(",")
+        if (typeof props.inputValue["address"] == "string" && props.inputValue["address"]!.length > 0) {
+            const [province, district, ward, ...address] = props.inputValue["address"]!.split(",")
                 .map((e) => e.trim())
                 .reverse();
 
             setValue("address", address.reverse().join(", "));
-
-            trpc.service.getUnitCode.query({ name: province, type: "province" }).then(async (res) => {
-                setValue("provinceCode", res.toString());
-                const districts = await trpc.service.getDistricts.query({
-                    provCode: res,
-                });
-
-                const findDistrict = districts.findIndex((e) => e.name == district)!;
-                districts.unshift(districts.splice(findDistrict, 1)[0]);
-                setDistricts(districts);
-                setValue("districtCode", districts[0].code.toString());
-
-                const wards = await trpc.service.getWards.query({
-                    distCode: districts[0].code,
-                });
-
-                const findWard = wards.findIndex((e) => e.name == ward)!;
-                wards.unshift(wards.splice(findWard, 1)[0]);
-                setWards(wards);
-                setValue("wardCode", wards[0].code.toString());
-            });
+            const targetProvince = provinces.find((prov) => prov.name == province);
+            if (targetProvince) {
+                setValue("provinceCode", targetProvince.code.toString());
+                setDistricts(targetProvince.districts);
+                const targetDistrict = targetProvince.districts.find((dist) => dist.name == district);
+                if (targetDistrict) {
+                    setValue("districtCode", targetDistrict.code.toString());
+                    setWards(targetDistrict.wards);
+                    const targetWard = targetDistrict.wards.find((w) => w.name == ward);
+                    if (targetWard) {
+                        setValue("wardCode", targetWard.code.toString());
+                    }
+                }
+            }
         }
     }, []);
 
-    useEffect(() => {
-        trpc.service.getProvinces.query().then((res) => {
-            setProvinces(res);
-        });
-    }, []);
-
     const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getDistricts.query({ provCode: parseInt(e.target.value) }).then((res) => {
-            setDistricts(res);
-        });
-        let current = getValues("provinceCode");
-        current = current == "" ? -1 : current;
-        if (current != -1) {
+        const targetProvince = provinces.find((prov) => prov.code == parseInt(e.target.value));
+        if (targetProvince) {
+            setDistricts(targetProvince.districts);
             setValue("districtCode", "");
             setValue("wardCode", "");
         }
     };
 
     const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getWards.query({ distCode: parseInt(e.target.value) }).then((res) => {
-            setWards(res);
-        });
-        let current = getValues("districtCode");
-        current = current == "" ? -1 : current;
-        if (current != -1) {
-            setValue("wardCode", "");
+        const targetProvince = provinces.find((prov) => prov.code == parseInt(getValues("provinceCode")));
+        if (targetProvince) {
+            const targetDistrict = targetProvince.districts.find(
+                (dist) => dist.code == parseInt(e.target.value)
+            );
+            if (targetDistrict) {
+                setWards(targetDistrict.wards);
+                setValue("wardCode", "");
+            }
         }
     };
 
@@ -206,9 +175,9 @@ function Content(props: TPropsContent) {
             trpc.shipping.updateShipping
                 .mutate({
                     id: props.inputValue._id as string,
-                    provCode: parseInt(data.provinceCode as unknown as string),
-                    distCode: parseInt(data.districtCode as unknown as string),
-                    wardCode: parseInt(data.wardCode as unknown as string),
+                    provCode: parseInt(data.provinceCode),
+                    distCode: parseInt(data.districtCode),
+                    wardCode: parseInt(data.wardCode),
                     name: data.name,
                     address: data.address,
                     note: data.note as string,
@@ -233,7 +202,7 @@ function Content(props: TPropsContent) {
                 } `}
                 onAnimationEnd={props.handleAnimationEnd}
             >
-                <div className="relative xl:w-1/4 w-2/4 mx-auto">
+                <div className="relative xl:w-1/3 w-2/4 2xl:w-1/4 mx-auto">
                     {/*content*/}
                     <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                         {/*header*/}
@@ -255,19 +224,7 @@ function Content(props: TPropsContent) {
                         {/*body*/}
                         <div className="relative px-5 flex-auto text-lg text-primary font-semibold">
                             {provinces.length == 0 || districts.length == 0 || wards.length == 0 ? (
-                                <div className="animate-pulse">
-                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
-                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
-                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
-                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
-                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
-                                    <div className="h-[46px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
-                                    <div className="h-[160px] bg-gray-200 rounded-md dark:bg-gray-400 w-full mb-6"></div>
-                                    <div className="flex items-center justify-end mb-6 mt-8 border-slate-200  gap-4 font-semibold">
-                                        <div className="h-[52px] bg-gray-200 rounded-md dark:bg-gray-400 w-32 py-3"></div>
-                                        <div className="h-[52px] bg-gray-200 rounded-md dark:bg-gray-400 w-32 py-3"></div>
-                                    </div>
-                                </div>
+                                <></>
                             ) : (
                                 <form onSubmit={handleSubmit(onSubmit)}>
                                     {/* Ten Don Vi */}

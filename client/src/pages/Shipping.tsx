@@ -5,11 +5,11 @@ import { DeletePopup, AddPopup, UpdatePopup } from "../components";
 import { useDeletePopupStore } from "../stores/DeletePopup";
 import { useShippingsStore } from "../stores/Shippings";
 import { Drag, PageActionHub, Search, Table, Pagination } from "../components";
+import { v4 } from "uuid";
 
 export default function Shipping() {
     const navigate = useNavigate();
-    // const [shippings, setShippings] = useState<TShipping>([]);
-    const { setShippings } = useShippingsStore();
+    const { shippings, setShippings } = useShippingsStore();
 
     const { isDeletePopupOpen } = useDeletePopupStore();
     const [isAddPopupOpen, setIsAddPopupOpen] = useState<boolean>(false);
@@ -17,13 +17,37 @@ export default function Shipping() {
     const [_id, set_Id] = useState("");
     const mouseFollowRef = useRef<HTMLCanvasElement>(null);
     const [isShowCopyBox, setIsShowCopyBox] = useState<boolean>(false);
-    const [searchValue, setSearchValue] = useState<string>("");
-
+    const [searchValue, setSearchValue] = useState(shippings);
     const [inputValue, setInputValue] = useState<{
         [key: string]: string | null | undefined;
     }>({});
 
     const [idTimeOut, setIdTimeOut] = useState<ReturnType<typeof setTimeout>>();
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(8);
+
+    // Logic to calculate currentItems based on currentPage and itemsPerPage
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    // const currentItems = (searchValue == null ? shippings : searchValue).slice(
+    //     indexOfFirstItem,
+    //     indexOfLastItem
+    // );
+    const currentItems =
+        shippings == null
+            ? null
+            : (searchValue == null ? shippings : searchValue).slice(indexOfFirstItem, indexOfLastItem);
+    const totalLength = shippings == null ? 0 : searchValue == null ? shippings.length : searchValue.length;
+    const handlePagination = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const updatePageSize = (size: number) => {
+        setItemsPerPage(size);
+        setCurrentPage(1); // Reset to the first page when changing items per page
+    };
 
     const handleCopyBox = (x: number, y: number) => {
         if (!isShowCopyBox) {
@@ -51,7 +75,39 @@ export default function Shipping() {
     };
 
     function handleSearch(value: string) {
-        setSearchValue(value);
+        if (shippings == null) return;
+        setCurrentPage(1);
+        if (value === "") {
+            setSearchValue(null);
+            return;
+        }
+        const filteredData = shippings.filter((item) =>
+            toLowerNonAccentVietnamese(item.name).includes(toLowerNonAccentVietnamese(value))
+        );
+
+        if (filteredData.length === 0) {
+            if (searchValue?.length !== 0) {
+                setSearchValue([]);
+            }
+        } else {
+            setSearchValue(filteredData);
+        }
+    }
+
+    function toLowerNonAccentVietnamese(str: string) {
+        str = str.toLowerCase();
+        str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+        str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+        str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+        str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+        str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+        str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+        str = str.replace(/đ/g, "d");
+
+        str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
+        str = str.replace(/\u02C6|\u0306|\u031B/g, "");
+        return str;
     }
 
     function handleId(_id: string) {
@@ -88,17 +144,22 @@ export default function Shipping() {
         };
     }
 
-    function getShippings() {
-        trpc.shipping.getShippings
-            .query()
-            .then((res) => {
-                setShippings(res);
-            })
-            .catch((err) => {
-                if ((err as TRPCError).data.httpStatus === 401 || 500) {
-                    navigate("/signin");
-                }
-            });
+    async function getShippings() {
+        try {
+            const res = await trpc.shipping.getShippings.query();
+            const updatedShippings = Array.from({ length: 11 }, () => [...res])
+                .flat()
+                .map((s) => {
+                    s._id = v4();
+                    return { ...s };
+                });
+
+            setShippings(updatedShippings);
+        } catch (err) {
+            if ((err as TRPCError).data.httpStatus === 401 || 500) {
+                navigate("/signin");
+            }
+        }
     }
 
     useEffect(() => {
@@ -149,9 +210,22 @@ export default function Shipping() {
 
                 <Search handleSearch={handleSearch} />
 
-                <Table handleCopy={handleCopy} handleId={handleId} />
+                <Table
+                    currentItem={currentItems}
+                    currentPage={currentPage}
+                    itemsPerPage={itemsPerPage}
+                    handleCopy={handleCopy}
+                    handleId={handleId}
+                />
 
-                <Pagination />
+                <Pagination
+                    currentPage={currentPage}
+                    itemsPerPage={itemsPerPage}
+                    // totalItems={searchValue.length > 0 ? searchValue.length : shippings.length}
+                    totalItems={totalLength}
+                    handlePagination={handlePagination}
+                    updatePageSize={updatePageSize}
+                />
 
                 <Drag handleUpdatePopUp={handleUpdatePopUp} />
 
