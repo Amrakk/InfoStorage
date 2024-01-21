@@ -4,11 +4,11 @@ import cache from "./database/cache.js";
 import database from "./database/db.js";
 import cookieParser from "cookie-parser";
 import { createContext } from "./trpc.js";
-import { MySocketServer } from "./MySocket.js";
+import { wssConfigure } from "./socket.js";
 import { appRouter } from "./routers/appRouter.js";
 import logger from "./middlewares/logger/logger.js";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { Server } from "http";
+import { applyWSSHandler } from "@trpc/server/adapters/ws";
 
 const app = express();
 
@@ -38,18 +38,16 @@ app.on("close", async () => {
 
 export type AppRouter = typeof appRouter;
 
-const wss = new MySocketServer(
-    express().listen(3001),
-    "/wss",
-    appRouter,
-    createContext
-);
-wss.run();
+const wss = wssConfigure(server);
 
-const wss2 = new MySocketServer(
-    express().listen(3002),
-    "/wss2",
-    appRouter,
-    createContext
-);
-wss2.run();
+const handler = applyWSSHandler({
+    wss,
+    router: appRouter.wss,
+    createContext,
+});
+
+process.on("SIGINT", () => {
+    console.log("Got SIGTERM signal");
+    handler.broadcastReconnectNotification();
+    wss.close();
+});

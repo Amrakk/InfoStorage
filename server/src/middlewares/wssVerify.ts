@@ -1,28 +1,20 @@
-import { ObjectId } from "mongodb";
-import { IncomingMessage } from "http";
 import { middleware } from "../trpc.js";
-import cache from "../database/cache.js";
-import database from "../database/db.js";
 import { TRPCError } from "@trpc/server";
-import type { Response, Request } from "express";
-import { setAccToken, verifyToken } from "./tokenHandlers.js";
-import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
 import { getUserByID } from "./collectionHandlers/userHandlers.js";
 import { getErrorMessage } from "./errorHandlers/getErrorMessage.js";
-import type { ParamsDictionary, Query } from "express-serve-static-core";
-import {
-    setRateLimit,
-    isLimitRateExceeded,
-} from "./rateLimiter/rateLimitHandlers.js";
 
-import { WebSocket } from "ws";
+import type { WebSocket } from "ws";
+import type { Request } from "express";
+import type { IncomingMessage } from "http";
+import type { ParamsDictionary, Query } from "express-serve-static-core";
+import { verifyUser } from "./userStatusHandlers.js";
+
+type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
 
 const unauthErr = new TRPCError({
     code: "UNAUTHORIZED",
     message: "Invalid token",
 });
-
-type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
 
 function isREQ(req: Request | IncomingMessage): req is REQ {
     return (req as IncomingMessage).headers.upgrade !== "websocket";
@@ -32,60 +24,29 @@ export const wssVerify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
         if (isREQ(ctx.req))
             throw new TRPCError({
-                code: "PRECONDITION_FAILED",
+                code: "FORBIDDEN",
                 message: "Invalid request",
             });
 
-        const ip = (ctx.req.headers["x-forwarded-for"] ||
-            ctx.req.socket.remoteAddress) as string;
-
         const cookies = ctx.req.headers.cookie?.split("; ");
+        const userId = cookies
+            ?.find((c) => c.startsWith("userId"))
+            ?.split("=")[1];
         const accToken = cookies
             ?.find((c) => c.startsWith("accToken"))
-            ?.split("=")[1];
-        const refToken = cookies
-            ?.find((c) => c.startsWith("refToken"))
             ?.split("=")[1];
 
         ctx.res = ctx.res as WebSocket;
 
         try {
-            if (await isBanned(ip)) throw new TRPCError({ code: "FORBIDDEN" });
-            await setRateLimit(ip);
-
-            const isLimitExceeded = await isLimitRateExceeded(ip);
-            if (isLimitExceeded)
-                throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-
             if (!accToken) throw unauthErr;
-            let userID: string;
-
-            const accPayload = verifyToken(
-                accToken,
-                process.env.ACCESS_SECRET_KEY!
-            );
-            if (!accPayload) throw unauthErr;
-            if (accPayload === "expired") {
-                if (!refToken) throw unauthErr;
-                const refPayload = verifyToken(
-                    refToken,
-                    process.env.REFRESH_SECRET_KEY!
-                );
-
-                if (
-                    !refPayload ||
-                    refPayload === "expired" ||
-                    !(await verifyRefPayload(refPayload, refToken))
-                )
-                    throw unauthErr;
-
+            if (!userId || !(await verifyUser(userId, accToken)))
                 throw new TRPCError({
-                    code: "CLIENT_CLOSED_REQUEST",
-                    message: "Expired token",
+                    code: "PRECONDITION_FAILED",
+                    message: "HTTP verification required!",
                 });
-            } else userID = accPayload.id;
 
-            const user = await getUserByID(userID);
+            const user = await getUserByID(userId);
             if (!user) throw unauthErr;
             if (typeof roles === "object" && !roles.includes(user.role))
                 throw new TRPCError({
@@ -109,16 +70,3 @@ export const wssVerify = (roles?: string[]) =>
             });
         }
     });
-
-async function verifyRefPayload(payload: ITokenPayload, refToken: string) {
-    const redis = cache.getCache();
-    const token = await redis.get(`refToken-${payload.id}`);
-    if (token !== refToken) return false;
-
-    return true;
-}
-
-async function isBanned(ip: string) {
-    const db = database.getDB();
-    return await db.collection("bannedIPs").findOne({ ip });
-}

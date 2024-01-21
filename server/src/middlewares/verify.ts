@@ -1,26 +1,24 @@
 import { ObjectId } from "mongodb";
-import { IncomingMessage } from "http";
 import { middleware } from "../trpc.js";
-import cache from "../database/cache.js";
-import database from "../database/db.js";
 import { TRPCError } from "@trpc/server";
-import type { Response, Request } from "express";
+import cache from "../database/cache.js";
 import { setAccToken, verifyToken } from "./tokenHandlers.js";
 import ITokenPayload from "../interfaces/tokens/tokenPayload.js";
+import { assignUser, verifyUser } from "./userStatusHandlers.js";
 import { getUserByID } from "./collectionHandlers/userHandlers.js";
 import { getErrorMessage } from "./errorHandlers/getErrorMessage.js";
+
+import type { WebSocket } from "ws";
+import type { IncomingMessage } from "http";
+import type { Response, Request } from "express";
 import type { ParamsDictionary, Query } from "express-serve-static-core";
-import {
-    setRateLimit,
-    isLimitRateExceeded,
-} from "./rateLimiter/rateLimitHandlers.js";
+
+type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
 
 const unauthErr = new TRPCError({
     code: "UNAUTHORIZED",
     message: "Invalid token",
 });
-
-type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
 
 function isREQ(req: Request | IncomingMessage): req is REQ {
     return (req as IncomingMessage).headers.upgrade !== "websocket";
@@ -30,49 +28,14 @@ export const verify = (roles?: string[]) =>
     middleware(async ({ ctx, next }) => {
         if (!isREQ(ctx.req))
             throw new TRPCError({
-                code: "PRECONDITION_FAILED",
+                code: "FORBIDDEN",
                 message: "Invalid request",
             });
-
-        const { ip } = ctx.req;
-        const { accToken, refToken } = ctx.req.cookies;
 
         ctx.res = ctx.res as Response;
 
         try {
-            if (await isBanned(ip)) throw new TRPCError({ code: "FORBIDDEN" });
-            await setRateLimit(ip);
-
-            const isLimitExceeded = await isLimitRateExceeded(ip);
-            if (isLimitExceeded)
-                throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
-
-            if (!accToken) throw unauthErr;
-            let userID: string;
-
-            const accPayload = verifyToken(
-                accToken,
-                process.env.ACCESS_SECRET_KEY!
-            );
-            if (!accPayload) throw clearCookie(ctx.res);
-            if (accPayload === "expired") {
-                if (!refToken) throw clearCookie(ctx.res);
-                const refPayload = verifyToken(
-                    refToken,
-                    process.env.REFRESH_SECRET_KEY!
-                );
-
-                if (
-                    !refPayload ||
-                    refPayload === "expired" ||
-                    !(await verifyRefPayload(refPayload, refToken))
-                )
-                    throw clearCookie(ctx.res);
-
-                setAccToken(new ObjectId(refPayload.id), ctx.res);
-
-                userID = refPayload.id;
-            } else userID = accPayload.id;
+            const userID = await verifyCookies(ctx.req, ctx.res);
 
             const user = await getUserByID(userID);
             if (!user) throw unauthErr;
@@ -91,6 +54,10 @@ export const verify = (roles?: string[]) =>
                 },
             });
         } catch (err) {
+            if (err instanceof TRPCError && err.code == "UNAUTHORIZED") {
+                ctx.res.clearCookie("accToken");
+                ctx.res.clearCookie("refToken");
+            }
             if (err instanceof TRPCError) throw err;
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
@@ -99,21 +66,70 @@ export const verify = (roles?: string[]) =>
         }
     });
 
+export async function verifyUserId(req: IncomingMessage | Request) {
+    const isREQ = (req as IncomingMessage).headers.upgrade !== "websocket";
+    const cookies = req.headers.cookie?.split("; ");
+
+    var userId = cookies?.find((c) => c.startsWith("userId"))?.split("=")[1];
+    var accToken = cookies
+        ?.find((c) => c.startsWith("accToken"))
+        ?.split("=")[1];
+    const refToken = cookies
+        ?.find((c) => c.startsWith("refToken"))
+        ?.split("=")[1];
+}
+
+export async function verifyCookies(
+    req: IncomingMessage | Request,
+    res: WebSocket | Response
+) {
+    const isREQ = (req as IncomingMessage).headers.upgrade !== "websocket";
+    const cookies = req.headers.cookie?.split("; ");
+
+    var userId = cookies?.find((c) => c.startsWith("userId"))?.split("=")[1];
+    var accToken = cookies
+        ?.find((c) => c.startsWith("accToken"))
+        ?.split("=")[1];
+    const refToken = cookies
+        ?.find((c) => c.startsWith("refToken"))
+        ?.split("=")[1];
+
+    if (!accToken) throw unauthErr;
+    if (isREQ && userId && (await verifyUser(userId, accToken))) return userId;
+
+    const accPayload = verifyToken(accToken, process.env.ACCESS_SECRET_KEY!);
+    if (!accPayload) throw unauthErr;
+    if (accPayload === "expired") {
+        if (!refToken) throw unauthErr;
+        const refPayload = verifyToken(
+            refToken,
+            process.env.REFRESH_SECRET_KEY!
+        );
+
+        if (
+            !refPayload ||
+            refPayload === "expired" ||
+            !(await verifyRefPayload(refPayload, refToken))
+        )
+            throw unauthErr;
+
+        if (isREQ)
+            accToken = setAccToken(
+                new ObjectId(refPayload.id),
+                res as Response
+            );
+
+        userId = refPayload.id;
+    } else userId = accPayload.id;
+
+    if (isREQ) await assignUser(userId, accToken, res as Response);
+    return userId;
+}
+
 async function verifyRefPayload(payload: ITokenPayload, refToken: string) {
     const redis = cache.getCache();
     const token = await redis.get(`refToken-${payload.id}`);
     if (token !== refToken) return false;
 
     return true;
-}
-
-function clearCookie(res: Response) {
-    res.clearCookie("accToken");
-    res.clearCookie("refToken");
-    return unauthErr;
-}
-
-async function isBanned(ip: string) {
-    const db = database.getDB();
-    return await db.collection("bannedIPs").findOne({ ip });
 }

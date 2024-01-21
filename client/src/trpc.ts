@@ -3,7 +3,6 @@ import {
     createTRPCProxyClient,
     createWSClient,
     httpBatchLink,
-    splitLink,
     wsLink,
 } from "@trpc/client";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
@@ -17,32 +16,27 @@ export type TDistrict = RouterOutput["service"]["getDistricts"];
 export type TWard = RouterOutput["service"]["getWards"];
 
 const wsClient = createWSClient({
-    url: "ws://localhost:3002/wss2",
+    url: "ws://localhost:3000/trpc/wss",
+});
+
+export const trpcWss = createTRPCProxyClient<AppRouter["wss"]>({
+    links: [wsLink({ client: wsClient })],
 });
 
 export const trpc = createTRPCProxyClient<AppRouter>({
     links: [
-        splitLink({
-            condition: (op) =>
-                op.type === "subscription" ||
-                op.path.includes("wss") ||
-                op.path.includes("wss2"),
-            true: wsLink({ client: wsClient }),
-            false: httpBatchLink({
-                // url: "https://infostorage.up.railway.app/trpc",
-                url: "http://localhost:3000/trpc",
-                fetch(url, options) {
-                    return fetch(url, {
-                        ...options,
-                        credentials: "include",
-                    });
-                },
-            }),
+        httpBatchLink({
+            // url: "https://infostorage.up.railway.app/trpc",
+            url: "http://localhost:3000/trpc",
+            fetch(url, options) {
+                return fetch(url, {
+                    ...options,
+                    credentials: "include",
+                });
+            },
         }),
     ],
 });
-
-// export const trpc = createTRPCReact<AppRouter>();
 
 export type TRPCError = {
     message: string;
