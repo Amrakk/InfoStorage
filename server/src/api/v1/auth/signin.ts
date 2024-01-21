@@ -1,8 +1,10 @@
 import { z } from "zod";
 import bcrypt from "bcrypt";
+import type { Response } from "express";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "../../../trpc.js";
 import { userRegex } from "../../../configs/regex.js";
+import { assignUser } from "../../../middlewares/userStatusHandlers.js";
 import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { getUserByEmail } from "../../../middlewares/collectionHandlers/userHandlers.js";
 import {
@@ -28,8 +30,16 @@ export const signin = publicProcedure
                     message: "Invalid credentials",
                 });
 
-            setAccToken(user._id, ctx.res);
-            await setRefToken(user._id, ctx.res);
+            const tokens = await Promise.all([
+                setAccToken(user._id, ctx.res as Response),
+                setRefToken(user._id, ctx.res as Response),
+            ]);
+
+            await assignUser(
+                user._id.toString(),
+                tokens[0],
+                ctx.res as Response
+            );
 
             const { password: _, ...info } = user;
             return {
