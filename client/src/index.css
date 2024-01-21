@@ -12,13 +12,18 @@
     font-family: "Lalezar", Verdana, Geneva, Tahoma, sans-serif;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     cursor: default;
 }
 
 @layer components {
     .container {
-        @apply px-2 md:px-5 xl:px-0 xl:w-[1500px] xl:mx-auto;
+        @apply px-2 md:px-5 xl:px-0 xl:w-[1500px] mx-auto;
     }
 
     .icon {
@@ -28,6 +33,18 @@ h1, h2, h3, h4, h5, h6 {
     .inputField {
         @apply border border-primary w-full px-3 py-2 mt-1 hover:outline-none focus:outline-none focus:border focus:border-second bg-white rounded-md;
     }
+
+    .option {
+        @apply flex items-center w-32 px-2 py-1 justify-between hover:bg-gray-200 hover:rounded-md hover:duration-200 hover:ease-in-out active:bg-gray-300 cursor-pointer;
+    }
+
+    .numOfPages {
+        @apply py-1 hover:bg-[#D1DBD3] w-32 hover:rounded-md hover:duration-200 hover:ease-in-out cursor-pointer;
+    }
+
+    .hover-pagination {
+        @apply hover:bg-gray-200 rounded-full active:bg-gray-300 cursor-pointer;
+    }
 }
 
 @keyframes fadeIn {
@@ -36,7 +53,18 @@ h1, h2, h3, h4, h5, h6 {
         opacity: 0;
     }
     to {
-        top: 40px;
+        top: 240px;
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInBoxOption {
+    from {
+        top: 0;
+        opacity: 0;
+    }
+    to {
+        top: 64px;
         opacity: 1;
     }
 }
@@ -63,6 +91,11 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+.disabled {
+    pointer-events: none;
+    opacity: 0.5; /* You can adjust the opacity to visually indicate the button is disabled */
+}
+
 .animationPopup {
     animation: fadeInPopup 0.3s ease-in-out;
 }
@@ -73,6 +106,16 @@ h1, h2, h3, h4, h5, h6 {
 
 #boxAccount {
     animation: fadeIn 0.3s ease-in-out;
+}
+
+#boxOption {
+    animation: fadeInBoxOption 0.3s ease-in-out;
+}
+
+@media (min-width: 1024px) {
+    #boxAccount {
+        animation: fadeInBoxOption 0.3s ease-in-out;
+    }
 }
 
 /* width */
@@ -149,4 +192,23 @@ input:-webkit-autofill:focus {
 
 .stt:hover ~ td {
     background-color: rgba(156, 163, 175, 0.5);
+}
+
+#invitation-card {
+    animation: pop 0.3s ease-in-out;
+}
+
+@keyframes pop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }

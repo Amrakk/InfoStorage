@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import React, { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { IoClose } from "react-icons/io5";
 import { MdLibraryAdd } from "react-icons/md";
-import { trpc, type TProvince, type TDistrict, type TWard } from "../trpc";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Input, Select, Textarea } from ".";
+import { useProvinces } from "../stores/Provinces";
+import { trpc, type TDistrict, type TWard } from "../trpc";
 export const phoneRegex = new RegExp("^[+0-9]*$", "m");
 export const subjectRegex = new RegExp(/^[^\p{C}<>&`"/]*$/mu);
 export const addressRegex = new RegExp(/^[\p{L}0-9 \\/,.;+-,;]+$/mu);
@@ -18,23 +19,14 @@ const shippingRegex = {
 };
 
 const inputSchema = z.object({
-    name: z
-        .string()
-        .nonempty("Không được bỏ trống")
-        .regex(shippingRegex.name, "Tên không hợp lệ"),
-    address: z
-        .string()
-        .nonempty("Không được bỏ trống")
-        .regex(shippingRegex.address, "Địa chỉ không hợp lệ"),
+    name: z.string().nonempty("Không được bỏ trống").regex(shippingRegex.name, "Tên không hợp lệ"),
+    address: z.string().nonempty("Không được bỏ trống").regex(shippingRegex.address, "Địa chỉ không hợp lệ"),
     phone: z
         .string()
         .regex(shippingRegex.phone, "Số điện thoại không hợp lệ")
         .max(11, "Số điện thoại tối đa chỉ 11 số")
         .nullable(),
-    note: z
-        .string()
-        .regex(shippingRegex.note, "Ghi chú không hợp lệ")
-        .nullable(),
+    note: z.string().regex(shippingRegex.note, "Ghi chú không hợp lệ").nullable(),
     provinceCode: z.string().nonempty("Không được bỏ trống"),
     districtCode: z.string().nonempty("Không được bỏ trống"),
     wardCode: z.string().nonempty("Không được bỏ trống"),
@@ -43,9 +35,9 @@ const inputSchema = z.object({
 type TShipping = {
     name: string;
     address: string;
-    provinceCode: number | string;
-    districtCode: number | string;
-    wardCode: number | string;
+    provinceCode: string;
+    districtCode: string;
+    wardCode: string;
     phone: string | null;
     note: string | null;
 };
@@ -61,25 +53,6 @@ const inputStyle = {
 };
 
 export default function AddPopup(props: TProps) {
-    const [provinces, setProvinces] = useState<TProvince>([]);
-    const [districts, setDistricts] = useState<TDistrict>([]);
-    const [wards, setWards] = useState<TWard>([]);
-    const [loading, setLoading] = useState(false);
-
-    const refButton = useRef<HTMLButtonElement>(null);
-
-    const {
-        register,
-        setValue,
-        getValues,
-        handleSubmit,
-        reset,
-        formState: { errors },
-    } = useForm<TShipping>({
-        resolver: zodResolver(inputSchema),
-        mode: "onChange",
-    });
-
     const [shouldRender, setShouldRender] = useState<boolean>(false);
 
     useEffect(() => {
@@ -94,38 +67,39 @@ export default function AddPopup(props: TProps) {
         }
     }
 
-    useEffect(() => {
-        trpc.service.getProvinces.query().then((res) => {
-            setProvinces(res);
-        });
-    }, []);
+    return shouldRender ? (
+        <Content
+            getShippings={props.getShippings}
+            isShown={props.isShown}
+            onCancel={props.onCancel}
+            handleAnimationEnd={handleAnimationEnd}
+        />
+    ) : null;
+}
 
-    const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getDistricts
-            .query({ provCode: parseInt(e.target.value) })
-            .then((res) => {
-                setDistricts(res);
-            });
-        let current = getValues("provinceCode");
-        current = current == "" ? -1 : current;
-        if (current != -1) {
-            setValue("districtCode", "");
-            setValue("wardCode", "");
-        }
-    };
+type TPropsContent = {
+    getShippings: () => void;
+    isShown: boolean;
+    onCancel: () => void;
+    handleAnimationEnd: () => void;
+};
 
-    const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        trpc.service.getWards
-            .query({ distCode: parseInt(e.target.value) })
-            .then((res) => {
-                setWards(res);
-            });
-        let current = getValues("districtCode");
-        current = current == "" ? -1 : current;
-        if (current != -1) {
-            setValue("wardCode", "");
-        }
-    };
+function Content(props: TPropsContent) {
+    const [districts, setDistricts] = useState<TDistrict>([]);
+    const [wards, setWards] = useState<TWard>([]);
+    const [loading, setLoading] = useState(false);
+    const { provinces } = useProvinces();
+    const {
+        register,
+        setValue,
+        getValues,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<TShipping>({
+        resolver: zodResolver(inputSchema),
+        mode: "onChange",
+    });
 
     const onSubmit = (data: TShipping) => {
         setLoading(true);
@@ -133,12 +107,8 @@ export default function AddPopup(props: TProps) {
             trpc.shipping.addShippings
                 .mutate([
                     {
-                        provCode: parseInt(
-                            data.provinceCode as unknown as string
-                        ),
-                        distCode: parseInt(
-                            data.districtCode as unknown as string
-                        ),
+                        provCode: parseInt(data.provinceCode as unknown as string),
+                        distCode: parseInt(data.districtCode as unknown as string),
                         wardCode: parseInt(data.wardCode as unknown as string),
                         name: data.name,
                         address: data.address,
@@ -157,25 +127,46 @@ export default function AddPopup(props: TProps) {
         }, 1000);
     };
 
-    return shouldRender ? (
+    const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const targetProvince = provinces.find((prov) => prov.code == parseInt(e.target.value));
+        if (targetProvince) {
+            setDistricts(targetProvince.districts);
+            setValue("districtCode", "");
+            setValue("wardCode", "");
+        }
+    };
+
+    const getWards = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const targetProvince = provinces.find((prov) => prov.code == parseInt(getValues("provinceCode")));
+        if (targetProvince) {
+            const targetDistrict = targetProvince.districts.find(
+                (dist) => dist.code == parseInt(e.target.value)
+            );
+            if (targetDistrict) {
+                setWards(targetDistrict.wards);
+                setValue("wardCode", "");
+            }
+        }
+    };
+
+    const refButton = useRef<HTMLButtonElement>(null);
+
+    return (
         <>
             <div
                 className={`justify-center mt-24 fixed inset-0 z-50 select-none ${
                     props.isShown ? "animationPopup" : "animationPopout"
                 } `}
-                onAnimationEnd={handleAnimationEnd}
+                onAnimationEnd={props.handleAnimationEnd}
             >
-                <div className="relative w-1/4  mx-auto">
+                <div className="relative xl:w-1/3 w-2/4 2xl:w-1/4  mx-auto">
                     {/*content*/}
                     <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                         {/*header*/}
                         <div className="h-20 flex px-6 justify-between">
                             <div className="flex items-center">
                                 <div className="aspect-square w-12 bg-[#bddec4] border border-primary rounded-full flex justify-center items-center   ">
-                                    <MdLibraryAdd
-                                        className="text-primary"
-                                        size={18}
-                                    />
+                                    <MdLibraryAdd className="text-primary" size={18} />
                                 </div>
                             </div>
 
@@ -279,9 +270,7 @@ export default function AddPopup(props: TProps) {
                                         <div
                                             className="h-full transition-transform duration-300"
                                             style={{
-                                                transform: loading
-                                                    ? "translateY(-5px)"
-                                                    : "translateY(-52px)",
+                                                transform: loading ? "translateY(-5px)" : "translateY(-52px)",
                                             }}
                                         >
                                             <div className="h-full flex justify-center items-center gap-3">
@@ -306,5 +295,5 @@ export default function AddPopup(props: TProps) {
             </div>
             <div className="opacity-50 fixed inset-0 z-40 bg-black"></div>
         </>
-    ) : null;
+    );
 }

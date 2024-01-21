@@ -42,8 +42,7 @@ export const verify = (roles?: string[]) =>
             if (typeof roles === "object" && !roles.includes(user.role))
                 throw new TRPCError({
                     code: "FORBIDDEN",
-                    message:
-                        "You don't have permission to access this resource",
+                    message: "You don't have permission to access this resource",
                 });
 
             return next({

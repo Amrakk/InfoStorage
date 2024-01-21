@@ -11,6 +11,10 @@ type RouterInput = inferRouterInputs<AppRouter>;
 type RouterOutput = inferRouterOutputs<AppRouter>;
 
 export type TShipping = RouterOutput["shipping"]["getShippings"];
+export type TCustomer = RouterOutput["customer"]["getCustomers"];
+export type TProduct = RouterOutput["product"]["getProducts"];
+export type TSupplier = RouterOutput["supplier"]["getSuppliers"];
+
 export type TProvince = RouterOutput["service"]["getProvinces"];
 export type TDistrict = RouterOutput["service"]["getDistricts"];
 export type TWard = RouterOutput["service"]["getWards"];

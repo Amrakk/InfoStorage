@@ -1,52 +1,69 @@
-import React, { useEffect } from "react";
-import { trpc, trpcWss } from "../trpc";
-import { UserRoles } from "../../../server/src/configs/default";
+import { useEffect, useState } from "react";
+import { useTitle, useWindowDimensions } from "../hooks";
+import { useDashboard } from "../stores/Dashboard";
+import { trpc } from "../trpc";
+import { DashboardViews } from "../views";
 
 export default function Dashboard() {
-  useEffect(() => {
-    
-  }, []);
+    const { customers, shippings, products, suppliers, setData } = useDashboard();
+    const [notiLoading, setNotiLoading] = useState(true);
+    const [tasksLoading, setTasksLoading] = useState(true);
+    const [willShow, setWillShow] = useState(false);
 
-  var test = trpcWss.onConnect.subscribe(undefined, {
-    onData: (data) => {
-      console.log("onData", data);
-      if((data as { type: string }).type === "ping") {
-        trpcWss.pong.query().catch((err) => {
-          console.log("err", err);
-          if(err.code === 401) {
-            trpc.service.getAccToken.query().then(() => {
-              console.log("getAccToken");
-            });
-          }
-        });
-      }
-    },
-    onError: (error) => {
-      console.log("onError", error);
-      trpc.service.getAccToken.query().then(() => {
-        console.log("getAccToken");
-      });
+    const { width } = useWindowDimensions();
 
-      test.unsubscribe();
-    },
-  });
+    useTitle("InfoStorage | Dashboard");
 
-  const test1 = () => {
-    trpcWss.notify.query({ message: "Hello" }).catch((err) => {
-      console.log("err", err);
-      test.unsubscribe();
-    });
-  }
+    useEffect(() => {
+        trpc.customer.getCustomers.query().then((customers) => setData({ customers }));
+        trpc.shipping.getShippings.query().then((shippings) => setData({ shippings }));
+        trpc.product.getProducts.query().then((products) => setData({ products }));
+        trpc.supplier.getSuppliers.query().then((suppliers) => setData({ suppliers }));
 
-  
+        setTimeout(() => setNotiLoading(false), 2000);
+        setTimeout(() => setTasksLoading(false), 1000);
+        setTimeout(() => setWillShow(true), 2500);
+    }, []);
 
-  return <>
-  
-  <div className="container text-primary">
-    <div className="flex justify-between mt-8">
-        <div className="text-3xl font-bold">Dashboard</div>
-        <button onClick={test1}>123</button>
-    </div>
-  </div>
-  </>
-  }
+    const isLargeScreen = width >= 1024;
+
+    return (
+        <div className="container lg:my-8 my-4">
+            <h1 className="text-3xl font-semibold">Dashboard</h1>
+            <div className="lg:grid grid-cols-3 lg:mt-8 mt-4 lg:gap-8 gap-4">
+                <div className="col-span-2">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+                        {!customers || !shippings || !products || !suppliers ? (
+                            <DashboardViews.InfoCardsSkeleton />
+                        ) : (
+                            <DashboardViews.InfoCards
+                                customers={customers}
+                                shippings={shippings}
+                                products={products}
+                                suppliers={suppliers}
+                            />
+                        )}
+                    </div>
+                    {!isLargeScreen && willShow && <DashboardViews.RoomInvitation />}
+                    <div className="lg:mt-8 mt-4 w-full">
+                        {notiLoading ? (
+                            <DashboardViews.NotificationsSkeleton />
+                        ) : (
+                            <DashboardViews.Notifications />
+                        )}
+                    </div>
+                </div>
+                <div>
+                    {isLargeScreen && willShow && <DashboardViews.RoomInvitation />}
+                    <div
+                        className={`${
+                            willShow || !isLargeScreen ? "lg:mt-8 mt-4" : ""
+                        } transition-all`}
+                    >
+                        {tasksLoading ? <DashboardViews.TasksSkeleton /> : <DashboardViews.Tasks />}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

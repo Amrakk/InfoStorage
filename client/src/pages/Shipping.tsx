@@ -1,38 +1,52 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trpc, type TRPCError, type TShipping } from "../trpc";
-import { AiOutlineSearch, AiFillEdit } from "react-icons/ai";
-import { IoMdSettings } from "react-icons/io";
-import { FaFilter, FaTrash } from "react-icons/fa";
-import { BsFillSkipEndFill, BsFillSkipStartFill } from "react-icons/bs";
-import { GrFormPrevious, GrFormNext } from "react-icons/gr";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { DeletePopup, AddPopup, UpdatePopup } from "../components";
 import { useDeletePopupStore } from "../stores/DeletePopup";
-import { set } from "react-hook-form";
-import { CollectionNames } from "../../../server/src/configs/default";
+import { useShippingsStore } from "../stores/Shippings";
+import { Drag, PageActionHub, Search, Table, Pagination } from "../components";
+import { v4 } from "uuid";
 
 export default function Shipping() {
     const navigate = useNavigate();
-    const [shippings, setShippings] = useState<TShipping>([]);
-    const [iconAppear, setIconAppear] = useState(false);
-    const [binPing, setBinPing] = useState(false);
-    const [editPing, setEditPing] = useState(false);
-    const { isDeletePopupOpen, setIsDeletePopupOpen } = useDeletePopupStore();
+    const { shippings, setShippings } = useShippingsStore();
+
+    const { isDeletePopupOpen } = useDeletePopupStore();
     const [isAddPopupOpen, setIsAddPopupOpen] = useState<boolean>(false);
     const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState<boolean>(false);
     const [_id, set_Id] = useState("");
     const mouseFollowRef = useRef<HTMLCanvasElement>(null);
     const [isShowCopyBox, setIsShowCopyBox] = useState<boolean>(false);
-    const [searchValue, setSearchValue] = useState<string>(""); // ["name", "address", "phone", "note"]
-
+    const [searchValue, setSearchValue] = useState(shippings);
     const [inputValue, setInputValue] = useState<{
         [key: string]: string | null | undefined;
-    }>({}); // ["name", "address", "phone", "note"
+    }>({});
 
     const [idTimeOut, setIdTimeOut] = useState<ReturnType<typeof setTimeout>>();
 
-    const inputStyle = {
-        caretColor: "transparent",
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(8);
+
+    // Logic to calculate currentItems based on currentPage and itemsPerPage
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    // const currentItems = (searchValue == null ? shippings : searchValue).slice(
+    //     indexOfFirstItem,
+    //     indexOfLastItem
+    // );
+    const currentItems =
+        shippings == null
+            ? null
+            : (searchValue == null ? shippings : searchValue).slice(indexOfFirstItem, indexOfLastItem);
+    const totalLength = shippings == null ? 0 : searchValue == null ? shippings.length : searchValue.length;
+    const handlePagination = (pageNumber: number) => {
+        setCurrentPage(pageNumber);
+    };
+
+    const updatePageSize = (size: number) => {
+        setItemsPerPage(size);
+        setCurrentPage(1); // Reset to the first page when changing items per page
     };
 
     const handleCopyBox = (x: number, y: number) => {
@@ -47,21 +61,58 @@ export default function Shipping() {
             if (ctx) {
                 ctx.clearRect(0, 0, mouseFollow.width, mouseFollow.height);
 
-                ctx.fillStyle = "#415245";
-                ctx.strokeStyle = "#415245";
+                ctx.fillStyle = "transparent";
+                ctx.strokeStyle = "transparent";
                 ctx.beginPath();
-                ctx.roundRect(x + 12, y - 20, 70, 40, 20);
+                ctx.roundRect(x + 12, y - 20, 70, 40, 10);
                 ctx.stroke();
                 ctx.fill();
-                ctx.fillStyle = "white";
-                ctx.font = "bold 12px System-UI ";
-
-                //background black
-
-                ctx.fillText("Copied!", x + 26, y + 5);
+                ctx.fillStyle = "#6AAFC7";
+                ctx.font = `bold 12px ui-sans-serif, system-ui`;
+                ctx.fillText("Copied!", x + 22, y + 5);
             }
         }
     };
+
+    function handleSearch(value: string) {
+        if (shippings == null) return;
+        setCurrentPage(1);
+        if (value === "") {
+            setSearchValue(null);
+            return;
+        }
+        const filteredData = shippings.filter((item) =>
+            toLowerNonAccentVietnamese(item.name).includes(toLowerNonAccentVietnamese(value))
+        );
+
+        if (filteredData.length === 0) {
+            if (searchValue?.length !== 0) {
+                setSearchValue([]);
+            }
+        } else {
+            setSearchValue(filteredData);
+        }
+    }
+
+    function toLowerNonAccentVietnamese(str: string) {
+        str = str.toLowerCase();
+        str = str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g, "a");
+        str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g, "e");
+        str = str.replace(/ì|í|ị|ỉ|ĩ/g, "i");
+        str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g, "o");
+        str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g, "u");
+        str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g, "y");
+        str = str.replace(/đ/g, "d");
+
+        str = str.replace(/\u0300|\u0301|\u0303|\u0309|\u0323/g, "");
+        str = str.replace(/\u02C6|\u0306|\u031B/g, "");
+        return str;
+    }
+
+    function handleId(_id: string) {
+        set_Id(_id);
+    }
 
     useEffect(() => {
         const mouseMoveListener = (e: MouseEvent) => {
@@ -93,31 +144,27 @@ export default function Shipping() {
         };
     }
 
-    function getShippings() {
-        trpc.shipping.getShippings
-            .query()
-            .then((res) => {
-                setShippings(res);
-            })
-            .catch((err) => {
-                if ((err as TRPCError).data.httpStatus === 401 || 500) {
-                    navigate("/signin");
-                }
-            });
+    async function getShippings() {
+        try {
+            const res = await trpc.shipping.getShippings.query();
+            const updatedShippings = Array.from({ length: 11 }, () => [...res])
+                .flat()
+                .map((s) => {
+                    s._id = v4();
+                    return { ...s };
+                });
+
+            setShippings(updatedShippings);
+        } catch (err) {
+            if ((err as TRPCError).data.httpStatus === 401 || 500) {
+                navigate("/signin");
+            }
+        }
     }
 
     useEffect(() => {
         getShippings();
     }, []);
-
-    // useEffect(() => {
-    //     const abortController = new AbortController();
-    //     trpc.service.searchByName
-    //         .query({ type: CollectionNames.Shippings, text: searchValue })
-    //         .then((res) => {
-    //             setShippings(res);
-    //         });
-    // }, [searchValue]);
 
     function handleAddPopUp() {
         setIsAddPopupOpen(true);
@@ -158,287 +205,34 @@ export default function Shipping() {
                 {/* Sao chép thành công */}
             </canvas>
 
-            <div className="container text-primary">
-                <div className="flex justify-between mt-8">
-                    <div className="text-3xl">Shipping</div>
-                    <div className="flex gap-5">
-                        <button className="w-40 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
-                            Export File
-                        </button>
-                        <button className="w-40 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
-                            Import File
-                        </button>
-                        <button
-                            className="w-40 py-3 bg-primary hover:bg-[#5e7563] transition-colors  text-white rounded-md"
-                            onClick={handleAddPopUp}
-                        >
-                            Create
-                        </button>
-                    </div>
-                </div>
-                <div className="flex mt-8 gap-5 h-10">
-                    <div className="group flex-1 ">
-                        <div className="h-full  group-focus-within:border-[#6AAFC7] transition-colors group-focus:border flex border border-primary items-center px-1 gap-2 rounded-md">
-                            <AiOutlineSearch
-                                size={24}
-                                className="group-focus-within:text-[#6AAFC7] transition-colors"
-                            />
-                            <input
-                                type="text"
-                                className="w-full outline-none text-primary "
-                                placeholder="Search Services"
-                                onChange={(e) => {
-                                    setSearchValue(e.target.value);
-                                }}
-                            />
-                        </div>
-                    </div>
+            <div className="container text-primary mx-auto">
+                <PageActionHub handleAddPopUp={handleAddPopUp} title="Shipping" />
 
-                    <button className=" bg-[#D1DBD3] flex items-center justify-center  rounded-md aspect-square">
-                        <FaFilter size={20} />
-                    </button>
-                    <button className=" bg-[#D1DBD3] flex items-center justify-center  rounded-md aspect-square">
-                        <IoMdSettings size={24} />
-                    </button>
-                </div>
-                {/* {shippings.map((shipping) => {
-          return <div>{shipping.name}</div>;
-        })} */}
-                <div className="mt-8 h-[500px] overflow-auto">
-                    <table
-                        className="w-[100%] table-fixed relative border-separate text-left "
-                        style={inputStyle}
-                    >
-                        <thead className="">
-                            <tr className="select-none">
-                                <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white w-[5%]">
-                                    STT
-                                </th>
-                                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[20%]">
-                                    Tên Đơn Vị
-                                </th>
-                                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[28%]">
-                                    Địa Chỉ
-                                </th>
-                                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[12%]">
-                                    Số Điện Thoại
-                                </th>
-                                <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white ">
-                                    Ghi Chú
-                                </th>
-                            </tr>
-                        </thead>
+                <Search handleSearch={handleSearch} />
 
-                        <tbody className="h-full">
-                            {shippings
-                                // .concat(shippings)
-                                // .concat(shippings)
-                                .map((shipping, index) => {
-                                    return (
-                                        <tr
-                                            key={shipping._id}
-                                            className=" border-b-2 border-[#D1DBD3]  hover:bg-gray-200  hover:duration-200 hover:ease-in-out cursor-pointer active:bg-gray-300 transition-colors"
-                                            draggable
-                                            onDragStart={(e) => {
-                                                setIconAppear(true);
-                                                e.dataTransfer.setData(
-                                                    "shippingId",
-                                                    shipping._id
-                                                );
-                                                e.dataTransfer.setData(
-                                                    "shippingName",
-                                                    shipping.name
-                                                );
-                                                e.dataTransfer.setData(
-                                                    "shippingAddress",
-                                                    shipping.address
-                                                );
-                                                e.dataTransfer.setData(
-                                                    "shippingPhone",
-                                                    shipping.phone
-                                                );
-                                                e.dataTransfer.setData(
-                                                    "shippingNote",
-                                                    shipping.note
-                                                );
-                                                set_Id(shipping._id);
-                                            }}
-                                            onDragEnd={(e) => {
-                                                setIconAppear(false);
-                                            }}
-                                        >
-                                            <td
-                                                className="text-center stt hover:bg-gray-400 hover:bg-opacity-50"
-                                                onClick={handleCopy(
-                                                    `${shipping.name}\n${shipping.address}\n${shipping.phone}\n\n${shipping.note}`
-                                                )}
-                                            >
-                                                {index + 1}
-                                            </td>
-                                            <td
-                                                className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
-                                                onClick={handleCopy(
-                                                    shipping.name
-                                                )}
-                                            >
-                                                {shipping.name}
-                                            </td>
-                                            <td
-                                                className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
-                                                onClick={handleCopy(
-                                                    shipping.address
-                                                )}
-                                            >
-                                                {shipping.address}
-                                            </td>
-                                            <td
-                                                className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
-                                                onClick={handleCopy(
-                                                    shipping.phone
-                                                )}
-                                            >
-                                                {shipping.phone}
-                                            </td>
-                                            <td
-                                                className="p-3 whitespace-normal break-words hover:bg-gray-400 hover:bg-opacity-50"
-                                                onClick={handleCopy(
-                                                    shipping.note
-                                                )}
-                                            >
-                                                <p>
-                                                    {shipping.note
-                                                        .split("\n")
-                                                        .map((item, i) => {
-                                                            return (
-                                                                <>
-                                                                    {item}
-                                                                    <br />
-                                                                </>
-                                                            );
-                                                        })}
-                                                </p>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                        </tbody>
-                    </table>
-                </div>
-
-                <div className="mt-8 flex items-center gap-8 justify-end">
-                    <button className="w-32 py-3 bg-gray-300 hover:bg-gray-200 transition-colors rounded-md">
-                        10 per page
-                    </button>
-                    <div className="flex gap-2">
-                        <BsFillSkipStartFill size={24} />
-                        <GrFormPrevious size={24} />
-                        <div>1 of 6</div>
-                        <GrFormNext size={24} />
-                        <BsFillSkipEndFill size={24} />
-                    </div>
-                </div>
-                <span
-                    className={`fixed flex w-72  aspect-square transition-all duration-300  ${
-                        iconAppear
-                            ? "-left-32 -bottom-28"
-                            : "-left-72 -bottom-64"
-                    }`}
-                >
-                    <span
-                        className={`${
-                            binPing ? "animate-ping" : ""
-                        } absolute inline-flex h-full w-full rounded-full bg-accent1 opacity-75`}
-                    ></span>
-                    <span
-                        className="relative inline-flex  w-72  aspect-square rounded-full bg-accent1 "
-                        onDragEnter={(e) => {
-                            setBinPing(true);
-                        }}
-                        onDragLeave={() => {
-                            setBinPing(false);
-                        }}
-                        onDragOver={(e) => {
-                            e.preventDefault();
-                        }}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            setBinPing(false);
-                            const shippingName =
-                                e.dataTransfer.getData("shippingName");
-                            setIsDeletePopupOpen(shippingName);
-                        }}
-                    >
-                        <FaTrash
-                            size={50}
-                            className="absolute text-white right-[72px] top-[72px] pointer-events-none"
-                        />
-                    </span>
-                </span>
-                <span
-                    className={`fixed flex w-72  aspect-square transition-all  duration-300  ${
-                        iconAppear
-                            ? "-right-32 -bottom-28"
-                            : "-right-72 -bottom-64"
-                    }`}
-                >
-                    <span
-                        className={`${
-                            editPing ? "animate-ping" : ""
-                        } absolute inline-flex h-full w-full rounded-full bg-second opacity-75`}
-                    ></span>
-                    <span
-                        className="relative inline-flex  w-72  aspect-square rounded-full bg-second "
-                        onDragEnter={(e) => {
-                            setEditPing(true);
-                        }}
-                        onDragLeave={() => {
-                            setEditPing(false);
-                        }}
-                        onDragOver={(e) => {
-                            e.preventDefault();
-                        }}
-                        onDrop={(e) => {
-                            e.preventDefault();
-                            setEditPing(false);
-                            const shippingId =
-                                e.dataTransfer.getData("shippingId");
-                            const shippingName =
-                                e.dataTransfer.getData("shippingName");
-                            const shippingAddress =
-                                e.dataTransfer.getData("shippingAddress");
-                            const shippingPhone =
-                                e.dataTransfer.getData("shippingPhone");
-                            const shippingNote =
-                                e.dataTransfer.getData("shippingNote");
-
-                            handleUpdatePopUp(
-                                shippingId,
-                                shippingName,
-                                shippingAddress,
-                                shippingPhone,
-                                shippingNote
-                            );
-                        }}
-                    >
-                        <AiFillEdit
-                            size={55}
-                            className="absolute  text-white left-[72px] top-[72px] pointer-events-none"
-                        />
-                    </span>
-                </span>
-                {/* {isDeletePopupOpen && <DeletePopup   />} */}
-                {isDeletePopupOpen && (
-                    <DeletePopup
-                        message={isDeletePopupOpen}
-                        _id={_id}
-                        getShippings={getShippings}
-                    />
-                )}
-                <AddPopup
-                    getShippings={getShippings}
-                    isShown={isAddPopupOpen}
-                    onCancel={hideAddPopUp}
+                <Table
+                    currentItem={currentItems}
+                    currentPage={currentPage}
+                    itemsPerPage={itemsPerPage}
+                    handleCopy={handleCopy}
+                    handleId={handleId}
                 />
+
+                <Pagination
+                    currentPage={currentPage}
+                    itemsPerPage={itemsPerPage}
+                    // totalItems={searchValue.length > 0 ? searchValue.length : shippings.length}
+                    totalItems={totalLength}
+                    handlePagination={handlePagination}
+                    updatePageSize={updatePageSize}
+                />
+
+                <Drag handleUpdatePopUp={handleUpdatePopUp} />
+
+                {isDeletePopupOpen && (
+                    <DeletePopup message={isDeletePopupOpen} _id={_id} getShippings={getShippings} />
+                )}
+                <AddPopup getShippings={getShippings} isShown={isAddPopupOpen} onCancel={hideAddPopUp} />
                 <UpdatePopup
                     getShippings={getShippings}
                     isShown={isUpdatePopupOpen}
