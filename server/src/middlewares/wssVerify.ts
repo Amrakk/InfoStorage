@@ -8,6 +8,7 @@ import type { Request } from "express";
 import type { IncomingMessage } from "http";
 import type { ParamsDictionary, Query } from "express-serve-static-core";
 import { verifyUser } from "./userStatusHandlers.js";
+import { verifyCookies } from "./verify.js";
 
 type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
 
@@ -28,25 +29,12 @@ export const wssVerify = (roles?: string[]) =>
                 message: "Invalid request",
             });
 
-        const cookies = ctx.req.headers.cookie?.split("; ");
-        const userId = cookies
-            ?.find((c) => c.startsWith("userId"))
-            ?.split("=")[1];
-        const accToken = cookies
-            ?.find((c) => c.startsWith("accToken"))
-            ?.split("=")[1];
-
         ctx.res = ctx.res as WebSocket;
 
         try {
-            if (!accToken) throw unauthErr;
-            if (!userId || !(await verifyUser(userId, accToken)))
-                throw new TRPCError({
-                    code: "PRECONDITION_FAILED",
-                    message: "HTTP verification required!",
-                });
+            const userID = await verifyCookies(ctx.req, ctx.res);
 
-            const user = await getUserByID(userId);
+            const user = await getUserByID(userID);
             if (!user) throw unauthErr;
             if (typeof roles === "object" && !roles.includes(user.role))
                 throw new TRPCError({
@@ -63,6 +51,10 @@ export const wssVerify = (roles?: string[]) =>
                 },
             });
         } catch (err) {
+            if (err instanceof TRPCError && err.code == "UNAUTHORIZED") {
+                ctx.res.terminate();
+                throw err;
+            }
             if (err instanceof TRPCError) throw err;
             throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",

@@ -7,8 +7,8 @@ import { createContext } from "./trpc.js";
 import { wssConfigure } from "./socket.js";
 import { appRouter } from "./routers/appRouter.js";
 import logger from "./middlewares/logger/logger.js";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import { createExpressMiddleware } from "@trpc/server/adapters/express";
 
 const app = express();
 
@@ -40,14 +40,7 @@ export type AppRouter = typeof appRouter;
 
 const wss = wssConfigure(server);
 
-const handler = applyWSSHandler({
-    wss,
-    router: appRouter.wss,
-    createContext,
-});
-
 process.on("SIGINT", () => {
     console.log("Got SIGTERM signal");
-    handler.broadcastReconnectNotification();
     wss.close();
 });

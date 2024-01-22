@@ -42,7 +42,8 @@ export const verify = (roles?: string[]) =>
             if (typeof roles === "object" && !roles.includes(user.role))
                 throw new TRPCError({
                     code: "FORBIDDEN",
-                    message: "You don't have permission to access this resource",
+                    message:
+                        "You don't have permission to access this resource",
                 });
 
             return next({
@@ -94,7 +95,7 @@ export async function verifyCookies(
         ?.split("=")[1];
 
     if (!accToken) throw unauthErr;
-    if (isREQ && userId && (await verifyUser(userId, accToken))) return userId;
+    if (userId && (await verifyUser(userId, accToken))) return userId;
 
     const accPayload = verifyToken(accToken, process.env.ACCESS_SECRET_KEY!);
     if (!accPayload) throw unauthErr;
@@ -121,7 +122,12 @@ export async function verifyCookies(
         userId = refPayload.id;
     } else userId = accPayload.id;
 
-    if (isREQ) await assignUser(userId, accToken, res as Response);
+    if (!isREQ)
+        throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: "HTTP verification required!",
+        });
+    await assignUser(userId, accToken, res as Response);
     return userId;
 }
 
