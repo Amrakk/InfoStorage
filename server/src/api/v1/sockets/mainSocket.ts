@@ -8,7 +8,10 @@ import { banIp } from "../../../middlewares/collectionHandlers/bannedIPsHandlers
 
 import type { ObjectId } from "mongodb";
 
-export type TWsResponse = { type: "ping" | "pong" | "notification"; data: any };
+export type TWsResponse = {
+    type: "ping" | "pong" | "notification";
+    data: unknown;
+};
 
 // ping, pong, notification
 export const onConnect = wssProcedure.subscription(({ ctx }) => {
@@ -44,10 +47,12 @@ export const onConnect = wssProcedure.subscription(({ ctx }) => {
         ee.on("ping", ping);
         ee.on(`pong_${_id.toHexString()}`, pong);
 
-        return () => {
+        return async () => {
             ee.off("notify", notify);
             ee.off("ping", ping);
             ee.off(`pong_${_id.toHexString()}`, pong);
+
+            await removeUser(_id.toString());
 
             ws.terminate();
         };

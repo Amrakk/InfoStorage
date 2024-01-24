@@ -66,22 +66,9 @@ export const verify = (roles?: string[]) =>
         }
     });
 
-export async function verifyUserId(req: IncomingMessage | Request) {
-    const isREQ = (req as IncomingMessage).headers.upgrade !== "websocket";
-    const cookies = req.headers.cookie?.split("; ");
-
-    var userId = cookies?.find((c) => c.startsWith("userId"))?.split("=")[1];
-    var accToken = cookies
-        ?.find((c) => c.startsWith("accToken"))
-        ?.split("=")[1];
-    const refToken = cookies
-        ?.find((c) => c.startsWith("refToken"))
-        ?.split("=")[1];
-}
-
 export async function verifyCookies(
     req: IncomingMessage | Request,
-    res: WebSocket | Response
+    res: WebSocket | Response | undefined
 ) {
     const isREQ = (req as IncomingMessage).headers.upgrade !== "websocket";
     const cookies = req.headers.cookie?.split("; ");

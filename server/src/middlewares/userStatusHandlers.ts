@@ -22,6 +22,12 @@ export async function removeUser(id: string) {
     await redis.del(`userId-${id}`);
 }
 
+export async function isOnline(id: string) {
+    const redis = cache.getCache();
+    const value = await redis.get(`userId-${id}`);
+    return !!value;
+}
+
 export async function verifyUser(id: string, accToken: string) {
     const redis = cache.getCache();
     const value = await redis.get(`userId-${id}`);

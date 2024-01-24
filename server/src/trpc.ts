@@ -6,10 +6,10 @@ import { initTRPC } from "@trpc/server";
 import { verify } from "./middlewares/verify.js";
 import IUser from "./interfaces/collections/user.js";
 import { wssVerify } from "./middlewares/wssVerify.js";
+import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
+
 import type { inferAsyncReturnType } from "@trpc/server";
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { NodeHTTPCreateContextFnOptions } from "@trpc/server/adapters/node-http";
-import { limiter } from "./middlewares/rateLimiter/rateLimitHandlers.js";
 
 export async function createContext(
     opts:
@@ -49,19 +49,17 @@ const t = initTRPC.context<Context>().create({
 
 export const router = t.router;
 export const middleware = t.middleware;
-export const publicProcedure = t.procedure.use(limiter());
+export const publicProcedure = t.procedure;
 
 // Protected procedures
-export const wssProcedure = t.procedure.use(limiter()).use(wssVerify());
-export const managerWssProcedure = t.procedure
-    .use(limiter())
-    .use(wssVerify(["admin", "manager"]));
+export const wssProcedure = t.procedure.use(wssVerify());
+export const managerWssProcedure = t.procedure.use(
+    wssVerify(["admin", "manager"])
+);
 
-export const verifiedProcedure = t.procedure.use(limiter()).use(verify());
-export const adminProcedure = t.procedure.use(limiter()).use(verify(["admin"]));
-export const managerProcedure = t.procedure
-    .use(limiter())
-    .use(verify(["admin", "manager"]));
-export const employeeProcedure = t.procedure
-    .use(limiter())
-    .use(verify(["admin", "manager", "employee"]));
+export const verifiedProcedure = t.procedure.use(verify());
+export const adminProcedure = t.procedure.use(verify(["admin"]));
+export const managerProcedure = t.procedure.use(verify(["admin", "manager"]));
+export const employeeProcedure = t.procedure.use(
+    verify(["admin", "manager", "employee"])
+);

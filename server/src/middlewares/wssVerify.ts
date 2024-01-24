@@ -1,5 +1,6 @@
 import { middleware } from "../trpc.js";
 import { TRPCError } from "@trpc/server";
+import { verifyCookies } from "./verify.js";
 import { getUserByID } from "./collectionHandlers/userHandlers.js";
 import { getErrorMessage } from "./errorHandlers/getErrorMessage.js";
 
@@ -7,8 +8,6 @@ import type { WebSocket } from "ws";
 import type { Request } from "express";
 import type { IncomingMessage } from "http";
 import type { ParamsDictionary, Query } from "express-serve-static-core";
-import { verifyUser } from "./userStatusHandlers.js";
-import { verifyCookies } from "./verify.js";
 
 type REQ = Request<ParamsDictionary, any, any, Query, Record<string, any>>;
 

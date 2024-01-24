@@ -8,6 +8,7 @@ import { wssConfigure } from "./socket.js";
 import { appRouter } from "./routers/appRouter.js";
 import logger from "./middlewares/logger/logger.js";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import limiter from "./middlewares/rateLimiter/rateLimitHandlers.js";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 
 const app = express();
@@ -18,6 +19,9 @@ app.use(
         credentials: true,
     })
 );
+
+// HTTP only
+app.use(limiter);
 
 app.use(logger);
 app.use(cookieParser());
@@ -39,6 +43,12 @@ app.on("close", async () => {
 export type AppRouter = typeof appRouter;
 
 const wss = wssConfigure(server);
+
+applyWSSHandler({
+    wss,
+    createContext,
+    router: appRouter.wss,
+});
 
 process.on("SIGINT", () => {
     console.log("Got SIGTERM signal");
