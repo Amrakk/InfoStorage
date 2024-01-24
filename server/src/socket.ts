@@ -1,13 +1,12 @@
-import { EventEmitter } from "events";
 import { WebSocketServer } from "ws";
+import { EventEmitter } from "events";
 import limiter from "./middlewares/rateLimiter/rateLimitHandlers.js";
 
 import type { Server } from "http";
 
-export const ee = new EventEmitter();
-
 const HEARTBEAT_INTERVAL = 1000 * 5;
 
+export const ee = new EventEmitter();
 ee.setMaxListeners(30);
 
 export const wssConfigure = (server: Server) => {
@@ -26,41 +25,27 @@ export const wssConfigure = (server: Server) => {
             ?.split("=")[1];
         if (!userId) return ws.terminate();
 
-        console.log(`➕➕ Connection (${wss.clients.size})`);
-
         let timeoutId: NodeJS.Timeout;
 
         const resetTimeout = () => {
             if (timeoutId) clearTimeout(timeoutId);
 
             let temp = setTimeout(() => {
-                if (temp != timeoutId) return;
-
-                ws.terminate();
-                console.log(
-                    `➖➖ Connection closed due to inactivity (${timeoutId})`
-                );
+                if (temp == timeoutId) ws.terminate();
             }, 1000 * 20);
 
             timeoutId = temp;
         };
 
-        ws.on("message", (msg) => {
-            resetTimeout();
-        });
+        ws.on("message", () => resetTimeout());
 
-        ws.once("close", async () => {
-            clearTimeout(timeoutId);
-            console.log(`➖➖ Connection (${wss.clients.size})`);
-        });
+        ws.once("close", () => clearTimeout(timeoutId));
 
         resetTimeout();
     });
 
-    wss.on("close", () => {
-        clearInterval(pingInt);
-        console.log("Server closed");
-    });
+    wss.on("close", () => clearInterval(pingInt));
 
+    console.log("WebSocket server configured");
     return wss;
 };

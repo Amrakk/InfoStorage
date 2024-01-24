@@ -20,6 +20,9 @@ app.use(
     })
 );
 
+await cache.init();
+await database.init();
+
 // HTTP only
 app.use(limiter);
 
@@ -28,9 +31,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use("/trpc", createExpressMiddleware({ router: appRouter, createContext }));
 
-const server = app.listen(process.env.PORT, async () => {
-    await cache.init();
-    await database.init();
+const server = app.listen(process.env.PORT, () => {
     console.log(`Server listening on port ${process.env.PORT}`);
 });
 

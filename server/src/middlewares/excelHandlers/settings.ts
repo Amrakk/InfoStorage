@@ -1,5 +1,5 @@
 export const settings = {
-    Taxes: {
+    taxes: {
         headers: [
             "Tên công ty",
             "Mã số thuế",
@@ -20,7 +20,7 @@ export const settings = {
         ],
         colsWidth: [20, 20, 20, 20, 20, 20, 20],
     },
-    Users: {
+    users: {
         headers: [
             "Tên người dùng",
             "Email",
@@ -31,7 +31,7 @@ export const settings = {
         fields: ["name", "email", "password", "phone", "role"],
         colsWidth: [20, 20, 20, 20, 20],
     },
-    Products: {
+    products: {
         headers: [
             "Tên sản phẩm",
             "Loại",
@@ -42,7 +42,7 @@ export const settings = {
         fields: ["name", "category", "quantity", "price", "suppliers"],
         colsWidth: [20, 20, 20, 20, 20],
     },
-    Customers: {
+    customers: {
         headers: [
             "Tên khách hàng",
             "Địa chỉ",
@@ -63,12 +63,12 @@ export const settings = {
         ],
         colsWidth: [20, 20, 20, 20, 20, 20, 20],
     },
-    Shippings: {
+    shippings: {
         headers: ["Tên đơn vị", "Địa chỉ", "Số điện thoại", "Ghi chú"],
         fields: ["name", "address", "phone", "note"],
-        colsWidth: [20, 20, 20, 20],
+        colsWidth: [175, 400, 75, 200],
     },
-    Suppliers: {
+    suppliers: {
         headers: [
             "Tên đơn vị",
             "Địa chỉ",

@@ -23,32 +23,32 @@ export async function getDataFromDB(
         filter = { _id: { $in: ids } };
     }
 
-    if (type === "Taxes")
+    if (type === "taxes")
         return await db
             .collection<Collections.ITax>("taxes")
             .find(filter)
             .toArray();
-    if (type === "Users")
+    if (type === "users")
         return await db
             .collection<Collections.IUser>("users")
             .find(filter)
             .toArray();
-    if (type === "Products")
+    if (type === "products")
         return await db
             .collection<Collections.IProduct>("products")
             .find(filter)
             .toArray();
-    if (type === "Customers")
+    if (type === "customers")
         return await db
             .collection<Collections.ICustomer>("customers")
             .find(filter)
             .toArray();
-    if (type === "Shippings")
+    if (type === "shippings")
         return await db
             .collection<Collections.IShipping>("shippings")
             .find(filter)
             .toArray();
-    if (type === "Suppliers")
+    if (type === "suppliers")
         return await db
             .collection<Collections.ISupplier>("suppliers")
             .find(filter)

@@ -5,6 +5,7 @@ import { trpc } from "../trpc";
 import { DashboardViews } from "../views";
 import { createTRPCProxyClient, createWSClient, wsLink } from "@trpc/client";
 import { AppRouter } from "../../../server/src/server";
+import { CollectionNames } from "../../../server/src/configs/default";
 
 export default function Dashboard() {
     const { customers, shippings, products, suppliers, setData } = useDashboard();
@@ -33,17 +34,12 @@ export default function Dashboard() {
 
         var test = trpcWss.onConnect.subscribe(undefined, {
             onData: (data) => {
-              console.log(data);
-              console.log("onData", data);
+            //   console.log(data);
               if((data as { type: string }).type === "ping") {
                 trpcWss.pong.query().catch((err) => {
-                  console.log("err", err);
-
-                  if(err.code === 401 || err.code === 412) {
                     trpc.service.getAccToken.query().then(() => {
                       console.log("getAccToken");
                     });
-                  }
                 });
               }
             },
