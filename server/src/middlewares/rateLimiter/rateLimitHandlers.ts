@@ -1,11 +1,13 @@
+import { WebSocket } from "ws";
+import { TRPCError } from "@trpc/server";
 import cache from "../../database/cache.js";
 import database from "../../database/db.js";
-import { TRPCError } from "@trpc/server";
-import type { Request } from "express";
-import { IncomingMessage } from "http";
-import type { ParamsDictionary, Query } from "express-serve-static-core";
-import { middleware } from "../../trpc.js";
 import { banIp } from "../collectionHandlers/bannedIPsHandlers.js";
+import { handleErrorResponse } from "../errorHandlers/getErrorMessage.js";
+
+import type { IncomingMessage } from "http";
+import type { NextFunction, Request, Response } from "express";
+import type { ParamsDictionary, Query } from "express-serve-static-core";
 
 const expired = Number(process.env.RATE_LIMIT_SEC!);
 const max = Number(process.env.RATE_LIMIT_MAX!);
@@ -17,9 +19,13 @@ function isREQ(req: Request | IncomingMessage): req is REQ {
     return (req as IncomingMessage).headers.upgrade !== "websocket";
 }
 
-export const limiter = () =>
-    middleware(async ({ ctx, next }) => {
-        const ip = isREQ(ctx.req) ? ctx.req.ip : ctx.req.socket.remoteAddress;
+export default async function limiter(
+    req: Request | IncomingMessage,
+    res: Response | WebSocket,
+    next: NextFunction | undefined
+) {
+    try {
+        const ip = isREQ(req) ? req.ip : req.socket.remoteAddress;
 
         if (!ip)
             throw new TRPCError({
@@ -27,14 +33,27 @@ export const limiter = () =>
                 message: "Invalid request",
             });
 
-        if (await isBanned(ip)) throw new TRPCError({ code: "FORBIDDEN" });
+        if (await isBanned(ip))
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "You are banned!",
+            });
         await setRateLimit(ip);
 
         const isLimitExceeded = await isLimitRateExceeded(ip);
         if (isLimitExceeded) throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
 
-        return next();
-    });
+        return next ? next() : undefined;
+    } catch (err) {
+        const trpcErr = handleErrorResponse(err);
+        if (res instanceof WebSocket) {
+            res.send(JSON.stringify(trpcErr));
+            res.terminate();
+        } else {
+            res.status(trpcErr.error.data.httpStatus).send(trpcErr);
+        }
+    }
+}
 
 async function setRateLimit(ip: string) {
     const redis = cache.getCache();

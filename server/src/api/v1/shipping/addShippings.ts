@@ -129,11 +129,12 @@ async function sendFailedEntries(failedEntries: TFailedEntry[], email: string) {
         failedEntries
     );
     const workbook = generateExcelFile([sheet]);
-    const text = `Dear user,\n\nYou have requested to add shippings to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+    const html = `Dear user,\n\nYou have requested to add shippings to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
 
     const mailInfo = {
         to: [email],
-        text,
+        subject: "InfoStorage - Failed entries",
+        html,
         data: workbook,
     };
     await exportDataViaMail(mailInfo, contextRules.failedEntries);

@@ -3,6 +3,9 @@ import { useTitle, useWindowDimensions } from "../hooks";
 import { useDashboard } from "../stores/Dashboard";
 import { trpc } from "../trpc";
 import { DashboardViews } from "../views";
+import { createTRPCProxyClient, createWSClient, wsLink } from "@trpc/client";
+import { AppRouter } from "../../../server/src/server";
+import { CollectionNames } from "../../../server/src/configs/default";
 
 export default function Dashboard() {
     const { customers, shippings, products, suppliers, setData } = useDashboard();
@@ -19,6 +22,39 @@ export default function Dashboard() {
         trpc.shipping.getShippings.query().then((shippings) => setData({ shippings }));
         trpc.product.getProducts.query().then((products) => setData({ products }));
         trpc.supplier.getSuppliers.query().then((suppliers) => setData({ suppliers }));
+
+        const wsClient = createWSClient({
+            url: "ws://localhost:3000/trpc/wss",
+        });
+
+        const trpcWss = createTRPCProxyClient<AppRouter["wss"]>({
+            links: [wsLink({ client: wsClient })],
+        });
+        
+
+        var test = trpcWss.onConnect.subscribe(undefined, {
+            onData: (data) => {
+            //   console.log(data);
+              if((data as { type: string }).type === "ping") {
+                trpcWss.pong.query().catch((err) => {
+                    trpc.service.getAccToken.query().then(() => {
+                      console.log("getAccToken");
+                    });
+                });
+              }
+            },
+            onStopped() {
+              console.log("Unsubscribed");
+            },
+            onError: (error) => {
+              console.log("onError", error);
+              trpc.service.getAccToken.query().then(() => {
+                console.log("getAccToken");
+              });
+            },
+          });
+
+            
 
         setTimeout(() => setNotiLoading(false), 2000);
         setTimeout(() => setTasksLoading(false), 1000);

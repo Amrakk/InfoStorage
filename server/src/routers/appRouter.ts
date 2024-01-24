@@ -1,8 +1,8 @@
 import { router } from "../trpc.js";
+import { wssRouter } from "./wssRouter.js";
 import { authRouter } from "./authRouter.js";
 import { serviceRouter } from "./serviceRouter.js";
 import { taxRouter } from "./collectionRouters/taxRouter.js";
-import { wssRouter } from "./wssRouter.js";
 import { userRouter } from "./collectionRouters/userRouter.js";
 import { productRouter } from "./collectionRouters/productRouter.js";
 import { customerRouter } from "./collectionRouters/customerRouter.js";

@@ -1,5 +1,5 @@
-import { pong, notify, onConnect } from "../api/v1/sockets/mainSocket.js";
 import { router } from "../trpc.js";
+import { pong, notify, onConnect } from "../api/v1/sockets/mainSocket.js";
 
 export const wssRouter = router({
     /**

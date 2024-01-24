@@ -7,8 +7,9 @@ import { createContext } from "./trpc.js";
 import { wssConfigure } from "./socket.js";
 import { appRouter } from "./routers/appRouter.js";
 import logger from "./middlewares/logger/logger.js";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
+import limiter from "./middlewares/rateLimiter/rateLimitHandlers.js";
+import { createExpressMiddleware } from "@trpc/server/adapters/express";
 
 const app = express();
 
@@ -19,14 +20,18 @@ app.use(
     })
 );
 
+await cache.init();
+await database.init();
+
+// HTTP only
+app.use(limiter);
+
 app.use(logger);
 app.use(cookieParser());
 app.use(express.json());
 app.use("/trpc", createExpressMiddleware({ router: appRouter, createContext }));
 
-const server = app.listen(process.env.PORT, async () => {
-    await cache.init();
-    await database.init();
+const server = app.listen(process.env.PORT, () => {
     console.log(`Server listening on port ${process.env.PORT}`);
 });
 
@@ -40,14 +45,13 @@ export type AppRouter = typeof appRouter;
 
 const wss = wssConfigure(server);
 
-const handler = applyWSSHandler({
+applyWSSHandler({
     wss,
-    router: appRouter.wss,
     createContext,
+    router: appRouter.wss,
 });
 
 process.on("SIGINT", () => {
     console.log("Got SIGTERM signal");
-    handler.broadcastReconnectNotification();
     wss.close();
 });
