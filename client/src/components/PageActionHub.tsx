@@ -1,5 +1,3 @@
-import React from "react";
-
 type TProps = {
     handleAddPopUp: () => void;
     title: string;

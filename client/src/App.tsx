@@ -1,16 +1,14 @@
-import { useState, useEffect } from "react";
-import ReactDOM from "react-dom/client";
-import { useLocation, useNavigate } from "react-router-dom";
-import Signin from "./pages/Signin.tsx";
-import Notfound from "./pages/Notfound.tsx";
-import Home from "./pages/Home.tsx";
-import Shipping from "./pages/Shipping.tsx";
-import Dashboard from "./pages/Dashboard.tsx";
+import { useEffect } from "react";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import "./App.css";
 import Header from "./components/Header.tsx";
 import Account from "./pages/Account.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 import Forgotpassword from "./pages/Forgotpassword.tsx";
-import "./App.css";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Home from "./pages/Home.tsx";
+import Notfound from "./pages/Notfound.tsx";
+import Shipping from "./pages/Shipping.tsx";
+import Signin from "./pages/Signin.tsx";
 import { useProvinces } from "./stores/Provinces.ts";
 function App() {
     const location = useLocation();
