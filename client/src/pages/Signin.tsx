@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TRPCError, trpc } from "../trpc";
-import { useLocation, useNavigate } from "react-router-dom";
 
 const notBlinking = {
   caretColor: "transparent",

@@ -1,9 +1,6 @@
-import React from "react";
-import { useShippingsStore } from "../stores/Shippings";
+import dataNotFound from "../assets/img/data not found.png";
 import { useIconAppear } from "../stores/IconAppear";
 import TableSkeleton from "./TableSkeleton";
-import dataNotFound from "../assets/img/data not found.png";
-import { v4 } from "uuid";
 const inputStyle = {
     caretColor: "transparent",
 };
@@ -79,7 +76,7 @@ export default function Table(props: TProps) {
                                             e.dataTransfer.setData("shippingNote", shipping.note);
                                             props.handleId(shipping._id);
                                         }}
-                                        onDragEnd={(e) => {
+                                        onDragEnd={() => {
                                             setIconAppear(false);
                                         }}
                                     >

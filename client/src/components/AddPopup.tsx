@@ -48,10 +48,6 @@ type TProps = {
     onCancel: () => void;
 };
 
-const inputStyle = {
-    caretColor: "transparent",
-};
-
 export default function AddPopup(props: TProps) {
     const [shouldRender, setShouldRender] = useState<boolean>(false);
 

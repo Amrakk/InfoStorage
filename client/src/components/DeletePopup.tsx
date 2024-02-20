@@ -1,8 +1,7 @@
-import React from "react";
-import { useDeletePopupStore } from "../stores/DeletePopup";
 import { FaTrash } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
-import { trpc, TShipping } from "../trpc";
+import { useDeletePopupStore } from "../stores/DeletePopup";
+import { trpc } from "../trpc";
 type TProps = {
     message: string;
     _id: string;

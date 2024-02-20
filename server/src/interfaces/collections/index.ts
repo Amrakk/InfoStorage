@@ -24,4 +24,4 @@ export type TIDCollections =
 
 export type TErrCollections = TCollections & { error: string; _id?: undefined };
 
-export { ICustomer, IProduct, IShipping, ISupplier, ITax, IUser };
+export type { ICustomer, IProduct, IShipping, ISupplier, ITax, IUser };
