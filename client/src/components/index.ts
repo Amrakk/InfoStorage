@@ -9,6 +9,7 @@ import PageActionHub from "./PageActionHub";
 import Search from "./Search";
 import Table from "./Table";
 import Pagination from "./Pagination";
+import FilterPopup from "./FilterPopup";
 export {
     Input,
     Select,
@@ -21,4 +22,5 @@ export {
     Search,
     Table,
     Pagination,
+    FilterPopup,
 };
