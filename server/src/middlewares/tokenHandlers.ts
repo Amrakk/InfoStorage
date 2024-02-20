@@ -17,7 +17,7 @@ export function setAccToken(id: ObjectId, res: Response) {
         sameSite: isDev ? "lax" : "none",
     });
 
-    return true;
+    return token;
 }
 
 export async function setRefToken(id: ObjectId, res: Response) {
@@ -34,7 +34,7 @@ export async function setRefToken(id: ObjectId, res: Response) {
     const redis = cache.getCache();
     await redis.set(`refToken-${id}`, token, "EX", 60 * 60 * 24 * 7);
 
-    return true;
+    return token;
 }
 
 export function verifyToken(token: string, secret = "") {

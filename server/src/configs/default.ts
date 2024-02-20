@@ -26,19 +26,19 @@ export enum UserRoles {
 }
 
 export enum CollectionNames {
-    Taxes = "Taxes",
-    Users = "Users",
-    Products = "Products",
-    Customers = "Customers",
-    Shippings = "Shippings",
-    Suppliers = "Suppliers",
+    Taxes = "taxes",
+    Users = "users",
+    Products = "products",
+    Customers = "customers",
+    Shippings = "shippings",
+    Suppliers = "suppliers",
 }
 
 export enum ProductCategories {
-    Jam = "Jam",
-    Syrup = "Syrup",
-    Powder = "Powder",
-    Canned = "Canned",
-    Topping = "Topping",
-    Others = "Others",
+    Jam = "jam",
+    Syrup = "syrup",
+    Powder = "powder",
+    Canned = "canned",
+    Topping = "topping",
+    Others = "others",
 }

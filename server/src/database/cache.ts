@@ -1,7 +1,10 @@
 import { Redis } from "ioredis";
 
-const url = process.env.REDIS_URL!;
-const redis = new Redis(url, { lazyConnect: true });
+const url =
+    process.env.ENV === "development"
+        ? process.env.REDIS_URL!
+        : process.env.REDIS_PRIVATE_URL!;
+const redis = new Redis(url, { lazyConnect: true, enableAutoPipelining: true });
 
 const init = async () => {
     try {

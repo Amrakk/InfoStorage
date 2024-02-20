@@ -13,9 +13,11 @@ export type TSupplier = RouterOutput["supplier"]["getSuppliers"];
 export type TProvince = RouterOutput["service"]["getProvinces"];
 export type TDistrict = RouterOutput["service"]["getDistricts"];
 export type TWard = RouterOutput["service"]["getWards"];
+
 export const trpc = createTRPCProxyClient<AppRouter>({
     links: [
         httpBatchLink({
+            // url: "https://infostorage.up.railway.app/trpc",
             url: "http://localhost:3000/trpc",
             fetch(url, options) {
                 return fetch(url, {
@@ -26,8 +28,6 @@ export const trpc = createTRPCProxyClient<AppRouter>({
         }),
     ],
 });
-
-// export const trpc = createTRPCReact<AppRouter>();
 
 export type TRPCError = {
     message: string;

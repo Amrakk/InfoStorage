@@ -1,4 +1,5 @@
 import { router } from "../trpc.js";
+import { wssRouter } from "./wssRouter.js";
 import { authRouter } from "./authRouter.js";
 import { serviceRouter } from "./serviceRouter.js";
 import { taxRouter } from "./collectionRouters/taxRouter.js";
@@ -17,4 +18,6 @@ export const appRouter = router({
     customer: customerRouter,
     shipping: shippingRouter,
     supplier: supplierRouter,
+
+    wss: wssRouter,
 });
