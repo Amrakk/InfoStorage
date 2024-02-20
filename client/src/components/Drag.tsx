@@ -34,7 +34,7 @@ export default function Drag(props: TProps) {
                 ></span>
                 <span
                     className="relative inline-flex  w-72  aspect-square rounded-full bg-accent1 "
-                    onDragEnter={(e) => {
+                    onDragEnter={() => {
                         setBinPing(true);
                     }}
                     onDragLeave={() => {
@@ -69,7 +69,7 @@ export default function Drag(props: TProps) {
                 ></span>
                 <span
                     className="relative inline-flex  w-72  aspect-square rounded-full bg-second "
-                    onDragEnter={(e) => {
+                    onDragEnter={() => {
                         setEditPing(true);
                     }}
                     onDragLeave={() => {

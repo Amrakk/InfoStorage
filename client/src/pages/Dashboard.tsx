@@ -1,11 +1,10 @@
+import { createTRPCProxyClient, createWSClient, wsLink } from "@trpc/client";
 import { useEffect, useState } from "react";
+import { AppRouter } from "../../../server/src/server";
 import { useTitle, useWindowDimensions } from "../hooks";
 import { useDashboard } from "../stores/Dashboard";
 import { trpc } from "../trpc";
 import { DashboardViews } from "../views";
-import { createTRPCProxyClient, createWSClient, wsLink } from "@trpc/client";
-import { AppRouter } from "../../../server/src/server";
-import { CollectionNames } from "../../../server/src/configs/default";
 
 export default function Dashboard() {
     const { customers, shippings, products, suppliers, setData } = useDashboard();
@@ -32,11 +31,11 @@ export default function Dashboard() {
         });
         
 
-        var test = trpcWss.onConnect.subscribe(undefined, {
+        trpcWss.onConnect.subscribe(undefined, {
             onData: (data) => {
             //   console.log(data);
               if((data as { type: string }).type === "ping") {
-                trpcWss.pong.query().catch((err) => {
+                trpcWss.pong.query().catch(() => {
                     trpc.service.getAccToken.query().then(() => {
                       console.log("getAccToken");
                     });
