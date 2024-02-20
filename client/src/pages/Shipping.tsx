@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import { trpc, type TRPCError, type TShipping } from "../trpc";
 import { useNavigate } from "react-router-dom";
-import { DeletePopup, AddPopup, UpdatePopup } from "../components";
 import { useDeletePopupStore } from "../stores/DeletePopup";
 import { useShippingsStore } from "../stores/Shippings";
-import { Drag, PageActionHub, Search, Table, Pagination } from "../components";
+import {
+    DeletePopup,
+    AddPopup,
+    UpdatePopup,
+    Drag,
+    PageActionHub,
+    Search,
+    Table,
+    Pagination,
+    FilterPopup,
+} from "../components";
 import { v4 } from "uuid";
 
 export default function Shipping() {
@@ -14,6 +23,8 @@ export default function Shipping() {
     const { isDeletePopupOpen } = useDeletePopupStore();
     const [isAddPopupOpen, setIsAddPopupOpen] = useState<boolean>(false);
     const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState<boolean>(false);
+    const [isFilterPopupOpen, setIsFilterPopupOpen] = useState<boolean>(false);
+
     const [_id, set_Id] = useState("");
     const mouseFollowRef = useRef<HTMLCanvasElement>(null);
     const [isShowCopyBox, setIsShowCopyBox] = useState<boolean>(false);
@@ -31,10 +42,7 @@ export default function Shipping() {
     // Logic to calculate currentItems based on currentPage and itemsPerPage
     const indexOfLastItem = currentPage * itemsPerPage;
     const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    // const currentItems = (searchValue == null ? shippings : searchValue).slice(
-    //     indexOfFirstItem,
-    //     indexOfLastItem
-    // );
+
     const currentItems =
         shippings == null
             ? null
@@ -93,6 +101,8 @@ export default function Shipping() {
             setSearchValue(filteredData);
         }
     }
+
+    function handleFilter(value: string) {}
 
     function toLowerNonAccentVietnamese(str: string) {
         str = str.toLowerCase();
@@ -156,7 +166,7 @@ export default function Shipping() {
 
             setShippings(updatedShippings);
         } catch (err) {
-            if ((err as TRPCError).data.httpStatus === 401 || 500) {
+            if ((err as TRPCError).data.httpStatus === 401 || (err as TRPCError).data.httpStatus === 500) {
                 navigate("/signin");
             }
         }
@@ -168,6 +178,10 @@ export default function Shipping() {
 
     function handleAddPopUp() {
         setIsAddPopupOpen(true);
+    }
+
+    function handleFilterPopUp() {
+        setIsFilterPopupOpen(true);
     }
 
     function handleUpdatePopUp(
@@ -194,6 +208,20 @@ export default function Shipping() {
         setIsUpdatePopupOpen(false);
     }
 
+    function hideFilterPopUp() {
+        setIsFilterPopupOpen(false);
+    }
+
+    function onFilter(value: {
+        name: string;
+        address: string;
+        provinceCode: string;
+        districtCode: string;
+        wardCode: string;
+        phone: string | null;
+        note: string | null;
+    }) {}
+
     return (
         <>
             <canvas
@@ -208,7 +236,7 @@ export default function Shipping() {
             <div className="container text-primary mx-auto">
                 <PageActionHub handleAddPopUp={handleAddPopUp} title="Shipping" />
 
-                <Search handleSearch={handleSearch} />
+                <Search handleSearch={handleSearch} handleFilterPopUp={handleFilterPopUp} />
 
                 <Table
                     currentItem={currentItems}
@@ -221,7 +249,6 @@ export default function Shipping() {
                 <Pagination
                     currentPage={currentPage}
                     itemsPerPage={itemsPerPage}
-                    // totalItems={searchValue.length > 0 ? searchValue.length : shippings.length}
                     totalItems={totalLength}
                     handlePagination={handlePagination}
                     updatePageSize={updatePageSize}
@@ -239,6 +266,8 @@ export default function Shipping() {
                     onCancel={hideUpdatePopUp}
                     inputValue={inputValue}
                 />
+
+                <FilterPopup isShown={isFilterPopupOpen} onCancel={hideFilterPopUp} />
             </div>
         </>
     );

@@ -1,37 +1,15 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { FaFilter } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
-import { MdLibraryAdd } from "react-icons/md";
-import { z } from "zod";
-import { Input, Select, Textarea } from ".";
-import { useProvinces } from "../stores/Provinces";
-import { trpc, type TDistrict, type TWard } from "../trpc";
 import { useMultipleState } from "../hooks";
-export const phoneRegex = new RegExp("^[+0-9]*$", "m");
-export const subjectRegex = new RegExp(/^[^\p{C}<>&`"/]*$/mu);
-export const addressRegex = new RegExp(/^[\p{L}0-9 \\/,.;+-,;]+$/mu);
-
-const shippingRegex = {
-    name: subjectRegex,
-    address: addressRegex,
-    phone: phoneRegex,
-    note: subjectRegex,
+import { useProvinces } from "../stores/Provinces";
+import { type TDistrict, type TWard } from "../trpc";
+import Select from "./Select";
+type TProps = {
+    isShown: boolean;
+    onCancel: () => void;
 };
-
-const inputSchema = z.object({
-    name: z.string().min(1, "Không được bỏ trống").regex(shippingRegex.name, "Tên không hợp lệ"),
-    address: z.string().min(1, "Không được bỏ trống").regex(shippingRegex.address, "Địa chỉ không hợp lệ"),
-    phone: z
-        .string()
-        .regex(shippingRegex.phone, "Số điện thoại không hợp lệ")
-        .max(11, "Số điện thoại tối đa chỉ 11 số")
-        .nullable(),
-    note: z.string().regex(shippingRegex.note, "Ghi chú không hợp lệ").nullable(),
-    provinceCode: z.string().min(1, "Không được bỏ trống"),
-    districtCode: z.string().min(1, "Không được bỏ trống"),
-    wardCode: z.string().min(1, "Không được bỏ trống"),
-});
 
 type TShipping = {
     name: string;
@@ -43,15 +21,8 @@ type TShipping = {
     note: string | null;
 };
 
-type TProps = {
-    getShippings: () => void;
-    isShown: boolean;
-    onCancel: () => void;
-};
-
-export default function AddPopup(props: TProps) {
+export default function FilterPopup(props: TProps) {
     const [shouldRender, setShouldRender] = useState<boolean>(false);
-
     useEffect(() => {
         if (props.isShown) {
             setShouldRender(true);
@@ -65,17 +36,11 @@ export default function AddPopup(props: TProps) {
     }
 
     return shouldRender ? (
-        <Content
-            getShippings={props.getShippings}
-            isShown={props.isShown}
-            onCancel={props.onCancel}
-            handleAnimationEnd={handleAnimationEnd}
-        />
+        <Content isShown={props.isShown} onCancel={props.onCancel} handleAnimationEnd={handleAnimationEnd} />
     ) : null;
 }
 
 type TPropsContent = {
-    getShippings: () => void;
     isShown: boolean;
     onCancel: () => void;
     handleAnimationEnd: () => void;
@@ -87,6 +52,7 @@ function Content(props: TPropsContent) {
     const [loading, setLoading] = useState(false);
     const { provinces } = useProvinces();
     const names = ["provinceCode", "districtCode", "wardCode"] as const;
+
     const [getters, setters] = useMultipleState<boolean, (typeof names)[number]>([...names], true);
 
     const {
@@ -94,38 +60,10 @@ function Content(props: TPropsContent) {
         setValue,
         getValues,
         handleSubmit,
-        reset,
         formState: { errors },
     } = useForm<TShipping>({
-        resolver: zodResolver(inputSchema),
         mode: "onChange",
     });
-
-    const onSubmit = (data: TShipping) => {
-        setLoading(true);
-        setTimeout(() => {
-            trpc.shipping.addShippings
-                .mutate([
-                    {
-                        provCode: parseInt(data.provinceCode as unknown as string),
-                        distCode: parseInt(data.districtCode as unknown as string),
-                        wardCode: parseInt(data.wardCode as unknown as string),
-                        name: data.name,
-                        address: data.address,
-                        note: data.note as string,
-                        phone: data.phone as string,
-                    },
-                ])
-                .then(() => {
-                    props.getShippings();
-                })
-                .finally(() => {
-                    props.onCancel();
-                    reset();
-                    setLoading(false);
-                });
-        }, 1000);
-    };
 
     const getDistricts = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const targetProvince = provinces.find((prov) => prov.code == parseInt(e.target.value));
@@ -154,24 +92,30 @@ function Content(props: TPropsContent) {
         }
     };
 
-    const refButton = useRef<HTMLButtonElement>(null);
+    const onSubmit = (data: TShipping) => {
+        const targetProvince = provinces.find((prov) => prov.code == parseInt(data.provinceCode));
+        console.log(targetProvince?.name);
+
+        // console.log(data.districtCode);
+        // console.log(data.wardCode);
+    };
 
     return (
         <>
             <div
-                className={`justify-center flex items-center fixed inset-0 z-50 select-none ${
+                className={`inset-0 fixed z-50 select-none flex justify-center items-center ${
                     props.isShown ? "animationPopup" : "animationPopout"
                 } `}
                 onAnimationEnd={props.handleAnimationEnd}
             >
-                <div className="relative xl:w-1/3 w-2/4 2xl:w-1/4 max-h-max scale-90 2xl:scale-100">
+                <div className="relative xl:w-1/3 w-2/4 2xl:w-1/4 ">
                     {/*content*/}
-                    <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none ">
+                    <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                         {/*header*/}
                         <div className="h-20 flex px-6 justify-between">
                             <div className="flex items-center">
-                                <div className="aspect-square w-12 bg-[#bddec4] border border-primary rounded-full flex justify-center items-center">
-                                    <MdLibraryAdd className="text-primary" size={18} />
+                                <div className="aspect-square w-12 bg-[#bddec4] border border-primary rounded-full flex justify-center items-center   ">
+                                    <FaFilter size={18} />
                                 </div>
                             </div>
 
@@ -186,23 +130,6 @@ function Content(props: TPropsContent) {
                         {/*body*/}
                         <div className="relative px-5 flex-auto text-lg text-primary font-semibold">
                             <form onSubmit={handleSubmit(onSubmit)}>
-                                {/* Ten Don Vi */}
-
-                                <Input
-                                    {...register("name", { required: true })}
-                                    label="Tên Đơn Vị"
-                                    error={errors.name?.message}
-                                    curValue={getValues("name")}
-                                />
-
-                                {/* Dia Chi */}
-                                <Input
-                                    {...register("address")}
-                                    label="Địa Chỉ"
-                                    error={errors.address?.message}
-                                    curValue={getValues("address")}
-                                />
-
                                 {/* Thanh Pho */}
 
                                 <Select
@@ -223,7 +150,7 @@ function Content(props: TPropsContent) {
                                     data={districts}
                                     label="Quận/Huyện"
                                     placeholder="Chọn Quận/Huyện"
-                                    className={`${
+                                    className={` ${
                                         !getValues("provinceCode")
                                             ? "pointer-events-none"
                                             : "pointer-events-auto"
@@ -233,8 +160,7 @@ function Content(props: TPropsContent) {
 
                                 {/* Phuong */}
                                 <Select
-                                    {...(register("wardCode"),
-                                    {
+                                    {...register("wardCode", {
                                         onChange: () => {
                                             setters.wardCode(false);
                                         },
@@ -242,28 +168,13 @@ function Content(props: TPropsContent) {
                                     data={wards}
                                     label="Xã/Phường"
                                     placeholder="Chọn Xã/Phường"
-                                    className={`${
+                                    className={`mb-0 ${
                                         !getValues("districtCode")
                                             ? "pointer-events-none"
                                             : "pointer-events-auto"
-                                    }`}
+                                    } `}
                                     isBlur={getters.wardCode}
                                 ></Select>
-
-                                {/* So Dien Thoai */}
-                                <Input
-                                    {...register("phone")}
-                                    label="Số Điện Thoại"
-                                    error={errors.phone?.message}
-                                    curValue={getValues("phone")}
-                                />
-
-                                {/* Ghi Chu */}
-                                <Textarea
-                                    {...register("note")}
-                                    label="Ghi Chú"
-                                    curValue={getValues("note")}
-                                />
 
                                 {/*footer*/}
                                 <div className="flex items-center justify-end my-6 border-slate-200  gap-4 font-semibold">
@@ -277,7 +188,6 @@ function Content(props: TPropsContent) {
 
                                     <button
                                         type="submit"
-                                        ref={refButton}
                                         className="w-32  bg-primary hover:bg-[#5e7563] transition-colors  text-white rounded-md h-[52px] overflow-hidden"
                                     >
                                         <div
@@ -295,9 +205,7 @@ function Content(props: TPropsContent) {
                                                     </>
                                                 )}
                                             </div>
-                                            <div className="h-full flex justify-center items-center">
-                                                Thêm
-                                            </div>
+                                            <div className="h-full flex justify-center items-center">Tìm</div>
                                         </div>
                                     </button>
                                 </div>

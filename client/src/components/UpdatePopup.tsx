@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Input, Select, Textarea } from ".";
 import { useProvinces } from "../stores/Provinces";
 import { trpc, type TDistrict, type TWard } from "../trpc";
+import { useMultipleState } from "../hooks";
 export const phoneRegex = new RegExp("^[+0-9]*$", "m");
 export const subjectRegex = new RegExp(/^[^\p{C}<>&`"/]*$/mu);
 export const addressRegex = new RegExp(/^[\p{L}0-9 \\/,.;+-,;]+$/mu);
@@ -96,6 +97,8 @@ function Content(props: TPropsContent) {
     const { provinces } = useProvinces();
     const [loading, setLoading] = useState(false);
     const refButton = useRef<HTMLButtonElement>(null);
+    const names = ["provinceCode", "districtCode", "wardCode"] as const;
+    const [getters, setters] = useMultipleState<boolean, (typeof names)[number]>([...names], false);
     const {
         register,
         setValue,
@@ -128,7 +131,6 @@ function Content(props: TPropsContent) {
             const [province, district, ward, ...address] = props.inputValue["address"]!.split(",")
                 .map((e) => e.trim())
                 .reverse();
-
             setValue("address", address.reverse().join(", "));
             const targetProvince = provinces.find((prov) => prov.name == province);
             if (targetProvince) {
@@ -153,6 +155,9 @@ function Content(props: TPropsContent) {
             setDistricts(targetProvince.districts);
             setValue("districtCode", "");
             setValue("wardCode", "");
+            setters.provinceCode(false);
+            setters.districtCode(true);
+            setters.wardCode(true);
         }
     };
 
@@ -165,6 +170,8 @@ function Content(props: TPropsContent) {
             if (targetDistrict) {
                 setWards(targetDistrict.wards);
                 setValue("wardCode", "");
+                setters.wardCode(true);
+                setters.districtCode(false);
             }
         }
     };
@@ -189,22 +196,25 @@ function Content(props: TPropsContent) {
                 .finally(() => {
                     props.onCancel();
                     setLoading(false);
-                    console.log(getValues("note"));
                 });
         }, 1000);
+    };
+
+    const handleWardSelect = () => {
+        setters.wardCode(false);
     };
 
     return (
         <>
             <div
-                className={`justify-center mt-24 fixed inset-0 z-50 select-none ${
+                className={`justify-center flex items-center fixed inset-0 z-50 select-none ${
                     props.isShown ? "animationPopup" : "animationPopout"
                 } `}
                 onAnimationEnd={props.handleAnimationEnd}
             >
-                <div className="relative xl:w-1/3 w-2/4 2xl:w-1/4 mx-auto">
+                <div className="relative xl:w-1/3 w-2/4 2xl:w-1/4 max-h-max scale-90 2xl:scale-100">
                     {/*content*/}
-                    <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
+                    <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none ">
                         {/*header*/}
                         <div className="h-20 flex px-6 justify-between">
                             <div className="flex items-center">
@@ -255,6 +265,7 @@ function Content(props: TPropsContent) {
                                         data={provinces}
                                         label="Tỉnh/Thành"
                                         placeholder="Chọn Tỉnh/Thành"
+                                        isBlur={getters.provinceCode}
                                     ></Select>
 
                                     {/* Quan */}
@@ -270,11 +281,14 @@ function Content(props: TPropsContent) {
                                                 ? "pointer-events-none"
                                                 : "pointer-events-auto"
                                         }`}
+                                        isBlur={getters.districtCode}
                                     ></Select>
 
                                     {/* Phuong */}
                                     <Select
-                                        {...register("wardCode")}
+                                        {...register("wardCode", {
+                                            onChange: handleWardSelect,
+                                        })}
                                         data={wards}
                                         label="Xã/Phường"
                                         placeholder="Chọn Xã/Phường"
@@ -283,6 +297,7 @@ function Content(props: TPropsContent) {
                                                 ? "pointer-events-none"
                                                 : "pointer-events-auto"
                                         }`}
+                                        isBlur={getters.wardCode}
                                     ></Select>
 
                                     {/* So Dien Thoai */}

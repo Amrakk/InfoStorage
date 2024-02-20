@@ -5,6 +5,7 @@ import { IoMdSettings } from "react-icons/io";
 
 type TProps = {
     handleSearch: (value: string) => void;
+    handleFilterPopUp: () => void;
 };
 
 export default function Search(props: TProps) {
@@ -27,10 +28,13 @@ export default function Search(props: TProps) {
                         />
                     </div>
                 </div>
-                <button className=" bg-[#D1DBD3] lg:flex items-center justify-center  rounded-md aspect-square hidden hover:">
+                <button
+                    className="bg-[#D1DBD3] lg:flex items-center justify-center  rounded-md aspect-square hidden hover:brightness-105 transition-all"
+                    onClick={props.handleFilterPopUp}
+                >
                     <FaFilter size={20} />
                 </button>
-                <button className=" bg-[#D1DBD3] lg:flex items-center justify-center  rounded-md aspect-square hidden">
+                <button className="bg-[#D1DBD3] lg:flex items-center justify-center  rounded-md aspect-square hidden">
                     <IoMdSettings size={24} />
                 </button>
             </div>

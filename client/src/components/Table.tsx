@@ -1,9 +1,7 @@
-import React from "react";
-import { useShippingsStore } from "../stores/Shippings";
+import { useState } from "react";
+import dataNotFound from "../assets/img/data not found.png";
 import { useIconAppear } from "../stores/IconAppear";
 import TableSkeleton from "./TableSkeleton";
-import dataNotFound from "../assets/img/data not found.png";
-import { v4 } from "uuid";
 const inputStyle = {
     caretColor: "transparent",
 };
@@ -26,6 +24,7 @@ type TProps = {
 
 export default function Table(props: TProps) {
     const { setIconAppear } = useIconAppear();
+    const [grabbing, setGrabbing] = useState(true);
     if (props.currentItem?.length == 0) {
         return (
             <div className="mt-8 h-[500px] overflow-auto">
@@ -41,7 +40,7 @@ export default function Table(props: TProps) {
             <table className="w-[1480px] table-fixed relative border-separate text-left " style={inputStyle}>
                 <thead className="">
                     <tr className="select-none">
-                        <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white w-[5%]">
+                        <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white w-[5%] ">
                             STT
                         </th>
                         <th className="border-l-2 border-[#D1DBD3] p-3 text-lg sticky top-0 border-b bg-white w-[20%]">
@@ -68,10 +67,15 @@ export default function Table(props: TProps) {
                                 return (
                                     <tr
                                         key={shipping._id}
-                                        className=" border-b-2 border-[#D1DBD3]  hover:bg-gray-200  hover:duration-200 hover:ease-in-out cursor-pointer active:bg-gray-300 transition-colors"
+                                        className={` border-b-2 border-[#D1DBD3]  hover:bg-gray-200 cursor-pointer active:bg-gray-300 hover:rounded-xl ${
+                                            grabbing ? "cursor-grabbing" : "cursor-pointer"
+                                        }`}
                                         draggable
                                         onDragStart={(e) => {
+                                            e.stopPropagation();
                                             setIconAppear(true);
+                                            setGrabbing(true);
+                                            console.log(grabbing);
                                             e.dataTransfer.setData("shippingId", shipping._id);
                                             e.dataTransfer.setData("shippingName", shipping.name);
                                             e.dataTransfer.setData("shippingAddress", shipping.address);
@@ -81,10 +85,11 @@ export default function Table(props: TProps) {
                                         }}
                                         onDragEnd={(e) => {
                                             setIconAppear(false);
+                                            setGrabbing(false);
                                         }}
                                     >
                                         <td
-                                            className="text-center stt hover:bg-gray-400 hover:bg-opacity-50"
+                                            className="text-center stt hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
                                             onClick={props.handleCopy(
                                                 `${shipping.name}\n${shipping.address}\n${shipping.phone}\n\n${shipping.note}`
                                             )}
@@ -92,25 +97,25 @@ export default function Table(props: TProps) {
                                             {index + 1 + (props.currentPage - 1) * props.itemsPerPage}
                                         </td>
                                         <td
-                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
+                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.name)}
                                         >
                                             {shipping.name}
                                         </td>
                                         <td
-                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
+                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.address)}
                                         >
                                             {shipping.address}
                                         </td>
                                         <td
-                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50"
+                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.phone)}
                                         >
                                             {shipping.phone}
                                         </td>
                                         <td
-                                            className="p-3 whitespace-normal break-words hover:bg-gray-400 hover:bg-opacity-50"
+                                            className="p-3 whitespace-normal break-words hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.note)}
                                         >
                                             <p>
