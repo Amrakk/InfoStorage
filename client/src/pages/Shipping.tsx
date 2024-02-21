@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { v4 } from "uuid";
-import { AddPopup, DeletePopup, Drag, PageActionHub, Pagination, Search, Table, UpdatePopup } from "../components";
+import {
+    AddPopup,
+    DeletePopup,
+    Drag,
+    PageActionHub,
+    Pagination,
+    Search,
+    Table,
+    UpdatePopup,
+    FilterPopup,
+} from "../components";
 import { useDeletePopupStore } from "../stores/DeletePopup";
 import { useShippingsStore } from "../stores/Shippings";
 import { trpc, type TRPCError } from "../trpc";
@@ -36,8 +46,12 @@ export default function Shipping() {
     const currentItems =
         shippings == null
             ? null
-            : (searchValue == null ? shippings : searchValue).slice(indexOfFirstItem, indexOfLastItem);
-    const totalLength = shippings == null ? 0 : searchValue == null ? shippings.length : searchValue.length;
+            : (searchValue == null ? shippings : searchValue).slice(
+                  indexOfFirstItem,
+                  indexOfLastItem
+              );
+    const totalLength =
+        shippings == null ? 0 : searchValue == null ? shippings.length : searchValue.length;
     const handlePagination = (pageNumber: number) => {
         setCurrentPage(pageNumber);
     };
@@ -92,7 +106,7 @@ export default function Shipping() {
         }
     }
 
-    function handleFilter(value: string) {}
+    // function handleFilter(value: string) {}
 
     function toLowerNonAccentVietnamese(str: string) {
         str = str.toLowerCase();
@@ -156,7 +170,10 @@ export default function Shipping() {
 
             setShippings(updatedShippings);
         } catch (err) {
-            if ((err as TRPCError).data.httpStatus === 401 || (err as TRPCError).data.httpStatus === 500) {
+            if (
+                (err as TRPCError).data.httpStatus === 401 ||
+                (err as TRPCError).data.httpStatus === 500
+            ) {
                 navigate("/signin");
             }
         }
@@ -202,15 +219,15 @@ export default function Shipping() {
         setIsFilterPopupOpen(false);
     }
 
-    function onFilter(value: {
-        name: string;
-        address: string;
-        provinceCode: string;
-        districtCode: string;
-        wardCode: string;
-        phone: string | null;
-        note: string | null;
-    }) {}
+    // function onFilter(value: {
+    //     name: string;
+    //     address: string;
+    //     provinceCode: string;
+    //     districtCode: string;
+    //     wardCode: string;
+    //     phone: string | null;
+    //     note: string | null;
+    // }) {}
 
     return (
         <>
@@ -247,9 +264,17 @@ export default function Shipping() {
                 <Drag handleUpdatePopUp={handleUpdatePopUp} />
 
                 {isDeletePopupOpen && (
-                    <DeletePopup message={isDeletePopupOpen} _id={_id} getShippings={getShippings} />
+                    <DeletePopup
+                        message={isDeletePopupOpen}
+                        _id={_id}
+                        getShippings={getShippings}
+                    />
                 )}
-                <AddPopup getShippings={getShippings} isShown={isAddPopupOpen} onCancel={hideAddPopUp} />
+                <AddPopup
+                    getShippings={getShippings}
+                    isShown={isAddPopupOpen}
+                    onCancel={hideAddPopUp}
+                />
                 <UpdatePopup
                     getShippings={getShippings}
                     isShown={isUpdatePopupOpen}
