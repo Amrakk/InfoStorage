@@ -1,11 +1,10 @@
 import { useEffect } from "react";
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import "./App.css";
 import Header from "./components/Header.tsx";
 import Account from "./pages/Account.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Forgotpassword from "./pages/Forgotpassword.tsx";
-import Home from "./pages/Home.tsx";
 import Notfound from "./pages/Notfound.tsx";
 import Shipping from "./pages/Shipping.tsx";
 import Signin from "./pages/Signin.tsx";
@@ -27,7 +26,7 @@ function App() {
         });
     }, []);
 
-    const arrRoutes = ["/account", "/dashboard", "/customer", "/shipping", "/product", "/supplier"];
+    const arrRoutes = ["/account", "/dashboard", "/customer", "/shipping", "/product", "/supplier", "/home"];
     return (
         <>
             {!arrRoutes.includes(location.pathname) ? (
@@ -41,7 +40,7 @@ function App() {
                     <Header />
                     <Routes>
                         <Route path="/account" element={<Account />} />
-                        <Route path="/home" element={<Home />} />
+                        <Route path="/home" element={<Navigate to="/dashboard" />} />
                         <Route path="/shipping" element={<Shipping />} />
                         <Route path="/dashboard" element={<Dashboard />} />
                     </Routes>
