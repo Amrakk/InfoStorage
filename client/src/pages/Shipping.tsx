@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { v4 } from "uuid";
+// import { v4 } from "uuid";
 import {
     AddPopup,
     DeletePopup,
@@ -161,14 +161,16 @@ export default function Shipping() {
     async function getShippings() {
         try {
             const res = await trpc.shipping.getShippings.query();
-            const updatedShippings = Array.from({ length: 11 }, () => [...res])
-                .flat()
-                .map((s) => {
-                    s._id = v4();
-                    return { ...s };
-                });
+            // const updatedShippings = Array.from({ length: 11 }, () => [...res])
+            //     .flat()
+            //     .map((s) => {
+            //         s._id = v4();
+            //         return { ...s };
+            //     });
 
-            setShippings(updatedShippings);
+            // setShippings(updatedShippings);
+
+            setShippings(res);
         } catch (err) {
             if (
                 (err as TRPCError).data.httpStatus === 401 ||
@@ -241,7 +243,7 @@ export default function Shipping() {
             </canvas>
 
             <div className="container text-primary mx-auto">
-                <PageActionHub handleAddPopUp={handleAddPopUp} title="Shipping" />
+                <PageActionHub handleAddPopUp={handleAddPopUp} getShippings={getShippings} title="Shipping" />
 
                 <Search handleSearch={handleSearch} handleFilterPopUp={handleFilterPopUp} />
 
