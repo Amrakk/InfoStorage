@@ -9,6 +9,8 @@ const HEARTBEAT_INTERVAL = 1000 * 5;
 export const ee = new EventEmitter();
 ee.setMaxListeners(30);
 
+const UNAUTHORIZED_WS_CLOSE_CODE = 4000;
+
 export const wssConfigure = (server: Server) => {
     const wss = new WebSocketServer({ server, path: "/trpc/wss" });
 
@@ -23,7 +25,7 @@ export const wssConfigure = (server: Server) => {
         const userId = cookies
             ?.find((c) => c.startsWith("userId"))
             ?.split("=")[1];
-        if (!userId) return ws.terminate();
+        if (!userId) return ws.close(UNAUTHORIZED_WS_CLOSE_CODE);
 
         let timeoutId: NodeJS.Timeout;
 
