@@ -1,4 +1,4 @@
-import { trpc } from "../trpc";
+import { trpc, trpcWss } from "../trpc";
 import React, { useState } from "react";
 
 const passwordRegex = new RegExp(/^[a-zA-Z0-9]+$/m);
@@ -16,6 +16,9 @@ export default function Account() {
     const [passwordWarning, setPasswordWarning] = useState("");
     const [newPasswordWarning, setNewPasswordWarning] = useState("");
     const [confirmPasswordWarning, setConfirmPasswordWarning] = useState("");
+
+    const [isSendingNotification, setIsSendingNotification] = useState(false);
+    const inputRef = React.useRef<HTMLInputElement>(null);
 
     function handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
         const passwordInput = e.target as HTMLInputElement;
@@ -77,6 +80,30 @@ export default function Account() {
             })
             .catch((err) => {
                 alert(err.message);
+            });
+    }
+
+    function sendNotification(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        if (!inputRef.current || inputRef.current.value === "") return;
+
+        setIsSendingNotification(true);
+
+        trpcWss.notify
+            .query({ message: inputRef.current.value })
+            .then((res) => {
+                if (res.status == "success") {
+                    // alert("Notification sent");
+                } else {
+                    // alert("Notification failed");
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+                alert("Notification failed");
+            })
+            .finally(() => {
+                setIsSendingNotification(false);
             });
     }
 
@@ -158,7 +185,10 @@ export default function Account() {
                             >
                                 <div className="flex flex-row relative pb-5">
                                     <div className="w-full flex justify-between flex-col xl:flex-row items-center xl:space-x-4">
-                                        <label className="w-full xl:w-60 text-[#979E99]" htmlFor="password">
+                                        <label
+                                            className="w-full xl:w-60 text-[#979E99]"
+                                            htmlFor="password"
+                                        >
                                             PASSWORD
                                         </label>
                                         <input
@@ -223,6 +253,35 @@ export default function Account() {
                             </form>
                         </div>
                     </div>
+
+                    {(role === "admin" || role === "manager") && (
+                        <div
+                            className="flex flex-wrap h-auto border-[#979E99] border rounded-md p-4 xl:px-10 xl:py-6"
+                            id="notificationPanel"
+                        >
+                            <div className="w-full border-b border-[#979E99] pb-3">
+                                <h2 className="text-2xl font-semibold">Notification</h2>
+                            </div>
+                            <form className="mt-4 flex flex-col w-full" onSubmit={sendNotification}>
+                                <input
+                                    ref={inputRef}
+                                    placeholder="Notification"
+                                    type="text"
+                                    id="notification"
+                                    name="notification"
+                                    className="w-full h-10 border border-primary rounded-md px-3 hover:outline-none focus:outline-none focus:border focus:border-[#6AAFC7] transition-colors"
+                                    disabled={isSendingNotification}
+                                    maxLength={200}
+                                />
+                                <button
+                                    className="bg-primary text-white rounded-md w-full max-w-[320px] xs:max-w-[180px] h-10 hover:bg-[#5e7563] transition-colors mt-1 ml-auto"
+                                    disabled={isSendingNotification}
+                                >
+                                    Send Notification
+                                </button>
+                            </form>
+                        </div>
+                    )}
 
                     {(role === "admin" || role === "manager") && (
                         <div
