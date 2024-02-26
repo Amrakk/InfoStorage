@@ -1,6 +1,4 @@
-import { createTRPCProxyClient, createWSClient, wsLink } from "@trpc/client";
 import { useEffect, useState } from "react";
-import { AppRouter } from "../../../server/src/server";
 import { useTitle, useWindowDimensions } from "../hooks";
 import { useDashboard } from "../stores/Dashboard";
 import { trpc } from "../trpc";
@@ -21,39 +19,6 @@ export default function Dashboard() {
         trpc.shipping.getShippings.query().then((shippings) => setData({ shippings }));
         trpc.product.getProducts.query().then((products) => setData({ products }));
         trpc.supplier.getSuppliers.query().then((suppliers) => setData({ suppliers }));
-
-        const wsClient = createWSClient({
-            url: "ws://localhost:3000/trpc/wss",
-        });
-
-        const trpcWss = createTRPCProxyClient<AppRouter["wss"]>({
-            links: [wsLink({ client: wsClient })],
-        });
-        
-
-        trpcWss.onConnect.subscribe(undefined, {
-            onData: (data) => {
-            //   console.log(data);
-              if((data as { type: string }).type === "ping") {
-                trpcWss.pong.query().catch(() => {
-                    trpc.service.getAccToken.query().then(() => {
-                      console.log("getAccToken");
-                    });
-                });
-              }
-            },
-            onStopped() {
-              console.log("Unsubscribed");
-            },
-            onError: (error) => {
-              console.log("onError", error);
-              trpc.service.getAccToken.query().then(() => {
-                console.log("getAccToken");
-              });
-            },
-          });
-
-            
 
         setTimeout(() => setNotiLoading(false), 2000);
         setTimeout(() => setTasksLoading(false), 1000);

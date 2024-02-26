@@ -1,5 +1,5 @@
 import type { AppRouter } from "../../server/src/server";
-import { createTRPCProxyClient, httpBatchLink } from "@trpc/client";
+import { createTRPCProxyClient, createWSClient, httpBatchLink, wsLink } from "@trpc/client";
 import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 
 // @ts-ignore
@@ -20,11 +20,17 @@ export const trpc = createTRPCProxyClient<AppRouter>({
         httpBatchLink({
             // url: "https://infostorage.up.railway.app/trpc",
             url: "http://localhost:3000/trpc",
-            fetch(url, options) {
+            async fetch(url, options) {
                 return fetch(url, {
                     ...options,
                     credentials: "include",
-                });
+                }).then(res => {
+                    if (res.status === 401) {
+                        window.location.href = "/signin";
+                    }
+
+                    return res;
+                })
             },
         }),
     ],
@@ -39,3 +45,20 @@ export type TRPCError = {
         path: string;
     };
 };
+
+const UNAUTHORIZED_WS_CLOSE_CODE = 4000;
+const wsClient = createWSClient({
+    url: "ws://localhost:3000/trpc/wss",
+    onClose(cause) {
+        if (cause?.code === UNAUTHORIZED_WS_CLOSE_CODE) {
+            if (window.location.pathname !== "/signin") {
+                window.location.href = "/signin";
+            }
+        }
+    },
+    retryDelayMs: () => 1000
+});
+
+export const trpcWss = createTRPCProxyClient<AppRouter["wss"]>({
+    links: [wsLink({ client: wsClient })],
+});
