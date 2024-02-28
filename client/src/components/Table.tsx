@@ -2,6 +2,7 @@ import { useState } from "react";
 import dataNotFound from "../assets/img/data not found.png";
 import { useIconAppear } from "../stores/IconAppear";
 import TableSkeleton from "./TableSkeleton";
+import React from "react";
 const inputStyle = {
     caretColor: "transparent",
 };
@@ -66,7 +67,6 @@ export default function Table(props: TProps) {
                             {props.currentItem.map((shipping, index) => {
                                 return (
                                     <tr
-                                        key={shipping._id}
                                         className={` border-b-2 border-[#D1DBD3]  hover:bg-gray-200 cursor-pointer active:bg-gray-300 hover:rounded-xl ${
                                             grabbing ? "cursor-grabbing" : "cursor-pointer"
                                         }`}
@@ -75,7 +75,6 @@ export default function Table(props: TProps) {
                                             e.stopPropagation();
                                             setIconAppear(true);
                                             setGrabbing(true);
-                                            console.log(grabbing);
                                             e.dataTransfer.setData("shippingId", shipping._id);
                                             e.dataTransfer.setData("shippingName", shipping.name);
                                             e.dataTransfer.setData("shippingAddress", shipping.address);
@@ -87,6 +86,7 @@ export default function Table(props: TProps) {
                                             setIconAppear(false);
                                             setGrabbing(false);
                                         }}
+                                        key={shipping._id}
                                     >
                                         <td
                                             className="text-center stt hover:bg-gray-400 hover:bg-opacity-30 transition-all rounded-lg"
@@ -118,16 +118,14 @@ export default function Table(props: TProps) {
                                             className="p-3 whitespace-normal break-words hover:bg-gray-400 hover:bg-opacity-30 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.note)}
                                         >
-                                            <p>
-                                                {shipping.note.split("\n").map((item) => {
-                                                    return (
-                                                        <>
-                                                            {item}
-                                                            <br />
-                                                        </>
-                                                    );
-                                                })}
-                                            </p>
+                                            {shipping.note.split("\n").map((item, index) => {
+                                                return (
+                                                    <p key={index}>
+                                                        {item}
+                                                        <br />
+                                                    </p>
+                                                );
+                                            })}
                                         </td>
                                     </tr>
                                 );
