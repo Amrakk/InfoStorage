@@ -1,6 +1,6 @@
-import React, { forwardRef, useState } from "react";
 import { BsChevronDown } from "react-icons/bs";
-import { type TDistrict, type TProvince, type TWard } from "../trpc";
+import React, { forwardRef, useState } from "react";
+import type { TDistrict, TProvince, TWard } from "../trpc";
 
 type TSelectProps = React.SelectHTMLAttributes<HTMLSelectElement> & {
     label: string;

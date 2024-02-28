@@ -1,3 +1,5 @@
 import useWindowDimensions from "./useWindowDimensions";
 import useMultipleState from "./useMultipleState";
-export { useWindowDimensions, useMultipleState };
+import useTitle from "./useTitle";
+
+export { useWindowDimensions, useMultipleState, useTitle };

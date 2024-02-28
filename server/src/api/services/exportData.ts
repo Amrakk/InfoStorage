@@ -38,11 +38,20 @@ export const exportData = verifiedProcedure
             } else sheet = await generateExcelSheet(type);
 
             const workbook = generateExcelFile([sheet]);
-            const text = `Dear user,\n\nYou have requested to export data from InfoStorage included ${type}.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+            const html = `<p>
+                            Dear <strong>${user.name}</strong>,
+                            <br><br>
+                            You have requested to export data from InfoStorage included <strong>${type}</strong>.
+                            <br>The file is attached to this email.
+                            <br><br>
+                            Best regards,
+                            <br><strong>InfoStorage team</strong>
+                            </p>`;
 
             const mailInfo = {
                 to: [user.email],
-                text,
+                subject: "InfoStorage - Exported data",
+                html: html,
                 data: workbook,
             };
             await exportDataViaMail(mailInfo, contextRules.export);

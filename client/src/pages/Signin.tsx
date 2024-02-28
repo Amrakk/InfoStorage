@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TRPCError, trpc } from "../trpc";
-import { useLocation, useNavigate } from "react-router-dom";
 
 const notBlinking = {
     caretColor: "transparent",
@@ -36,11 +35,12 @@ export default function Signin() {
             localStorage.setItem("email", user.user.email);
             localStorage.setItem("phone", user.user.phone);
             localStorage.setItem("role", user.user.role);
-            setLoading(false);
 
             navigate("/dashboard");
         } catch (err) {
             alert((err as TRPCError).message);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -120,14 +120,16 @@ export default function Signin() {
     }
 
     return (
-        <>
+        <div className="grid" style={{
+            minHeight: "100svh"
+        }}>
             <div
                 id="signin"
-                className=" flex justify-center mx-auto mt-52 max-w-md bg-white py-16 shadow-aesthetic rounded-md"
+                className="w-11/12 place-self-center flex justify-center max-w-md h-max bg-white py-8 md:p-16 shadow-aesthetic rounded-md"
                 style={notBlinking}
             >
-                <form className="text-left md:w-80  text-[#415245]" onSubmit={handleSubmitForm}>
-                    <h1 className="text-center font-semibold  text-4xl ">Đăng Nhập</h1>
+                <form className="text-left w-5/6 md:w-80 text-[#415245]" onSubmit={handleSubmitForm}>
+                    <h1 className="text-center font-semibold text-3xl md:text-4xl">Đăng Nhập</h1>
 
                     {/* Email Input */}
                     <div className="relative mt-14">
@@ -195,11 +197,14 @@ export default function Signin() {
                         </div>
                     </button>
 
-                    <Link to="/forgotpassword" className="flex justify-center mt-7 hover:text-[#5e7563]">
+                    <Link
+                        to="/forgotpassword"
+                        className="flex justify-center mt-7 hover:text-[#5e7563]"
+                    >
                         Quên mật khẩu?
                     </Link>
                 </form>
             </div>
-        </>
+        </div>
     );
 }

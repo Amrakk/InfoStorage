@@ -1,5 +1,6 @@
 import { router } from "../trpc.js";
 import { exportData } from "../api/services/exportData.js";
+import { getAccToken } from "../api/services/getAccToken.js";
 import { searchByName } from "../api/services/searchByName.js";
 import {
     getUserRoles,
@@ -56,4 +57,10 @@ export const serviceRouter = router({
      * Use by verified user to search data base on their role
      */
     searchByName,
+
+    /**
+     * @name getAccToken
+     * Use by verified user to get a new access token
+     */
+    getAccToken,
 });

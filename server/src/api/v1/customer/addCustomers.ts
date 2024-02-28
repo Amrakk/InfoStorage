@@ -7,8 +7,8 @@ import { customerRegex } from "../../../configs/regex.js";
 import { CollectionNames } from "../../../configs/default.js";
 import ICustomer from "../../../interfaces/collections/customer.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
-import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import { contextRules } from "../../../middlewares/mailHandlers/settings.js";
+import { getAddressInfo } from "../../../middlewares/utils/addressHandlers.js";
 import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { exportDataViaMail } from "../../../middlewares/mailHandlers/sendDataViaMail.js";
 import {
@@ -51,16 +51,13 @@ export const addCustomers = employeeProcedure
                 });
             else if (customers.length === 1) {
                 const { provCode, distCode, wardCode, ...data } = customers[0];
-                if (!provCode || !distCode || !wardCode)
+                data.address =
+                    (await getAddressInfo(data.address, provCode, distCode, wardCode)) ?? "";
+                if (data.address === "")
                     throw new TRPCError({
                         code: "BAD_REQUEST",
                         message: "Missing address info",
                     });
-
-                const ward = await getUnitName(wardCode, "ward");
-                const district = await getUnitName(distCode, "district");
-                const province = await getUnitName(provCode, "province");
-                data.address = `${data.address}, ${ward}, ${district}, ${province}`;
 
                 const result = await insertCustomer(data);
                 if (result instanceof TRPCError) throw result;
@@ -69,9 +66,18 @@ export const addCustomers = employeeProcedure
                 const successEntries: string[] = [];
                 for (const customer of customers) {
                     const { provCode, distCode, wardCode, ...data } = customer;
+                    data.address =
+                        (await getAddressInfo(data.address, provCode, distCode, wardCode)) ?? "";
+                    if (data.address === "") {
+                        failedEntries.push({
+                            ...data,
+                            error: "Invalid address",
+                        });
+                        continue;
+                    }
+
                     const result = await insertCustomer(data);
-                    if (result instanceof ObjectId)
-                        successEntries.push(result.toString());
+                    if (result instanceof ObjectId) successEntries.push(result.toString());
                     else if (typeof result === "string")
                         failedEntries.push({ ...data, error: result });
                     else if (result instanceof TRPCError)
@@ -89,14 +95,14 @@ export const addCustomers = employeeProcedure
             }
 
             if (failedEntries.length > 0) {
-                const result = await sendFailedEntries(
-                    failedEntries,
-                    ctx.user.email
-                ).catch((err) => getErrorMessage(err));
+                const result = await sendFailedEntries(failedEntries, ctx.user.email).catch((err) =>
+                    getErrorMessage(err)
+                );
 
                 if (typeof result == "string") console.error(result);
                 return {
                     message: "Partial success: Review and fix failed entries.",
+                    failedEntries: failedEntries.length,
                 };
             }
 
@@ -124,25 +130,21 @@ async function insertCustomer(customer: ICustomer) {
             });
 
         const result = await customers.insertOne(customer);
-        return result.acknowledged
-            ? result.insertedId
-            : "Failed while inserting customers";
+        return result.acknowledged ? result.insertedId : "Failed while inserting customers";
     } catch (err) {
         return getErrorMessage(err);
     }
 }
 
 async function sendFailedEntries(failedEntries: TFailedEntry[], email: string) {
-    const sheet = await generateExcelSheet(
-        CollectionNames.Customers,
-        failedEntries
-    );
+    const sheet = await generateExcelSheet(CollectionNames.Customers, failedEntries);
     const workbook = generateExcelFile([sheet]);
-    const text = `Dear user,\n\nYou have requested to add customers to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+    const html = `Dear user,\n\nYou have requested to add customers to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
 
     const mailInfo = {
         to: [email],
-        text,
+        subject: "InfoStorage - Failed entries",
+        html,
         data: workbook,
     };
     await exportDataViaMail(mailInfo, contextRules.failedEntries);

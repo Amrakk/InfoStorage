@@ -4,7 +4,8 @@ import { getCurrentTime } from "../utils/getCurrentTime.js";
 
 type TMailInfo = {
     to: string[];
-    text: string;
+    subject: string;
+    html: string;
     data: Buffer;
 };
 
@@ -12,7 +13,7 @@ export async function exportDataViaMail(
     mailInfo: TMailInfo,
     context: contextRules
 ) {
-    const { to, text, data } = mailInfo;
+    const { to, subject, html, data } = mailInfo;
 
     const transporter = nodemailer.createTransport({
         secure: true,
@@ -29,8 +30,8 @@ export async function exportDataViaMail(
     const mailOptions = {
         from: `InfoStorage <${process.env.EMAIL_USER}>`,
         to,
-        subject: "InfoStorage - Exported data",
-        text,
+        subject,
+        html: html,
         attachments: [{ filename, content: data }],
     };
 

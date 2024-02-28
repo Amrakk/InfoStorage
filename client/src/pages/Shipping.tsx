@@ -1,22 +1,22 @@
-import { useState, useEffect, useRef } from "react";
-import { trpc, type TRPCError, type TShipping } from "../trpc";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDeletePopupStore } from "../stores/DeletePopup";
-import { useShippingsStore } from "../stores/Shippings";
-import { useSearchValue } from "../stores/SearchValue";
-import { useCurrentPageStore } from "../stores/CurrentPage";
+// import { v4 } from "uuid";
 import {
-    DeletePopup,
     AddPopup,
-    UpdatePopup,
+    DeletePopup,
     Drag,
     PageActionHub,
+    Pagination,
     Search,
     Table,
-    Pagination,
+    UpdatePopup,
     FilterPopup,
 } from "../components";
-import { v4 } from "uuid";
+import { useDeletePopupStore } from "../stores/DeletePopup";
+import { useShippingsStore } from "../stores/Shippings";
+import { trpc, type TRPCError } from "../trpc";
+import { useSearchValue } from "../stores/SearchValue";
+import { useCurrentPageStore } from "../stores/CurrentPage";
 
 export default function Shipping() {
     const navigate = useNavigate();
@@ -158,14 +158,16 @@ export default function Shipping() {
     async function getShippings() {
         try {
             const res = await trpc.shipping.getShippings.query();
-            const updatedShippings = Array.from({ length: 11 }, () => [...res])
-                .flat()
-                .map((s) => {
-                    s._id = v4();
-                    return { ...s };
-                });
+            // const updatedShippings = Array.from({ length: 11 }, () => [...res])
+            //     .flat()
+            //     .map((s) => {
+            //         s._id = v4();
+            //         return { ...s };
+            //     });
 
-            setShippings(updatedShippings);
+            // setShippings(updatedShippings);
+
+            setShippings(res);
         } catch (err) {
             if ((err as TRPCError).data.httpStatus === 401 || (err as TRPCError).data.httpStatus === 500) {
                 navigate("/signin");
@@ -213,15 +215,15 @@ export default function Shipping() {
         setIsFilterPopupOpen(false);
     }
 
-    function onFilter(value: {
-        name: string;
-        address: string;
-        provinceCode: string;
-        districtCode: string;
-        wardCode: string;
-        phone: string | null;
-        note: string | null;
-    }) {}
+    // function onFilter(value: {
+    //     name: string;
+    //     address: string;
+    //     provinceCode: string;
+    //     districtCode: string;
+    //     wardCode: string;
+    //     phone: string | null;
+    //     note: string | null;
+    // }) {}
 
     return (
         <>
@@ -235,7 +237,7 @@ export default function Shipping() {
             </canvas>
 
             <div className="container text-primary mx-auto">
-                <PageActionHub handleAddPopUp={handleAddPopUp} title="Shipping" />
+                <PageActionHub handleAddPopUp={handleAddPopUp} getShippings={getShippings} title="Shipping" />
 
                 <Search handleSearch={handleSearch} handleFilterPopUp={handleFilterPopUp} />
 

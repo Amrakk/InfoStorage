@@ -7,8 +7,8 @@ import { employeeProcedure } from "../../../trpc.js";
 import ITax from "../../../interfaces/collections/tax.js";
 import { CollectionNames } from "../../../configs/default.js";
 import { saveImportLog } from "../../../middlewares/saveImportLog.js";
-import { getUnitName } from "../../../middlewares/utils/addressHandlers.js";
 import { contextRules } from "../../../middlewares/mailHandlers/settings.js";
+import { getAddressInfo } from "../../../middlewares/utils/addressHandlers.js";
 import { getErrorMessage } from "../../../middlewares/errorHandlers/getErrorMessage.js";
 import { exportDataViaMail } from "../../../middlewares/mailHandlers/sendDataViaMail.js";
 import {
@@ -38,76 +38,75 @@ const inputSchema = z.array(
     })
 );
 
-export const addTaxes = employeeProcedure
-    .input(inputSchema)
-    .mutation(async ({ input, ctx }) => {
-        const taxes = input;
-        const failedEntries: TFailedEntry[] = [];
+export const addTaxes = employeeProcedure.input(inputSchema).mutation(async ({ input, ctx }) => {
+    const taxes = input;
+    const failedEntries: TFailedEntry[] = [];
 
-        try {
-            if (taxes.length === 0)
+    try {
+        if (taxes.length === 0)
+            throw new TRPCError({
+                code: "BAD_REQUEST",
+                message: "No supplier to add",
+            });
+        else if (taxes.length === 1) {
+            const { provCode, distCode, wardCode, ...data } = taxes[0];
+            data.address = (await getAddressInfo(data.address, provCode, distCode, wardCode)) ?? "";
+            if (data.address === "")
                 throw new TRPCError({
                     code: "BAD_REQUEST",
-                    message: "No supplier to add",
+                    message: "Missing address info",
                 });
-            else if (taxes.length === 1) {
-                const { provCode, distCode, wardCode, ...data } = taxes[0];
-                if (!provCode || !distCode || !wardCode)
-                    throw new TRPCError({
-                        code: "BAD_REQUEST",
-                        message: "Missing address info",
+
+            const result = await insertTax(data);
+            if (result instanceof TRPCError) throw result;
+            if (typeof result === "string") throw new Error(result);
+        } else {
+            const successEntries: string[] = [];
+            for (const tax of taxes) {
+                const { provCode, distCode, wardCode, ...data } = tax;
+                data.address =
+                    (await getAddressInfo(data.address, provCode, distCode, wardCode)) ?? "";
+                if (data.address === "") {
+                    failedEntries.push({
+                        ...data,
+                        error: "Invalid address",
                     });
-
-                const ward = await getUnitName(wardCode, "ward");
-                const district = await getUnitName(distCode, "district");
-                const province = await getUnitName(provCode, "province");
-                data.address = `${data.address}, ${ward}, ${district}, ${province}`;
-
-                const result = await insertTax(data);
-                if (result instanceof TRPCError) throw result;
-                if (typeof result === "string") throw new Error(result);
-            } else {
-                const successEntries: string[] = [];
-                for (const tax of taxes) {
-                    const { provCode, distCode, wardCode, ...data } = tax;
-                    const result = await insertTax(data);
-                    if (result instanceof ObjectId)
-                        successEntries.push(result.toString());
-                    else if (typeof result === "string")
-                        failedEntries.push({ ...data, error: result });
-                    else if (result instanceof TRPCError)
-                        failedEntries.push({ ...data, error: result.message });
+                    continue;
                 }
-
-                const userID = ctx.user._id.toString();
-                const result = await saveImportLog(
-                    userID,
-                    successEntries,
-                    CollectionNames.Taxes
-                ).catch((err) => getErrorMessage(err));
-                if (typeof result === "string") console.error(result);
+                const result = await insertTax(data);
+                if (result instanceof ObjectId) successEntries.push(result.toString());
+                else if (typeof result === "string") failedEntries.push({ ...data, error: result });
+                else if (result instanceof TRPCError)
+                    failedEntries.push({ ...data, error: result.message });
             }
 
-            if (failedEntries.length > 0) {
-                const result = await sendFailedEntries(
-                    failedEntries,
-                    ctx.user.email
-                ).catch((err) => getErrorMessage(err));
-                if (typeof result === "string") console.error(result);
-                return {
-                    message: "Partial success: Review and fix failed entries.",
-                };
-            }
-
-            return { message: "Add taxes successfully!" };
-        } catch (err) {
-            if (err instanceof TRPCError) throw err;
-            throw new TRPCError({
-                code: "INTERNAL_SERVER_ERROR",
-                message: getErrorMessage(err),
-            });
+            const userID = ctx.user._id.toString();
+            const result = await saveImportLog(userID, successEntries, CollectionNames.Taxes).catch(
+                (err) => getErrorMessage(err)
+            );
+            if (typeof result === "string") console.error(result);
         }
-    });
+
+        if (failedEntries.length > 0) {
+            const result = await sendFailedEntries(failedEntries, ctx.user.email).catch((err) =>
+                getErrorMessage(err)
+            );
+            if (typeof result === "string") console.error(result);
+            return {
+                message: "Partial success: Review and fix failed entries.",
+                failedEntries: failedEntries.length,
+            };
+        }
+
+        return { message: "Add taxes successfully!" };
+    } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: getErrorMessage(err),
+        });
+    }
+});
 
 async function insertTax(tax: ITax) {
     try {
@@ -124,25 +123,21 @@ async function insertTax(tax: ITax) {
             });
 
         const result = await taxes.insertOne(tax);
-        return result.acknowledged
-            ? result.insertedId
-            : "Failed while inserting taxes";
+        return result.acknowledged ? result.insertedId : "Failed while inserting taxes";
     } catch (err) {
         return getErrorMessage(err);
     }
 }
 
 async function sendFailedEntries(failedEntries: TFailedEntry[], email: string) {
-    const sheet = await generateExcelSheet(
-        CollectionNames.Taxes,
-        failedEntries
-    );
+    const sheet = await generateExcelSheet(CollectionNames.Taxes, failedEntries);
     const workbook = generateExcelFile([sheet]);
-    const text = `Dear user,\n\nYou have requested to add taxes to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
+    const html = `Dear user,\n\nYou have requested to add taxes to InfoStorage.\nHowever, some entries are failed to add.\nThe file is attached to this email.\n\nBest regards,\nInfoStorage team`;
 
     const mailInfo = {
         to: [email],
-        text,
+        subject: "InfoStorage - Failed entries",
+        html,
         data: workbook,
     };
     await exportDataViaMail(mailInfo, contextRules.failedEntries);

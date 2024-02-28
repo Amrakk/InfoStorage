@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
-import { TRPCError, trpc } from "../trpc";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { FaUser, FaTruck } from "react-icons/fa";
+import { useEffect, useRef, useState } from "react";
 import { AiOutlineDashboard } from "react-icons/ai";
 import { BsFillPeopleFill, BsList } from "react-icons/bs";
-import { RiInboxFill } from "react-icons/ri";
-import { LuBuilding } from "react-icons/lu";
+import { FaTruck, FaUser } from "react-icons/fa";
 import { FiArrowUpRight } from "react-icons/fi";
+import { LuBuilding } from "react-icons/lu";
+import { RiInboxFill } from "react-icons/ri";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { TRPCError, trpc } from "../trpc";
 
 export default function Header() {
     const [showAccount, setShowAccount] = useState(false);
@@ -50,9 +50,15 @@ export default function Header() {
     useEffect(() => {
         const arrIcon = ["/dashboard", "/customer", "/shipping", "/product", "/supplier"];
         let index = arrIcon.findIndex((item) => item === location.pathname);
-        index = index === -1 ? 0 : index;
-        const left = index * 80 + index * 40;
-        barRef.current!.style.setProperty("left", `${left}px`);
+
+        if (index !== -1) {
+            const left = index * 80 + index * 40;
+            barRef.current!.style.setProperty("width", "80px");
+            barRef.current!.style.setProperty("left", `${left}px`);
+        } else {
+            barRef.current!.style.setProperty("width", "0px");
+            barRef.current!.style.setProperty("left", "0px");
+        }
     }, [location.pathname]);
 
     useEffect(() => {
@@ -90,7 +96,9 @@ export default function Header() {
                                 to="/dashboard"
                                 id="dashboard"
                                 className={`icon cursor-pointer ${
-                                    location.pathname === "/dashboard" ? "text-primary brightness-100" : ""
+                                    location.pathname === "/dashboard"
+                                        ? "text-primary brightness-100"
+                                        : ""
                                 }`}
                             >
                                 <AiOutlineDashboard size={24} />
@@ -99,7 +107,9 @@ export default function Header() {
                             <Link
                                 to="/customer"
                                 className={`icon cursor-pointer ${
-                                    location.pathname === "/customer" ? "text-primary brightness-100" : ""
+                                    location.pathname === "/customer"
+                                        ? "text-primary brightness-100"
+                                        : ""
                                 }`}
                             >
                                 <BsFillPeopleFill size={24} />
@@ -107,7 +117,9 @@ export default function Header() {
                             </Link>
                             <Link
                                 className={`icon cursor-pointer ${
-                                    location.pathname === "/shipping" ? "text-primary brightness-100" : ""
+                                    location.pathname === "/shipping"
+                                        ? "text-primary brightness-100"
+                                        : ""
                                 }`}
                                 to="/shipping"
                             >
@@ -117,7 +129,9 @@ export default function Header() {
                             <Link
                                 to="/product"
                                 className={`icon cursor-pointer ${
-                                    location.pathname === "/product" ? "text-primary brightness-100" : ""
+                                    location.pathname === "/product"
+                                        ? "text-primary brightness-100"
+                                        : ""
                                 }`}
                             >
                                 <RiInboxFill size={24} />
@@ -126,14 +140,16 @@ export default function Header() {
                             <Link
                                 to="/supplier"
                                 className={`icon cursor-pointer ${
-                                    location.pathname === "/supplier" ? "text-primary brightness-100" : ""
+                                    location.pathname === "/supplier"
+                                        ? "text-primary brightness-100"
+                                        : ""
                                 }`}
                             >
                                 <LuBuilding size={24} />
                                 <div>Supplier</div>
                             </Link>
                             <div
-                                className="absolute left-0 bottom-0 h-[2px] w-20 bg-primary transition-[left] duration-[250ms] "
+                                className="absolute left-0 bottom-0 h-[2px] bg-primary transition-all duration-[250ms] "
                                 ref={barRef}
                             ></div>
                         </div>

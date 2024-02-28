@@ -83,7 +83,7 @@ export default function Table(props: TProps) {
                                             e.dataTransfer.setData("shippingNote", shipping.note);
                                             props.handleId(shipping._id);
                                         }}
-                                        onDragEnd={(e) => {
+                                        onDragEnd={() => {
                                             setIconAppear(false);
                                             setGrabbing(false);
                                         }}
