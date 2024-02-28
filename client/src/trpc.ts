@@ -18,19 +18,18 @@ export type TWard = RouterOutput["service"]["getWards"];
 export const trpc = createTRPCProxyClient<AppRouter>({
     links: [
         httpBatchLink({
-            // url: "https://infostorage.up.railway.app/trpc",
-            url: "http://localhost:3000/trpc",
-            async fetch(url, options) {
+            url: "https://ifs.ngocrongmod.xyz/trpc",
+            fetch(url, options) {
                 return fetch(url, {
                     ...options,
                     credentials: "include",
-                }).then(res => {
+                }).then((res) => {
                     if (res.status === 401) {
                         window.location.href = "/signin";
                     }
 
                     return res;
-                })
+                });
             },
         }),
     ],
@@ -56,7 +55,7 @@ const wsClient = createWSClient({
             }
         }
     },
-    retryDelayMs: () => 1000
+    retryDelayMs: () => 1000,
 });
 
 export const trpcWss = createTRPCProxyClient<AppRouter["wss"]>({

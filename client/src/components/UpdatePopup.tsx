@@ -233,9 +233,7 @@ function Content(props: TPropsContent) {
                         </div>
                         {/*body*/}
                         <div className="relative px-5 flex-auto text-lg text-primary font-semibold">
-                            {provinces.length == 0 || districts.length == 0 || wards.length == 0 ? (
-                                <></>
-                            ) : (
+                            {provinces.length == 0 || districts.length == 0 || wards.length == 0 ? null : (
                                 <form onSubmit={handleSubmit(onSubmit)}>
                                     {/* Ten Don Vi */}
 
