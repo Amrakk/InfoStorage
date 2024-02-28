@@ -89,7 +89,7 @@ export default function Table(props: TProps) {
                                         }}
                                     >
                                         <td
-                                            className="text-center stt hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
+                                            className="text-center stt hover:bg-gray-400 hover:bg-opacity-30 transition-all rounded-lg"
                                             onClick={props.handleCopy(
                                                 `${shipping.name}\n${shipping.address}\n${shipping.phone}\n\n${shipping.note}`
                                             )}
@@ -97,25 +97,25 @@ export default function Table(props: TProps) {
                                             {index + 1 + (props.currentPage - 1) * props.itemsPerPage}
                                         </td>
                                         <td
-                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
+                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-30 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.name)}
                                         >
                                             {shipping.name}
                                         </td>
                                         <td
-                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
+                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-30 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.address)}
                                         >
                                             {shipping.address}
                                         </td>
                                         <td
-                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
+                                            className="p-3 hover:bg-gray-400 hover:bg-opacity-30 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.phone)}
                                         >
                                             {shipping.phone}
                                         </td>
                                         <td
-                                            className="p-3 whitespace-normal break-words hover:bg-gray-400 hover:bg-opacity-50 transition-all rounded-lg"
+                                            className="p-3 whitespace-normal break-words hover:bg-gray-400 hover:bg-opacity-30 transition-all rounded-lg"
                                             onClick={props.handleCopy(shipping.note)}
                                         >
                                             <p>

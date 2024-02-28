@@ -38,7 +38,6 @@ export default function Pagination(props: TProps) {
 
         // Add the event listener when the component mounts
         document.addEventListener("click", handleClickOutside);
-
         // Clean up the event FaClosedCaptioningounts
         return () => {
             document.removeEventListener("click", handleClickOutside);

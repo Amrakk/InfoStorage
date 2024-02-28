@@ -3,6 +3,8 @@ import { trpc, type TRPCError, type TShipping } from "../trpc";
 import { useNavigate } from "react-router-dom";
 import { useDeletePopupStore } from "../stores/DeletePopup";
 import { useShippingsStore } from "../stores/Shippings";
+import { useSearchValue } from "../stores/SearchValue";
+import { useCurrentPageStore } from "../stores/CurrentPage";
 import {
     DeletePopup,
     AddPopup,
@@ -28,7 +30,8 @@ export default function Shipping() {
     const [_id, set_Id] = useState("");
     const mouseFollowRef = useRef<HTMLCanvasElement>(null);
     const [isShowCopyBox, setIsShowCopyBox] = useState<boolean>(false);
-    const [searchValue, setSearchValue] = useState(shippings);
+    // const [searchValue, setSearchValue] = useState(shippings);
+    const { searchValue, setSearchValue } = useSearchValue();
     const [inputValue, setInputValue] = useState<{
         [key: string]: string | null | undefined;
     }>({});
@@ -36,7 +39,7 @@ export default function Shipping() {
     const [idTimeOut, setIdTimeOut] = useState<ReturnType<typeof setTimeout>>();
 
     // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
+    const { currentPage, setCurrentPage } = useCurrentPageStore();
     const [itemsPerPage, setItemsPerPage] = useState(8);
 
     // Logic to calculate currentItems based on currentPage and itemsPerPage
@@ -101,8 +104,6 @@ export default function Shipping() {
             setSearchValue(filteredData);
         }
     }
-
-    function handleFilter(value: string) {}
 
     function toLowerNonAccentVietnamese(str: string) {
         str = str.toLowerCase();
