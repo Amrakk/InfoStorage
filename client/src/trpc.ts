@@ -16,7 +16,7 @@ export type TWard = RouterOutput["service"]["getWards"];
 export const trpc = createTRPCProxyClient<AppRouter>({
     links: [
         httpBatchLink({
-            url: "http://localhost:3000/trpc",
+            url: "https://ifs.ngocrongmod.xyz/trpc",
             fetch(url, options) {
                 return fetch(url, {
                     ...options,
