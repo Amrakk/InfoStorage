@@ -18,7 +18,7 @@ export type TWard = RouterOutput["service"]["getWards"];
 export const trpc = createTRPCProxyClient<AppRouter>({
     links: [
         httpBatchLink({
-            url: "https://ifs.ngocrongmod.xyz/trpc",
+            url: import.meta.env.VITE_HTTP_URL,
             fetch(url, options) {
                 return fetch(url, {
                     ...options,
@@ -47,7 +47,7 @@ export type TRPCError = {
 
 const UNAUTHORIZED_WS_CLOSE_CODE = 4000;
 const wsClient = createWSClient({
-    url: "ws://localhost:3000/trpc/wss",
+    url: import.meta.env.VITE_WS_URL,
     onClose(cause) {
         if (cause?.code === UNAUTHORIZED_WS_CLOSE_CODE) {
             if (window.location.pathname !== "/signin") {

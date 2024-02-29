@@ -107,9 +107,9 @@ function Content(props: TPropsContent) {
             trpc.shipping.addShippings
                 .mutate([
                     {
-                        provCode: parseInt(data.provinceCode as unknown as string),
-                        distCode: parseInt(data.districtCode as unknown as string),
-                        wardCode: parseInt(data.wardCode as unknown as string),
+                        provCode: parseInt(data.provinceCode),
+                        distCode: parseInt(data.districtCode),
+                        wardCode: parseInt(data.wardCode),
                         name: data.name,
                         address: data.address,
                         note: data.note as string,
@@ -233,8 +233,7 @@ function Content(props: TPropsContent) {
 
                                 {/* Phuong */}
                                 <Select
-                                    {...(register("wardCode"),
-                                    {
+                                    {...register("wardCode", {
                                         onChange: () => {
                                             setters.wardCode(false);
                                         },
@@ -278,10 +277,13 @@ function Content(props: TPropsContent) {
                                     <button
                                         type="submit"
                                         ref={refButton}
+                                        onClick={() => {
+                                            console.log("Submit");
+                                        }}
                                         className="w-32  bg-primary hover:bg-[#5e7563] transition-colors  text-white rounded-md h-[52px] overflow-hidden"
                                     >
                                         <div
-                                            className="h-full transition-transform duration-300"
+                                            className="h-full transition-transform duration-300 active:brightness-150"
                                             style={{
                                                 transform: loading ? "translateY(-5px)" : "translateY(-52px)",
                                             }}
