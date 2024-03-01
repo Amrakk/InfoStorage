@@ -18,14 +18,16 @@ import toaster, { Toaster } from "react-hot-toast";
 import { trpc, trpcWss } from "./trpc.ts";
 
 import { v4 } from "uuid";
+import { IoClose } from "react-icons/io5";
 
 type NotificationProps = {
     message: string;
     timestamp: number;
     total: number;
     dismiss: () => void;
+    onRead: () => void;
 };
-function Notification({ message, timestamp, total, dismiss }: NotificationProps) {
+function Notification({ message, timestamp, total, dismiss, onRead }: NotificationProps) {
     const [showDetail, setShowDetail] = useState(false);
 
     return (
@@ -34,31 +36,41 @@ function Notification({ message, timestamp, total, dismiss }: NotificationProps)
                 showDetail ? " flex-col" : " items-center"
             } transition-all max-w-60 w-full`}
             style={{
-                height: showDetail ? `${Math.ceil(message.length / 29) * 24 + 22}px` : `24px`,
+                height: showDetail ? `${Math.ceil(message.length / 29) * 24 + 28}px` : `24px`,
             }}
         >
-            <span className="absolute -left-6 -top-4 drop-shadow-md rounded-full bg-red-600 px-2 text-white">
-                {total}
-            </span>
+            {!showDetail && (
+                <span className="absolute -left-6 -top-4 drop-shadow-md rounded-full bg-red-600 px-2 text-white">
+                    {total}
+                </span>
+            )}
             {!showDetail ? (
                 <>
                     <div className="ml-auto">Bạn có thông báo mới</div>
                     <button
-                        className="ml-2 pl-2 border-l-2 border-primary text-cyan-300"
-                        onClick={() => setShowDetail(true)}
+                        className="ml-2 pl-2 border-l-2 border-primary text-cyan-600"
+                        onClick={() => {
+                            onRead();
+                            setShowDetail(true);
+                            setTimeout(() => {
+                                dismiss();
+                            }, 1000 * 5);
+                        }}
                     >
                         Xem
                     </button>
                 </>
             ) : (
                 <>
-                    <div className="flex-1 break-words overflow-hidden w-60">{message}</div>
-                    <div className="mt-2 flex justify-between items-end">
-                        <small className="text-xs">{new Date(timestamp).toLocaleString()}</small>
-                        <button className="text-sm text-cyan-300" onClick={() => dismiss()}>
-                            Đóng
+                    <div className="flex justify-between items-center">
+                        <small className="text-xs text-cyan-600">
+                            {new Date(timestamp).toLocaleString()}
+                        </small>
+                        <button className="text-sm" onClick={() => dismiss()}>
+                            <IoClose size={22} />
                         </button>
                     </div>
+                    <div className="mt-2 flex-1 break-words overflow-hidden w-60">{message}</div>
                 </>
             )}
         </span>
@@ -71,6 +83,7 @@ function App() {
     const { notification, loadNotification, addNotification, removeNotification } =
         useNotification();
     const curNotificationId = useRef<string | null>(null);
+    const curReadingNotificationId = useRef<string | null>(null);
     const abortController = useRef(new AbortController());
 
     const toast = (message: string, timestamp: number, id: string) => {
@@ -82,7 +95,13 @@ function App() {
                     total={notification.length}
                     dismiss={() => {
                         toaster.dismiss(t.id);
-                        curNotificationId.current = null;
+                        if (curReadingNotificationId.current == t.id) curReadingNotificationId.current = null;
+                    }}
+                    onRead={() => {
+                        if (curNotificationId.current === t.id) curNotificationId.current = null;
+                        if (curReadingNotificationId.current)
+                            toaster.dismiss(curReadingNotificationId.current);
+                        curReadingNotificationId.current = t.id;
                         removeNotification(message);
                     }}
                 />
@@ -120,8 +139,7 @@ function App() {
         }
 
         return () => {
-            toaster.dismiss(id);
-            curNotificationId.current = null;
+            if (curNotificationId.current) toaster.dismiss(curNotificationId.current);
         };
     }, [notification]);
 
