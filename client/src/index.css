@@ -212,3 +212,14 @@ input:-webkit-autofill:focus {
         opacity: 1;
     }
 }
+
+
+.toaster {
+    top: 56px!important;
+}
+
+@media screen and (min-width: 1024px) {
+    .toaster {
+        top: 104px!important;
+    }
+}

@@ -202,7 +202,7 @@ function App() {
                     </Routes>
                 </>
             )}
-            <Toaster />
+            <Toaster containerClassName="toaster" />
         </>
     );
 }

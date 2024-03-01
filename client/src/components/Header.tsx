@@ -84,7 +84,7 @@ export default function Header() {
     }
 
     return (
-        <header className="border-b border-b-gray-300 text-primary select-none ">
+        <header className="sticky top-0 isolate z-20 bg-white border-b border-b-gray-300 text-primary select-none ">
             <div className="relative container mx-auto">
                 <div className="h-24 lg:flex justify-between items-center hidden">
                     <div className="flex gap-10 h-full items-center">
