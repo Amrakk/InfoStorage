@@ -25,6 +25,7 @@ export default {
                 primary: "rgb(65, 82, 69)",
                 second: "rgb(106, 175, 199)",
                 accent1: "rgb(210, 15, 15)",
+                cusOgrange: "rgb(210, 93, 15)",
             },
             animation: {
                 updown1: "updown 1s ease-in-out infinite",
