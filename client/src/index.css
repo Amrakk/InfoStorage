@@ -212,3 +212,38 @@ input:-webkit-autofill:focus {
         opacity: 1;
     }
 }
+
+canvas {
+    animation: appear ease-in-out 75ms;
+    position: absolute;
+    inset: 0;
+}
+
+@keyframes appear {
+    0% {
+        scale: 0;
+    }
+    100% {
+        scale: 1;
+    }
+}
+
+.grabbing,
+#canvas {
+    cursor: url("https://www.google.com/intl/en_ALL/mapfiles/openhand.cur"), all-scroll;
+    cursor: -webkit-grab;
+    cursor: -moz-grab;
+    cursor: -o-grab;
+    cursor: -ms-grab;
+    cursor: grab;
+}
+
+.grabbing:active,
+body[data-grabbing] {
+    cursor: url("https://www.google.com/intl/en_ALL/mapfiles/closedhand.cur"), all-scroll;
+    cursor: -webkit-grabbing;
+    cursor: -moz-grabbing;
+    cursor: -o-grabbing;
+    cursor: -ms-grabbing;
+    cursor: grabbing;
+}

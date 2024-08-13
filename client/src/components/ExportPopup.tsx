@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { FaTrash } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
+import { FaFileExport } from "react-icons/fa6";
+
 import { trpc } from "../trpc";
+import { CollectionNames } from "../../../server/src/configs/default";
+import { set } from "react-hook-form";
+
 type TProps = {
-    message: string;
-    _id: string;
-    getShippings: () => void;
     isShown: boolean;
     onCancel: () => void;
 };
-export default function DeletePopup(props: TProps) {
-    const [shouldRender, setShouldRender] = useState<boolean>(false);
 
+export default function ExportPopup(props: TProps) {
+    const [shouldRender, setShouldRender] = useState<boolean>(false);
     useEffect(() => {
         if (props.isShown) {
             setShouldRender(true);
@@ -23,31 +25,20 @@ export default function DeletePopup(props: TProps) {
             setShouldRender(false);
         }
     }
-
     return shouldRender ? (
-        <>
-            <Content
-                _id={props._id}
-                getShippings={props.getShippings}
-                message={props.message}
-                isShown={props.isShown}
-                onCancel={props.onCancel}
-                handleAnimationEnd={handleAnimationEnd}
-            />
-        </>
+        <Content isShown={props.isShown} onCancel={props.onCancel} handleAnimationEnd={handleAnimationEnd} />
     ) : null;
 }
 
 type TPropsContent = {
-    message: string;
-    _id: string;
-    getShippings: () => void;
     isShown: boolean;
     onCancel: () => void;
     handleAnimationEnd: () => void;
 };
 
 function Content(props: TPropsContent) {
+    const [loading, setLoading] = useState(false);
+
     return (
         <>
             <div
@@ -57,14 +48,14 @@ function Content(props: TPropsContent) {
                 // id="animationPopup"
                 onAnimationEnd={props.handleAnimationEnd}
             >
-                <div className="relative w-1/3   mx-auto">
+                <div className="relative w-1/6  mx-auto">
                     {/*content*/}
                     <div className="rounded-2xl shadow-lg relative flex flex-col w-full bg-white outline-none focus:outline-none">
                         {/*header*/}
                         <div className="h-20 flex px-6 justify-between">
                             <div className="flex items-center">
-                                <div className="aspect-square w-12 bg-[#eeb1bd] border border-accent1 rounded-full flex justify-center items-center">
-                                    <FaTrash className="text-accent1" size={16} />
+                                <div className="aspect-square w-12 bg-[#fab98e] border border-cusOgrange rounded-full flex justify-center items-center">
+                                    <FaFileExport className="text-cusOgrange" size={16} />
                                 </div>
                             </div>
                             <div className="pt-3">
@@ -79,8 +70,7 @@ function Content(props: TPropsContent) {
                         </div>
                         {/*body*/}
                         <div className="relative  px-5 flex-auto text-lg text-primary     font-semibold">
-                            Bạn có chắc chắn muốn xóa <span className="text-accent1">{props.message}</span>{" "}
-                            không?
+                            Xác nhận xuất file
                         </div>
                         {/*footer*/}
 
@@ -96,19 +86,38 @@ function Content(props: TPropsContent) {
                             </button>
                             <button
                                 type="button"
-                                className="w-32 py-3 bg-accent1 hover:bg-red-400 transition-colors  text-white rounded-md"
+                                className="w-32  bg-cusOgrange hover:bg-orange-400 transition-colors  text-white rounded-md h-[52px] overflow-hidden"
                                 onClick={() => {
-                                    trpc.shipping.deleteShipping
-                                        .mutate({ id: props._id })
-                                        .then(() => {
-                                            props.getShippings();
-                                        })
-                                        .finally(() => {
+                                    setLoading(true);
+                                    trpc.service.exportData
+                                        .query({ type: CollectionNames.Shippings })
+                                        .then((_) => {
                                             props.onCancel();
+                                            setLoading(false);
+                                        })
+                                        .catch((err) => {
+                                            alert(err.message);
+                                            setLoading(false);
                                         });
                                 }}
                             >
-                                Xóa
+                                <div
+                                    className="h-full transition-transform duration-300 active:brightness-150"
+                                    style={{
+                                        transform: loading ? "translateY(-5px)" : "translateY(-52px)",
+                                    }}
+                                >
+                                    <div className="h-full flex justify-center items-center gap-3">
+                                        {loading && (
+                                            <>
+                                                <div className="w-2 aspect-square bg-white rounded-full animate-updown1"></div>
+                                                <div className="w-2 aspect-square bg-white rounded-full animate-updown2"></div>
+                                                <div className="w-2 aspect-square bg-white rounded-full animate-updown3"></div>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className="h-full flex justify-center items-center">Xác nhận</div>
+                                </div>
                             </button>
                         </div>
                     </div>

@@ -3,28 +3,29 @@ import { useNavigate } from "react-router-dom";
 import {
     AddPopup,
     DeletePopup,
-    Drag,
+    FilterPopup,
     PageActionHub,
     Pagination,
     Search,
     Table,
     UpdatePopup,
-    FilterPopup,
+    ExportPopup,
 } from "../components";
-import { useDeletePopupStore } from "../stores/DeletePopup";
+import { useCurrentPageStore } from "../stores/CurrentPage";
+import { useSearchValue } from "../stores/SearchValue";
 import { useShippingsStore } from "../stores/Shippings";
 import { trpc, type TRPCError } from "../trpc";
-import { useSearchValue } from "../stores/SearchValue";
-import { useCurrentPageStore } from "../stores/CurrentPage";
 
 export default function Shipping() {
     const navigate = useNavigate();
     const { shippings, setShippings } = useShippingsStore();
 
-    const { isDeletePopupOpen } = useDeletePopupStore();
+    // const { isDeletePopupOpen } = useDeletePopupStore();
     const [isAddPopupOpen, setIsAddPopupOpen] = useState<boolean>(false);
     const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState<boolean>(false);
+    const [isDeletePopupOpen, setIsDeletePopupOpen] = useState<boolean>(false);
     const [isFilterPopupOpen, setIsFilterPopupOpen] = useState<boolean>(false);
+    const [isExportFilePopupOpen, setIsExportFilePopupOpen] = useState<boolean>(false);
 
     const [_id, set_Id] = useState("");
     const mouseFollowRef = useRef<HTMLCanvasElement>(null);
@@ -34,6 +35,8 @@ export default function Shipping() {
     const [inputValue, setInputValue] = useState<{
         [key: string]: string | null | undefined;
     }>({});
+
+    const [shippingName, setShippingName] = useState<string>("");
 
     const [idTimeOut, setIdTimeOut] = useState<ReturnType<typeof setTimeout>>();
 
@@ -203,6 +206,16 @@ export default function Shipping() {
         setIsUpdatePopupOpen(true);
     }
 
+    function handleDeletePopUp(shippingId: string, shippingName: string) {
+        set_Id(shippingId);
+        setShippingName(shippingName);
+        setIsDeletePopupOpen(true);
+    }
+
+    function handleExportFilePopup() {
+        setIsExportFilePopupOpen(true);
+    }
+
     function hideAddPopUp() {
         setIsAddPopupOpen(false);
     }
@@ -212,6 +225,14 @@ export default function Shipping() {
 
     function hideFilterPopUp() {
         setIsFilterPopupOpen(false);
+    }
+
+    function hideDetetePopUp() {
+        setIsDeletePopupOpen(false);
+    }
+
+    function hideExportFilePopup() {
+        setIsExportFilePopupOpen(false);
     }
 
     // function onFilter(value: {
@@ -236,7 +257,12 @@ export default function Shipping() {
             </canvas>
 
             <div className="container text-primary mx-auto">
-                <PageActionHub handleAddPopUp={handleAddPopUp} getShippings={getShippings} title="Shipping" />
+                <PageActionHub
+                    handleAddPopUp={handleAddPopUp}
+                    getShippings={getShippings}
+                    title="Shipping"
+                    handleExportFilePopup={handleExportFilePopup}
+                />
 
                 <Search handleSearch={handleSearch} handleFilterPopUp={handleFilterPopUp} />
 
@@ -246,6 +272,8 @@ export default function Shipping() {
                     itemsPerPage={itemsPerPage}
                     handleCopy={handleCopy}
                     handleId={handleId}
+                    handleUpdatePopUp={handleUpdatePopUp}
+                    handleDeletePopUp={handleDeletePopUp}
                 />
 
                 <Pagination
@@ -256,11 +284,13 @@ export default function Shipping() {
                     updatePageSize={updatePageSize}
                 />
 
-                <Drag handleUpdatePopUp={handleUpdatePopUp} />
-
-                {isDeletePopupOpen && (
-                    <DeletePopup message={isDeletePopupOpen} _id={_id} getShippings={getShippings} />
-                )}
+                <DeletePopup
+                    message={shippingName}
+                    _id={_id}
+                    getShippings={getShippings}
+                    isShown={isDeletePopupOpen}
+                    onCancel={hideDetetePopUp}
+                />
                 <AddPopup getShippings={getShippings} isShown={isAddPopupOpen} onCancel={hideAddPopUp} />
                 <UpdatePopup
                     getShippings={getShippings}
@@ -270,6 +300,7 @@ export default function Shipping() {
                 />
 
                 <FilterPopup isShown={isFilterPopupOpen} onCancel={hideFilterPopUp} />
+                <ExportPopup isShown={isExportFilePopupOpen} onCancel={hideExportFilePopup} />
             </div>
         </>
     );

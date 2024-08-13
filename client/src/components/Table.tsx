@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dataNotFound from "../assets/img/data not found.png";
 import { useIconAppear } from "../stores/IconAppear";
+import OptionSelected from "./OptionSelected";
 import TableSkeleton from "./TableSkeleton";
-import React from "react";
 const inputStyle = {
     caretColor: "transparent",
 };
@@ -21,11 +21,67 @@ type TProps = {
     itemsPerPage: number;
     handleId: (id: string) => void;
     handleCopy: (data: string) => () => void;
+    handleUpdatePopUp: (
+        shippingId: string,
+        shippingName: string,
+        shippingAddress: string,
+        shippingPhone: string,
+        shippingNote: string
+    ) => void;
+    handleDeletePopUp: (shippingId: string, shippingName: string) => void;
 };
 
 export default function Table(props: TProps) {
     const { setIconAppear } = useIconAppear();
-    const [grabbing, setGrabbing] = useState(true);
+    const [grabbing, setGrabbing] = useState(false);
+    const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
+    const actions = [
+        {
+            name: "Chỉnh sửa",
+            icon: "edit_icon.svg",
+            action: "edit",
+            color: "#6AAFC7",
+            background: "#B8DDEA",
+        },
+
+        {
+            name: "Hủy",
+            icon: "cancel_icon.svg",
+            action: "cancel",
+            color: "#415245",
+            background: "#B5D4BC",
+        },
+        {
+            name: "Xóa",
+            icon: "delete_icon.svg",
+            action: "delete",
+            color: "#CD0F0F",
+            background: "#EEB1BD",
+        },
+    ];
+    const [action, setAction] = useState<number>(-1);
+    const [currentShipping, setCurrentShipping] = useState<{
+        _id: string;
+        name: string;
+        phone: string;
+        address: string;
+        note: string;
+    } | null>(null);
+
+    useEffect(() => {
+        if (action === 0 && grabbing == false) {
+            props.handleUpdatePopUp(
+                currentShipping!._id,
+                currentShipping!.name,
+                currentShipping!.address,
+                currentShipping!.phone,
+                currentShipping!.note
+            );
+        } else if (action === 2 && grabbing == false) {
+            // setIsDeletePopupOpen(currentShipping!.name);
+            props.handleDeletePopUp(currentShipping!._id, currentShipping!.name);
+        }
+    }, [grabbing, action]);
     if (props.currentItem?.length == 0) {
         return (
             <div className="mt-8 h-[500px] overflow-auto">
@@ -38,7 +94,11 @@ export default function Table(props: TProps) {
     }
     return (
         <div className="mt-8 h-[500px] overflow-auto">
-            <table className="w-[1480px] table-fixed relative border-separate text-left " style={inputStyle}>
+            <table
+                id="table"
+                className="w-[1480px] table-fixed relative border-separate text-left "
+                style={inputStyle}
+            >
                 <thead className="">
                     <tr className="select-none">
                         <th className="text-center px-4 text-lg sticky top-0 border-b border-[#D1DBD3] bg-white w-[5%] ">
@@ -67,19 +127,26 @@ export default function Table(props: TProps) {
                             {props.currentItem.map((shipping, index) => {
                                 return (
                                     <tr
-                                        className={` border-b-2 border-[#D1DBD3]  hover:bg-gray-200 cursor-pointer active:bg-gray-300 hover:rounded-xl ${
-                                            grabbing ? "cursor-grabbing" : "cursor-pointer"
-                                        }`}
+                                        className={` border-b-2 border-[#D1DBD3]  hover:bg-gray-200 cursor-pointer active:bg-gray-300 hover:rounded-xl
+                                            grabbing
+                                            ${grabbing ? "cursor-grabbing" : "cursor-pointer "}
+                                            `}
                                         draggable
                                         onDragStart={(e) => {
                                             e.stopPropagation();
-                                            setIconAppear(true);
+                                            e.preventDefault();
                                             setGrabbing(true);
-                                            e.dataTransfer.setData("shippingId", shipping._id);
-                                            e.dataTransfer.setData("shippingName", shipping.name);
-                                            e.dataTransfer.setData("shippingAddress", shipping.address);
-                                            e.dataTransfer.setData("shippingPhone", shipping.phone);
-                                            e.dataTransfer.setData("shippingNote", shipping.note);
+                                            setCoordinates({
+                                                x: e.clientX,
+                                                y: e.clientY,
+                                            });
+                                            setCurrentShipping({
+                                                _id: shipping._id,
+                                                name: shipping.name,
+                                                phone: shipping.phone,
+                                                address: shipping.address,
+                                                note: shipping.note,
+                                            });
                                             props.handleId(shipping._id);
                                         }}
                                         onDragEnd={() => {
@@ -134,6 +201,17 @@ export default function Table(props: TProps) {
                     )}
                 </tbody>
             </table>
+            {/* {grabbing && (
+                
+            )} */}
+            <OptionSelected
+                x={coordinates.x}
+                y={coordinates.y}
+                grabbing={grabbing}
+                setGrabbing={setGrabbing}
+                setAction={setAction}
+                actions={actions}
+            />
         </div>
     );
 }

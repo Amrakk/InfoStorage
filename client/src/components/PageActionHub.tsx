@@ -1,6 +1,6 @@
-import { trpc } from "../trpc";
-import { CollectionNames } from "../../../server/src/configs/default";
 import { useEffect, useRef, useState } from "react";
+import { CollectionNames } from "../../../server/src/configs/default";
+import { trpc } from "../trpc";
 
 import readXlsxFile from "read-excel-file";
 
@@ -10,6 +10,7 @@ type TProps = {
     handleAddPopUp: () => void;
     getShippings: () => void;
     title: string;
+    handleExportFilePopup: () => void;
 };
 
 export default function PageActionHub(props: TProps) {
@@ -21,10 +22,7 @@ export default function PageActionHub(props: TProps) {
         function handleFile() {
             const uploaded = inputRef.current!.files![0];
 
-            if (
-                uploaded.type != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
-                return;
+            if (uploaded.type != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") return;
 
             setIsImporting(true);
 
@@ -82,10 +80,7 @@ export default function PageActionHub(props: TProps) {
                                                     w.name.trim().toLowerCase() == cur ||
                                                     w.codename.trim().toLowerCase() == cur
                                             );
-                                        return [
-                                            ...acc,
-                                            ward?.code ? ward.code.toString() : undefined,
-                                        ];
+                                        return [...acc, ward?.code ? ward.code.toString() : undefined];
                                     }
                                     default: {
                                         return [...acc, cur];
@@ -160,7 +155,7 @@ export default function PageActionHub(props: TProps) {
                 <div className="lg:flex gap-5 hidden">
                     <button
                         className="w-40 py-3 bg-gray-200 hover:bg-gray-300 transition-colors rounded-md"
-                        onClick={exportFile}
+                        onClick={props.handleExportFilePopup}
                     >
                         Export File
                     </button>

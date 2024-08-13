@@ -3,12 +3,12 @@ import { useForm } from "react-hook-form";
 import { FaFilter } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { useMultipleState } from "../hooks";
-import { useProvinces } from "../stores/Provinces";
-import { type TDistrict, type TWard } from "../trpc";
-import { useShippingsStore } from "../stores/Shippings";
-import { useSearchValue } from "../stores/SearchValue";
-import { useFilterShipping } from "../stores/FilterShipping";
 import { useCurrentPageStore } from "../stores/CurrentPage";
+import { useFilterShipping } from "../stores/FilterShipping";
+import { useProvinces } from "../stores/Provinces";
+import { useSearchValue } from "../stores/SearchValue";
+import { useShippingsStore } from "../stores/Shippings";
+import { type TDistrict, type TWard } from "../trpc";
 import Select from "./Select";
 type TProps = {
     isShown: boolean;
@@ -53,7 +53,7 @@ type TPropsContent = {
 function Content(props: TPropsContent) {
     const [districts, setDistricts] = useState<TDistrict>([]);
     const [wards, setWards] = useState<TWard>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, _setLoading] = useState(false);
     const { setSearchValue } = useSearchValue();
     const { provinces } = useProvinces();
     const { shippings } = useShippingsStore();
@@ -68,7 +68,7 @@ function Content(props: TPropsContent) {
         setValue,
         getValues,
         handleSubmit,
-        formState: { errors },
+        // formState: { errors },
     } = useForm<TShipping>({
         mode: "onChange",
     });
